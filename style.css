@@ -1,0 +1,105 @@
+#scene_diary_toolbar,
+#scene_diary_panel {
+    --scene-diary-surface: #23384d;
+    --scene-diary-surface-hover: #345a79;
+    --scene-diary-border: #9acdf5;
+    --scene-diary-text: #f8fbff;
+    --scene-diary-focus: #ffe08a;
+}
+
+#scene_diary_toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin: 0.2rem 0;
+    font-size: 0.85em;
+}
+
+#scene_diary_toolbar [data-role="status"] {
+    flex: 1;
+    color: var(--scene-diary-text);
+    background: #182633;
+    border: 1px solid #527895;
+    border-radius: 4px;
+    padding: 0.35rem 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#scene_diary_toolbar button,
+#scene_diary_panel button {
+    color: var(--scene-diary-text) !important;
+    background-color: var(--scene-diary-surface) !important;
+    border: 1px solid var(--scene-diary-border) !important;
+    border-radius: 5px;
+    padding: 0.35rem 0.6rem;
+    font-weight: 600;
+    text-shadow: 0 1px 1px #0008;
+}
+
+#scene_diary_toolbar button:hover:not(:disabled),
+#scene_diary_panel button:hover:not(:disabled) {
+    color: #ffffff !important;
+    background-color: var(--scene-diary-surface-hover) !important;
+    border-color: #ffffff !important;
+}
+
+#scene_diary_toolbar button:focus-visible,
+#scene_diary_panel button:focus-visible,
+#scene_diary_panel input:focus-visible,
+#scene_diary_panel select:focus-visible,
+#scene_diary_panel textarea:focus-visible {
+    outline: 3px solid var(--scene-diary-focus);
+    outline-offset: 2px;
+}
+
+#scene_diary_toolbar button[data-action="end"],
+#scene_diary_panel button[data-action="end"] {
+    background-color: #075f67 !important;
+    border-color: #a9f3f8 !important;
+}
+
+#scene_diary_toolbar button:disabled,
+#scene_diary_panel button:disabled {
+    color: #e6edf3 !important;
+    background-color: #4c5a67 !important;
+    border-color: #8a9aa8 !important;
+    cursor: not-allowed;
+    opacity: 0.9;
+}
+
+#scene_diary_panel {
+    position: fixed;
+    z-index: 10000;
+    top: 8vh;
+    right: 2vw;
+    width: min(520px, 92vw);
+    max-height: 84vh;
+    overflow: auto;
+    padding: 1rem;
+    border: 1px solid #84b5d9;
+    border-radius: 0.5rem;
+    background: #172633;
+    color: #f8fbff;
+    box-shadow: 0 0.5rem 2rem #0008;
+}
+
+.scene-diary-panel-head { display: flex; justify-content: space-between; align-items: center; }
+.scene-diary-panel-head h3 { margin: 0; }
+.scene-diary-help, .scene-diary-muted { opacity: 0.75; }
+.scene-diary-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.7rem; }
+#scene_diary_panel label { display: block; margin: 0.55rem 0; color: #f8fbff; }
+#scene_diary_panel input, #scene_diary_panel select, #scene_diary_panel textarea {
+    width: 100%;
+    box-sizing: border-box;
+    color: #13202b;
+    background: #f8fbff;
+    border: 1px solid #b9d9ed;
+}
+.scene-diary-entry { margin: 0.5rem 0; padding: 0.45rem; border: 1px solid #668cab; border-radius: 0.35rem; }
+.scene-diary-entry summary { cursor: pointer; }
+#scene_diary_panel h4 { margin-bottom: 0.25rem; }
+#scene_diary_panel ul { margin-top: 0; padding-left: 1.2rem; }
+
