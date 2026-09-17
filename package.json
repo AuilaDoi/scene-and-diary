@@ -1,0 +1,11 @@
+{
+  "name": "scene-and-diary",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "node --check index.js && node --check core.js",
+    "test": "node --test test/*.test.mjs"
+  }
+}
+
