@@ -1,4 +1,4 @@
-# scene&diary 0.2.1
+# scene&diary 0.2.2
 
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act's dialogue in the normal context and carries continuity through short character diaries, act handoff details, and a searchable per-chat long-term memory library.
 
@@ -11,7 +11,7 @@ The first 0.2 release supports solo character chats. Group chats, cross-chat sha
 ## How it works
 
 1. Open the `🎬 scene&diary` panel beside the send box.
-2. Configure optional body tags separately for player and character messages. Leave a body-tag field blank to use the full message. Several tags are comma-separated.
+2. Configure optional opening/closing body-tag pairs separately for player and character messages. Each line is one complete pair, such as `<now_plot>` and `</now_plot>`. Leave all pair fields blank to use the full message.
 3. Click **结束这一幕**. The extension freezes the current act, extracts only configured visible dialogue, and asks the diary and memory models separately.
 4. Review the diary and every proposed memory. Edit the diary, uncheck unwanted memories, then confirm. Nothing is written to the memory library before confirmation.
 5. The next actual player message opens the next act. On each normal generation, the extension retrieves related memory from the latest three valid messages by default.
@@ -32,14 +32,14 @@ The recall query inherits the same player/character body-tag rules used for diar
 
 Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Loading a 0.1 chat migrates its acts, diaries, handoff data, and settings without converting old diary prose into factual memory. Existing ordinary chats require the player to select **从当前第一条接管旧聊天**; earlier messages stay in the chat file but are not silently treated as new memory.
 
-No API key is stored by this extension. A diary and memory model can each use the current Chat Completion connection or a Connection Manager profile. Auxiliary requests explicitly disable inherited preset and instruct templates.
+No API key is stored by this extension. A diary and memory model can each use the current Chat Completion connection or a Connection Manager profile. Auxiliary requests explicitly disable inherited preset and instruct templates. They receive only the character card's description, personality, and scenario fields as character context; system prompts, jailbreaks, example dialogue, greetings, world books, and creator notes are not copied.
 
 ## Settings reference
 
-- **正文标签**: valid XML-like names such as `now_plot` and `scene_time`; invalid names are ignored when settings are normalized.
+- **正文标签**: enter complete, matching opening and closing tags such as `<now_plot>` and `</now_plot>`. Multiple pairs use corresponding lines. Mismatched names, invalid syntax, or unequal line counts are rejected when saving.
 - **最近有效消息数**: 1–20 messages, default 3; this is messages, not dialogue turns.
 - **长期记忆预算**: default 1,200 estimated tokens and at most 8 entries.
 - **近期日记篇数**: default 2. Set to zero to inject no diary at all.
-- **提示词**: available variables are `{{char}}`, `{{user}}`, `{{dialogue}}`, and `{{story_time}}`. Keep the required JSON output shape.
+- **提示词**: the setting displays the effective default text and edits only the model role definition. Available variables are `{{char}}` and `{{user}}`. Character context, current dialogue, and mandatory JSON output instructions are appended internally and cannot be edited from the settings page.
 
 The panel is responsive: on narrow screens it becomes full-screen, retains a touch-friendly 44px minimum target, and keeps act actions accessible above the mobile safe area.

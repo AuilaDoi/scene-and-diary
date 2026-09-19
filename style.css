@@ -110,6 +110,9 @@
 .scene-diary-candidate input, #scene_diary_panel input[type="checkbox"] { width: auto; margin-right: .35rem; }
 #scene_diary_panel small { opacity: .75; }
 #scene_diary_panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 40vh; overflow: auto; }
+.scene-diary-tag-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: .7rem 0; border: 1px solid var(--scene-diary-border); border-radius: .35rem; }
+.scene-diary-tag-pair legend { padding: 0 .35rem; }
+.scene-diary-tag-pair label { margin: 0 !important; }
 
 @media (max-width: 600px) {
     #scene_diary_panel { inset: 0; width: auto; max-height: none; border-radius: 0; padding: 1rem max(1rem, env(safe-area-inset-right)) calc(1rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); }
@@ -117,4 +120,5 @@
     #scene_diary_toolbar [data-role="status"] { order: 3; flex-basis: 100%; }
     #scene_diary_panel button { min-height: 44px; }
     .scene-diary-actions { position: sticky; bottom: 0; padding: .5rem 0; background: var(--scene-diary-surface); }
+    .scene-diary-tag-pair { grid-template-columns: 1fr; }
 }
