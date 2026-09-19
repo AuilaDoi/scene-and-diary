@@ -22,6 +22,8 @@ If configured tags do not match a message, closing and generation stop with the 
 
 Memory entries record category, title, fact, people and aliases, importance, story time, source act/message IDs, device-local creation time and timezone, and edit/lock/review state. Entries marked deleted, disabled, or requiring review are never recalled. Manual edits lock an entry from automatic replacement.
 
+A closed act enters pending review only when its saved source fingerprint no longer matches the current selected message text. Harmless SillyTavern update events, including closing an editor without changing text, do not invalidate diaries or memories. Saving a pending diary or memory confirms the current content and makes that item eligible for injection again. Existing 0.2.3 data that was falsely marked pending is repaired automatically when its source text still matches; no diary or memory text is rewritten.
+
 Story time is copied only from the configured story-time tags. It may be relative text such as `初夏` and is never replaced with the device date. Device time is used only for management metadata.
 
 Recall is local Chinese keyword/BM25-style matching. Aliases and titles receive a small boost, with importance as a secondary tie-breaker. The Diagnostics page displays the exact query, matches, scores, and token budget result.
