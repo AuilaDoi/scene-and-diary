@@ -28,7 +28,7 @@ Recall is local Chinese keyword/BM25-style matching. Aliases and titles receive 
 
 The recall query inherits the same player/character body-tag rules used for diary and memory extraction. Text outside configured body tags never enters retrieval. If a recent message misses its required body tag, the generation is stopped and the affected floor is reported instead of recalling against unfiltered text.
 
-Recent diaries, the previous-act handoff, and recalled long-term memories are prepended to the current act's chat history as one temporary system block, in that order. They therefore appear before the complete retained history instead of between the latest messages, and are never written as a chat floor. Existing settings, diaries, memories, and v0.1/v0.2 chat data remain compatible and are normalized without rewriting their content.
+Recent diaries, the previous-act handoff, and recalled long-term memories are inserted after prompt assembly as one temporary system block, in that order, immediately before the first retained user or assistant history message. This keeps them out of the real chat, prevents history budgeting from dropping them, and applies the same placement when SillyTavern performs a Chat Completion dry run. Existing settings, diaries, memories, and v0.1/v0.2 chat data remain compatible and are normalized without rewriting their content.
 
 ## Data and migration
 
