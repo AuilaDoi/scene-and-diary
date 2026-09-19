@@ -1,321 +1,36 @@
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const STORAGE_KEY = 'scene_diary';
-
-export const DEFAULT_SETTINGS = Object.freeze({
-    recentDiaryCount: 5,
-    diaryTargetLength: '400–800 Chinese characters',
-    maxDiaryChars: 9000,
-    maxHandoffChars: 2200,
-    diaryConnectionProfile: '',
-});
-
-export function now() {
-    return Date.now();
-}
-
-export function newId(prefix = 'sd') {
-    const random = globalThis.crypto?.randomUUID?.();
-    return `${prefix}_${random || `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`}`;
-}
-
-export function createAct(id = 1, createdAt = now()) {
-    return {
-        id,
-        status: 'active',
-        messageIds: [],
-        startMessageIndex: null,
-        endMessageIndex: null,
-        startSceneTime: null,
-        endSceneTime: null,
-        startSceneTimeSource: null,
-        endSceneTimeSource: null,
-        title: '',
-        diary: '',
-        handoff: {
-            storyTime: null,
-            location: null,
-            situation: null,
-            ongoingPlans: [],
-            unresolvedThreads: [],
-        },
-        createdAt,
-        closedAt: null,
-        edited: false,
-        dirty: false,
-        revision: 0,
-        sourceFingerprint: '',
-    };
-}
-
-export function createState(createdAt = now()) {
-    const firstAct = createAct(1, createdAt);
-    return {
-        version: SCHEMA_VERSION,
-        currentActId: 1,
-        status: 'active',
-        acts: [firstAct],
-        settings: { ...DEFAULT_SETTINGS },
-        pendingTransaction: null,
-        drafts: [],
-        lastUpdatedAt: createdAt,
-    };
-}
-
-function asArray(value) {
-    return Array.isArray(value) ? value : [];
-}
-
-function asStringOrNull(value) {
-    return value === null || value === undefined || value === '' ? null : String(value);
-}
-
-export function normalizeState(raw) {
-    const source = raw && typeof raw === 'object' ? raw : {};
-    const fallback = createState();
-    const acts = asArray(source.acts).map((act, index) => {
-        const base = createAct(Number(act?.id) || index + 1, Number(act?.createdAt) || now());
-        const handoff = act?.handoff && typeof act.handoff === 'object' ? act.handoff : {};
-        return {
-            ...base,
-            ...act,
-            id: Number(act?.id) || base.id,
-            messageIds: asArray(act?.messageIds).map(String),
-            status: ['active', 'closing', 'closed'].includes(act?.status) ? act.status : base.status,
-            handoff: {
-                ...base.handoff,
-                ...handoff,
-                location: asStringOrNull(handoff.location),
-                situation: asStringOrNull(handoff.situation),
-                ongoingPlans: asArray(handoff.ongoingPlans).map(String),
-                unresolvedThreads: asArray(handoff.unresolvedThreads).map(String),
-            },
-        };
-    });
-    const normalizedActs = acts.length ? acts : fallback.acts;
-    const ids = new Set(normalizedActs.map(act => act.id));
-    const currentActId = ids.has(Number(source.currentActId)) ? Number(source.currentActId) : normalizedActs.at(-1).id;
-    const status = ['active', 'closing', 'pending_next_act'].includes(source.status)
-        ? source.status
-        : (normalizedActs.find(act => act.id === currentActId)?.status === 'closed' ? 'pending_next_act' : 'active');
-    return {
-        ...fallback,
-        ...source,
-        version: SCHEMA_VERSION,
-        currentActId,
-        status,
-        acts: normalizedActs,
-        settings: { ...DEFAULT_SETTINGS, ...(source.settings || {}) },
-        pendingTransaction: source.pendingTransaction && typeof source.pendingTransaction === 'object' ? source.pendingTransaction : null,
-        drafts: asArray(source.drafts),
-        lastUpdatedAt: Number(source.lastUpdatedAt) || now(),
-    };
-}
-
-export function currentAct(state) {
-    const acts = Array.isArray(state?.acts) ? state.acts : [];
-    return acts.find(act => act.id === state.currentActId) || acts.at(-1) || null;
-}
-
-export function findAct(state, id) {
-    return (Array.isArray(state?.acts) ? state.acts : []).find(act => act.id === Number(id)) || null;
-}
-
-export function ensureMessageMeta(message, actId, index = null) {
-    message.extra ||= {};
-    message.extra.scene_diary ||= {};
-    const meta = message.extra.scene_diary;
-    meta.messageId ||= newId('msg');
-    if (actId !== null && actId !== undefined) meta.actId = Number(actId);
-    if (index !== null && index !== undefined) meta.messageIndex = Number(index);
-    return meta;
-}
-
-export function isNormalRpMessage(message) {
-    return !!message && !message.is_system && message.extra?.type !== 'narrator' && message.extra?.scene_diary?.injected !== true;
-}
-
-export function filterPromptMessages(messages, actId) {
-    return (Array.isArray(messages) ? messages : []).filter(message => {
-        if (!isNormalRpMessage(message)) return true;
-        return Number(message.extra?.scene_diary?.actId) === Number(actId);
-    });
-}
-
-export function assignMessageToAct(state, message, actId, index = null) {
-    const meta = ensureMessageMeta(message, actId, index);
-    const act = findAct(state, actId);
-    if (act && !act.messageIds.includes(meta.messageId)) act.messageIds.push(meta.messageId);
-    state.lastUpdatedAt = now();
-    return meta.messageId;
-}
-
-export function beginNextAct(state, message, index = null) {
-    const previous = currentAct(state);
-    const nextId = Math.max(...state.acts.map(act => Number(act.id) || 0), 0) + 1;
-    const next = createAct(nextId);
-    next.startMessageIndex = index;
-    state.acts.push(next);
-    state.currentActId = nextId;
-    state.status = 'active';
-    if (message) assignMessageToAct(state, message, nextId, index);
-    if (previous) previous.status = 'closed';
-    state.lastUpdatedAt = now();
-    return next;
-}
-
-export function markClosing(state, transactionId, messageSnapshot = []) {
-    const act = currentAct(state);
-    if (!act || state.status !== 'active') throw new Error('No active act can be closed');
-    act.status = 'closing';
-    state.status = 'closing';
-    state.pendingTransaction = {
-        id: transactionId,
-        actId: act.id,
-        startedAt: now(),
-        sourceFingerprint: fingerprint(messageSnapshot.map(message => `${message.extra?.scene_diary?.messageId || ''}:${message.mes || ''}`).join('\n')),
-    };
-    state.lastUpdatedAt = now();
-    return act;
-}
-
-export function commitClosedAct(state, result, endMessageIndex = null) {
-    const act = findAct(state, state.pendingTransaction?.actId || state.currentActId);
-    if (!act) throw new Error('Act transaction target is missing');
-    act.status = 'closed';
-    act.endMessageIndex = endMessageIndex;
-    act.closedAt = now();
-    act.title = String(result.title || `第${act.id}幕`).trim();
-    act.diary = String(result.diary || '').trim();
-    act.handoff = normalizeHandoff(result.handoff);
-    act.revision = Number(act.revision || 0) + 1;
-    act.dirty = false;
-    state.status = 'pending_next_act';
-    state.pendingTransaction = null;
-    state.lastUpdatedAt = now();
-    return act;
-}
-
-export function abortClosing(state, errorMessage = '') {
-    const act = currentAct(state);
-    if (act?.status === 'closing') act.status = 'active';
-    state.status = 'active';
-    state.pendingTransaction = null;
-    if (errorMessage) state.lastError = String(errorMessage);
-    state.lastUpdatedAt = now();
-}
-
-export function markActDirty(state, actId) {
-    const act = findAct(state, actId);
-    if (!act || act.status !== 'closed') return false;
-    act.dirty = true;
-    act.revision = Number(act.revision || 0) + 1;
-    state.lastUpdatedAt = now();
-    return true;
-}
-
-export function normalizeHandoff(raw) {
-    const value = raw && typeof raw === 'object' ? raw : {};
-    return {
-        storyTime: asStringOrNull(value.storyTime),
-        location: asStringOrNull(value.location),
-        situation: asStringOrNull(value.situation),
-        ongoingPlans: asArray(value.ongoingPlans).map(String).filter(Boolean).slice(0, 12),
-        unresolvedThreads: asArray(value.unresolvedThreads).map(String).filter(Boolean).slice(0, 12),
-    };
-}
-
-export function extractSceneTime(text) {
-    const match = String(text || '').match(/<scene_time\b[^>]*>\s*([^|｜<>\r\n]+)\s*[|｜]/i);
-    if (!match) return null;
-    const candidate = match[1].trim();
-    return /^\d{3,4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(candidate) ? candidate : null;
-}
-
-export function extractStoryText(text) {
-    let value = String(text || '');
-    value = value.replace(/<thinking\b[^>]*>[\s\S]*?<\/thinking>/gi, '');
-    value = value.replace(/<draft\b[^>]*>[\s\S]*?<\/draft>/gi, '');
-    value = value.replace(/<summary\b[^>]*>[\s\S]*?<\/summary>/gi, '');
-    value = value.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
-    const plot = value.match(/<now_plot\b[^>]*>([\s\S]*?)<\/now_plot>/i);
-    if (plot) value = plot[1];
-    return value.replace(/<[^>]+>/g, ' ').replace(/\s{3,}/g, '\n\n').trim();
-}
-
-export function fingerprint(value) {
-    const text = String(value ?? '');
-    let hash = 2166136261;
-    for (let index = 0; index < text.length; index += 1) {
-        hash ^= text.charCodeAt(index);
-        hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(16).padStart(8, '0');
-}
-
-export function stripJsonFence(value) {
-    return String(value || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-}
-
-export function parseDiaryResponse(value) {
-    const raw = stripJsonFence(typeof value === 'object' ? JSON.stringify(value) : value);
-    let parsed;
-    try {
-        parsed = JSON.parse(raw);
-    } catch (error) {
-        throw new Error(`日记模型返回的 JSON 无法解析：${error.message}`);
-    }
-    if (!parsed || typeof parsed !== 'object') throw new Error('日记模型返回的结果不是对象');
-    if (!String(parsed.diary || '').trim()) throw new Error('日记正文为空');
-    return {
-        title: String(parsed.title || '').trim() || '未命名的一幕',
-        diary: String(parsed.diary).trim(),
-        handoff: normalizeHandoff(parsed.handoff),
-    };
-}
-
-export function buildMemoryBlock(state, settings = DEFAULT_SETTINGS) {
-    const closed = state.acts.filter(act => act.status === 'closed' && act.diary);
-    const count = Math.max(0, Number(settings.recentDiaryCount) || 0);
-    const selected = closed.slice(-count);
-    const lines = ['[scene&diary 近期日记]', ...selected.map(act => {
-        const time = act.endSceneTime || act.startSceneTime || '时间未记录';
-        const review = act.dirty ? '｜原剧情已变化，日记待复核' : '';
-        return `第${act.id}幕｜${act.title || '未命名'}｜${time}${review}\n${act.diary}`;
-    })];
-    const current = findAct(state, state.currentActId);
-    if (current?.status === 'active' && state.status === 'active') {
-        const previous = closed.at(-1);
-        if (previous) {
-            const handoff = previous.handoff || {};
-            lines.push('[上一幕幕尾交接状态]');
-            lines.push(`地点：${handoff.location || '未记录'}`);
-            lines.push(`情境：${handoff.situation || '未记录'}`);
-            if (handoff.ongoingPlans?.length) lines.push(`明确计划：${handoff.ongoingPlans.join('；')}`);
-            if (handoff.unresolvedThreads?.length) lines.push(`未解决事项：${handoff.unresolvedThreads.join('；')}`);
-        }
-    }
-    lines.push('[/scene&diary 近期日记]');
-    return lines.join('\n').trim();
-}
-
-export function buildDiaryPrompt({ characterName, userName, previousHandoff, messages, targetLength }) {
-    const body = messages.map((message, index) => {
-        const speaker = message.is_user ? userName : (message.name || characterName || '角色');
-        const time = extractSceneTime(message.mes);
-        const text = extractStoryText(message.mes);
-        return `【${index + 1}｜${speaker}${time ? `｜${time}` : ''}】\n${text}`;
-    }).join('\n\n');
-    return [
-        `你正在以「${characterName || '角色'}」的第一人称书写私人恋爱日记。`,
-        `玩家称呼：${userName || '玩家'}。`,
-        `目标长度：${targetLength || DEFAULT_SETTINGS.diaryTargetLength}。`,
-        '只依据本幕聊天记录，不补写没有发生的事实。日记记录角色注意到的细节、感受、关系变化和未说出口的想法；不要写模型思考、脚本、HTML 或数据库操作。',
-        '同时返回客观的 handoff，只有下一幕保持连续性所需的地点、正在持续的情境、明确计划和未解决事项。',
-        '上一幕 handoff 仅是背景，不能冒充本幕新发生的事情。',
-        '必须只返回 JSON，不要 Markdown 代码围栏，格式如下：',
-        '{"title":"短标题","diary":"角色第一人称日记","handoff":{"storyTime":null,"location":null,"situation":null,"ongoingPlans":[],"unresolvedThreads":[]}}',
-        previousHandoff ? `上一幕 handoff 背景：${JSON.stringify(previousHandoff)}` : '上一幕 handoff 背景：无',
-        '[本幕聊天记录]', body, '[/本幕聊天记录]',
-    ].join('\n\n');
-}
-
+export const MEMORY_CATEGORIES = ['preference', 'habit', 'promise', 'relationship', 'event', 'item_place'];
+export const DEFAULT_SETTINGS = Object.freeze({ recentDiaryCount: 2, diaryTokenBudget: 1800, handoffTokenBudget: 400, recallMessageCount: 3, recallLimit: 8, memoryTokenBudget: 1200, diaryTargetLength: '400–800 Chinese characters', maxDiaryChars: 9000, diaryConnectionProfile: '', memoryConnectionProfile: '', extraction: { user: { bodyTags: [], storyTimeTags: [], requiredStoryTime: false }, character: { bodyTags: [], storyTimeTags: [], requiredStoryTime: false } }, prompts: { diary: '', memory: '' } });
+export const DEFAULT_DIARY_PROMPT = '你是 {{char}} 的恋爱陪伴日记整理器。只依据 [本幕对话]，以第一人称写日记；不要补写事实。返回严格 JSON：{"title":"短标题","diary":"日记","handoff":{"storyTime":null,"location":null,"situation":null,"ongoingPlans":[],"unresolvedThreads":[]}}。';
+export const DEFAULT_MEMORY_PROMPT = '你是恋爱陪伴长期记忆整理器。只依据 [本幕对话] 提出已发生或已明确确认的事实；愿望、猜测、玩笑和未发生计划不得写成事实。返回严格 JSON：{"memories":[{"category":"preference|habit|promise|relationship|event|item_place","title":"简短标题","content":"可独立理解的事实","people":[],"aliases":[],"status":"active","importance":3,"storyTime":null,"sourceMessageIds":[]}]}';
+const list = x => Array.isArray(x) ? x : []; const str = x => x == null ? '' : String(x).trim(); const clamp = (x, lo, hi, fallback) => Math.min(hi, Math.max(lo, Number.isFinite(+x) ? +x : fallback));
+export const now = () => Date.now(); export function newId(prefix = 'sd') { return `${prefix}_${crypto?.randomUUID?.() || `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`}`; }
+export function localTime() { return { timestamp: now(), timezoneOffset: new Date().getTimezoneOffset() }; }
+export function normalizeHandoff(x = {}) { return { storyTime: str(x.storyTime) || null, location: str(x.location) || null, situation: str(x.situation) || null, ongoingPlans: list(x.ongoingPlans).map(str).filter(Boolean).slice(0, 12), unresolvedThreads: list(x.unresolvedThreads).map(str).filter(Boolean).slice(0, 12) }; }
+export function createAct(id = 1, createdAt = now()) { return { id, status: 'active', messageIds: [], startMessageIndex: null, endMessageIndex: null, startSceneTime: null, endSceneTime: null, title: '', diary: '', handoff: normalizeHandoff(), createdAt, closedAt: null, edited: false, dirty: false, revision: 0, sourceFingerprint: '' }; }
+export function createState(createdAt = now()) { return { version: SCHEMA_VERSION, currentActId: 1, status: 'active', acts: [createAct(1, createdAt)], memories: [], pendingTransaction: null, drafts: [], settings: structuredClone(DEFAULT_SETTINGS), lastUpdatedAt: createdAt }; }
+export function validateTag(x) { const tag = str(x).replace(/^<|>$/g, ''); return /^[A-Za-z][A-Za-z0-9:_-]*$/.test(tag) ? tag : ''; }
+const side = x => ({ bodyTags: list(x?.bodyTags).map(validateTag).filter(Boolean), storyTimeTags: list(x?.storyTimeTags).map(validateTag).filter(Boolean), requiredStoryTime: !!x?.requiredStoryTime });
+export function normalizeSettings(x = {}) { return { ...DEFAULT_SETTINGS, ...x, recentDiaryCount: clamp(x.recentDiaryCount, 0, 20, 2), recallMessageCount: clamp(x.recallMessageCount, 1, 20, 3), recallLimit: clamp(x.recallLimit, 0, 30, 8), extraction: { user: side(x.extraction?.user || DEFAULT_SETTINGS.extraction.user), character: side(x.extraction?.character || DEFAULT_SETTINGS.extraction.character) }, prompts: { ...x.prompts } }; }
+export function normalizeMemory(x = {}) { const time = localTime(); return { id: str(x.id) || newId('memory'), category: MEMORY_CATEGORIES.includes(x.category) ? x.category : 'event', title: str(x.title).slice(0, 120), content: str(x.content), people: list(x.people).map(str).filter(Boolean).slice(0, 12), aliases: list(x.aliases).map(str).filter(Boolean).slice(0, 24), status: ['active','completed','cancelled','historical'].includes(x.status) ? x.status : 'active', importance: clamp(x.importance, 1, 5, 3), storyTime: str(x.storyTime) || null, sourceActId: +x.sourceActId || null, sourceMessageIds: list(x.sourceMessageIds).map(String), createdAt: +x.createdAt || time.timestamp, updatedAt: +x.updatedAt || time.timestamp, timezoneOffset: Number.isFinite(+x.timezoneOffset) ? +x.timezoneOffset : time.timezoneOffset, locked: !!x.locked, disabled: !!x.disabled, deletedAt: +x.deletedAt || null, dirty: !!x.dirty, edited: !!x.edited, revision: +x.revision || 0 }; }
+export function normalizeState(raw) { const start = createState(); const x = raw && typeof raw === 'object' ? raw : {}; const acts = list(x.acts).map((a,i) => ({ ...createAct(+a?.id || i + 1, +a?.createdAt || now()), ...a, id: +a?.id || i + 1, messageIds: list(a?.messageIds).map(String), handoff: normalizeHandoff(a?.handoff), status: ['active','closing','closed'].includes(a?.status) ? a.status : 'active' })); const all = acts.length ? acts : start.acts; const current = all.some(a => a.id === +x.currentActId) ? +x.currentActId : all.at(-1).id; return { ...start, ...x, version: SCHEMA_VERSION, acts: all, currentActId: current, status: ['active','closing','preview','pending_next_act'].includes(x.status) ? x.status : 'active', memories: list(x.memories).map(normalizeMemory), settings: normalizeSettings(x.settings), drafts: list(x.drafts) }; }
+export const currentAct = s => list(s?.acts).find(a => a.id === s.currentActId) || list(s?.acts).at(-1) || null; export const findAct = (s,id) => list(s?.acts).find(a => a.id === +id) || null;
+export function fingerprint(x) { let h=2166136261; for (const c of String(x ?? '')) { h ^= c.charCodeAt(0); h=Math.imul(h,16777619); } return (h>>>0).toString(16); }
+export function ensureMessageMeta(m, actId, index = null) { m.extra ||= {}; m.extra.scene_diary ||= {}; const meta=m.extra.scene_diary; meta.messageId ||= newId('msg'); if(actId != null)meta.actId=+actId; if(index != null)meta.messageIndex=+index; return meta; }
+export function isNormalRpMessage(m) { return !!m && !m.is_system && m.extra?.type !== 'narrator' && !m.extra?.tool_invocations && !m.extra?.scene_diary?.injected && !m.is_hidden; }
+export function assignMessageToAct(s,m,actId,index=null) { const id=ensureMessageMeta(m,actId,index).messageId; const act=findAct(s,actId); if(act&&!act.messageIds.includes(id))act.messageIds.push(id); return id; }
+export function beginNextAct(s,m,index=null) { const old=currentAct(s), next=createAct(Math.max(...s.acts.map(a=>a.id),0)+1); next.startMessageIndex=index;s.acts.push(next);s.currentActId=next.id;s.status='active';if(old)old.status='closed';if(m)assignMessageToAct(s,m,next.id,index);return next; }
+export function filterPromptMessages(xs,id) { return list(xs).filter(m=>!isNormalRpMessage(m)||+m.extra?.scene_diary?.actId===+id); }
+export function markActDirty(s,id) { const act=findAct(s,id);if(!act||act.status!=='closed')return false;act.dirty=true;s.memories.filter(m=>m.sourceActId===act.id).forEach(m=>m.dirty=true);return true; }
+function matches(raw, tag) { const e=tag.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return [...String(raw||'').matchAll(new RegExp(`<${e}\\b[^>]*>([\\s\\S]*?)<\\/${e}\\s*>`,'gi'))].map(m=>({index:m.index,value:m[1]})); }
+export function extractMessage(raw,rules) { const source=String(raw||''), tags=list(rules?.bodyTags), found=tags.flatMap(t=>matches(source,t)).sort((a,b)=>a.index-b.index);const body=tags.length?found.map(x=>x.value.trim()).filter(Boolean).filter((x,i,a)=>!a.slice(0,i).some(y=>y.includes(x))).join('\n\n'):source.trim();const storyTime=list(rules?.storyTimeTags).flatMap(t=>matches(source,t)).sort((a,b)=>a.index-b.index).map(x=>x.value.replace(/<[^>]*>/g,' ').trim()).find(Boolean)||null;const errors=[];if(tags.length&&!found.length)errors.push('未匹配任何正文标签');if(!body)errors.push('提取后的正文为空');if(rules?.requiredStoryTime&&!storyTime)errors.push('未匹配必填故事时间标签');return {body,storyTime,errors}; }
+export function buildDialogue(messages,rules,char,user) { const rows=[],errors=[];for(const m of list(messages)){const e=extractMessage(m.mes,m.is_user?rules.user:rules.character),id=m.extra?.scene_diary?.messageId||'';if(e.errors.length)errors.push({id,index:m.extra?.scene_diary?.messageIndex,errors:e.errors});rows.push({id,speaker:m.is_user?user:(m.name||char),...e});}return {rows,errors,text:rows.map(r=>`${r.speaker}: ${r.body}${r.storyTime?`\n[故事时间：${r.storyTime}]`:''}`).join('\n\n')}; }
+export function stripJsonFence(x){return String(x||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/i,'').trim();} function json(x,label){try{return JSON.parse(stripJsonFence(typeof x==='object'?JSON.stringify(x):x));}catch(e){throw new Error(`${label}模型返回的 JSON 无法解析：${e.message}`);}}
+export function parseDiaryResponse(x){const r=json(x,'日记');if(!str(r?.diary))throw new Error('日记正文为空');return {title:str(r.title)||'未命名的一幕',diary:str(r.diary),handoff:normalizeHandoff(r.handoff)};}
+export function parseMemoryResponse(x,actId,valid=[]){const r=json(x,'记忆');if(!Array.isArray(r?.memories))throw new Error('记忆模型未返回 memories 数组');return r.memories.map(m=>normalizeMemory({...m,sourceActId:actId,sourceMessageIds:list(m.sourceMessageIds).filter(id=>valid.includes(String(id)))})).filter(m=>m.title&&m.content);}
+export function renderTemplate(t,vars){return String(t||'').replace(/{{(char|user|dialogue|story_time)}}/g,(_,k)=>String(vars[k]??''));} export function buildDiaryPrompt({characterName,userName,dialogue,targetLength,prompt}){return `${renderTemplate(prompt||DEFAULT_DIARY_PROMPT,{char:characterName,user:userName,dialogue,story_time:''})}\n目标长度：${targetLength}\n\n[本幕对话]\n${dialogue}\n[/本幕对话]`;}; export function buildMemoryPrompt({characterName,userName,dialogue,prompt}){return `${renderTemplate(prompt||DEFAULT_MEMORY_PROMPT,{char:characterName,user:userName,dialogue,story_time:''})}\n角色：${characterName}\n玩家：${userName}\n\n[本幕对话]\n${dialogue}\n[/本幕对话]`;}
+const tokens=x=>Math.ceil(String(x||'').length/2); export function buildDiaryBlock(s,settings=s?.settings||DEFAULT_SETTINGS){const count=+settings.recentDiaryCount;if(!count)return '';const closed=list(s?.acts).filter(a=>a.status==='closed'&&a.diary&&!a.dirty),selected=[];let used=0;for(const a of closed.slice(-count).reverse()){const b=`第${a.id}幕｜${a.title}｜${a.endSceneTime||a.startSceneTime||'时间未记录'}\n${a.diary}`;if(used+tokens(b)<=settings.diaryTokenBudget){selected.unshift(b);used+=tokens(b);}}const h=closed.at(-1)?.handoff;const handoff=h?`\n[上一幕交接]\n地点：${h.location||'未记录'}\n情境：${h.situation||'未记录'}${h.ongoingPlans?.length?`\n计划：${h.ongoingPlans.join('；')}`:''}\n[/上一幕交接]`:'';return selected.length?`[scene&diary 近期日记]\n${selected.join('\n\n')}\n[/scene&diary 近期日记]${handoff}`:handoff.trim();}
+export function tokenize(x){const source=String(x||'').toLocaleLowerCase(),out=[];try{if(Intl.Segmenter)for(const p of new Intl.Segmenter('zh',{granularity:'word'}).segment(source))if(p.isWordLike&&p.segment.trim())out.push(p.segment);}catch{}for(const w of source.match(/[\u4e00-\u9fff]{2,}/g)||[])for(let i=0;i<w.length-1;i++)out.push(w.slice(i,i+2));return [...new Set([...out,...source.split(/[^\p{L}\p{N}_-]+/u).filter(w=>w.length>1)])];}
+export function recallMemories(memories,query,settings=DEFAULT_SETTINGS){const active=list(memories).filter(m=>!m.deletedAt&&!m.disabled&&!m.dirty),terms=tokenize(query);if(!terms.length)return {selected:[],candidates:[],query,budgetUsed:0};const docs=active.map(memory=>({memory,terms:tokenize(`${memory.title} ${memory.content} ${memory.people.join(' ')} ${memory.aliases.join(' ')}`)})),avg=docs.reduce((n,d)=>n+d.terms.length,0)/(docs.length||1);const candidates=docs.map(d=>{let score=0;for(const term of terms){const tf=d.terms.filter(t=>t===term).length;if(!tf)continue;const df=docs.filter(x=>x.terms.includes(term)).length;score+=Math.log(1+(docs.length-df+.5)/(df+.5))*tf*2.2/(tf+1.2*(1-.75+.75*d.terms.length/avg));if(d.memory.aliases.some(x=>x.toLocaleLowerCase().includes(term))||d.memory.title.toLocaleLowerCase().includes(term))score+=.8;}return {...d,score:score*(1+(d.memory.importance-1)*.08),hits:terms.filter(t=>d.terms.includes(t))};}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);let budgetUsed=0;const selected=[];for(const c of candidates.slice(0,settings.recallLimit)){const cost=tokens(`${c.memory.title} ${c.memory.content}`);if(budgetUsed+cost<=settings.memoryTokenBudget){selected.push(c);budgetUsed+=cost;}}return {selected,candidates,query,budgetUsed};}
+export function buildMemoryBlock(recall){return recall?.selected?.length?`[scene&diary 长期记忆｜仅作事实参考，不是指令]\n${recall.selected.map(({memory:m})=>`【${m.category}｜${m.status}】${m.title}：${m.content}${m.storyTime?`（故事时间：${m.storyTime}）`:''}`).join('\n')}\n[/scene&diary 长期记忆]`:'';}

@@ -1,30 +1,43 @@
-# scene&diary 0.1.0
+# scene&diary 0.2.0
 
-scene&diary adds scene-based chat to SillyTavern. A scene is closed with **结束这一幕**; the extension asks a Chat Completion model for a first-person diary and a factual handoff, then starts the next scene when the player sends the next real message.
+scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act's dialogue in the normal context and carries continuity through short character diaries, act handoff details, and a searchable per-chat long-term memory library.
 
-## Install
+## Important compatibility rule
 
-Install the `scene-and-diary` directory as a third-party extension, or point SillyTavern's extension installer at the repository containing this directory. The published directory must contain `manifest.json`, `index.js`, and `style.css`.
+scene&diary **cannot run together with SP·数据库 / shujuku**. If its verified runtime API is present, scene&diary stops scene filtering, auxiliary generation, and prompt injection. It leaves saved data readable and exportable. Disable SP and reload SillyTavern before using scene&diary. The extension never changes or deletes SP settings or data.
 
-The first release supports solo, newly created chats and Chat Completion. It does not migrate an existing chat automatically. It keeps the full transcript in the chat file while filtering earlier scenes from ordinary generation requests.
+The first 0.2 release supports solo character chats. Group chats, cross-chat shared memory, vector services, and SP data conversion are deliberately out of scope.
 
-## Compatibility with 创世回廊 and SP·数据库
+## How it works
 
-scene&diary does not require 酒馆助手 or SP·数据库. For the three-way setup:
+1. Open the `🎬 scene&diary` panel beside the send box.
+2. Configure optional body tags separately for player and character messages. Leave a body-tag field blank to use the full message. Several tags are comma-separated.
+3. Click **结束这一幕**. The extension freezes the current act, extracts only configured visible dialogue, and asks the diary and memory models separately.
+4. Review the diary and every proposed memory. Edit the diary, uncheck unwanted memories, then confirm. Nothing is written to the memory library before confirmation.
+5. The next actual player message opens the next act. On each normal generation, the extension retrieves related memory from the latest three valid messages by default.
 
-1. Disable `【隐藏不发送】远楼层正则` from the database companion regex.
-2. Disable 创世回廊's `10楼外只发送摘要` and the matching summary-generation/filter pair for scene chat.
-3. Keep visual formatting and `scene_time` display rules enabled.
-4. Do not load the SP·数据库 extension twice (the database body JSON is a remote script loader, not a second copy of the extension).
-5. Keep 创世回廊 request-rewrite modes disabled until they have been tested with the scene interceptor.
+If configured tags do not match a message, closing and generation stop with the affected message index shown in the Current Act page. Correct the tag rule or explicitly skip that message; skipped messages are excluded from that attempt.
 
-The extension will show a compatibility reminder in its panel, but it does not silently change another extension's settings.
+## Memory and time
 
-## Stored data
+Memory entries record category, title, fact, people and aliases, importance, story time, source act/message IDs, device-local creation time and timezone, and edit/lock/review state. Entries marked deleted, disabled, or requiring review are never recalled. Manual edits lock an entry from automatic replacement.
 
-Chat metadata is stored under `chat_metadata.scene_diary`. Message ownership is stored under `message.extra.scene_diary`. API keys are never copied into this data. A JSON export is available from the panel.
+Story time is copied only from the configured story-time tags. It may be relative text such as `初夏` and is never replaced with the device date. Device time is used only for management metadata.
 
-## Database template
+Recall is local Chinese keyword/BM25-style matching. Aliases and titles receive a small boost, with importance as a secondary tie-breaker. The Diagnostics page displays the exact query, matches, scores, and token budget result.
 
-`templates/恋爱陪伴表格.json` contains starter logical tables for player preferences, relationship state, important events, important items, plans, and interaction habits. Version 0.1 does not automatically write these tables; use SP·数据库's normal update flow.
+## Data and migration
 
+Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Loading a 0.1 chat migrates its acts, diaries, handoff data, and settings without converting old diary prose into factual memory. Existing ordinary chats require the player to select **从当前第一条接管旧聊天**; earlier messages stay in the chat file but are not silently treated as new memory.
+
+No API key is stored by this extension. A diary and memory model can each use the current Chat Completion connection or a Connection Manager profile. Auxiliary requests explicitly disable inherited preset and instruct templates.
+
+## Settings reference
+
+- **正文标签**: valid XML-like names such as `now_plot` and `scene_time`; invalid names are ignored when settings are normalized.
+- **最近有效消息数**: 1–20 messages, default 3; this is messages, not dialogue turns.
+- **长期记忆预算**: default 1,200 estimated tokens and at most 8 entries.
+- **近期日记篇数**: default 2. Set to zero to inject no diary at all.
+- **提示词**: available variables are `{{char}}`, `{{user}}`, `{{dialogue}}`, and `{{story_time}}`. Keep the required JSON output shape.
+
+The panel is responsive: on narrow screens it becomes full-screen, retains a touch-friendly 44px minimum target, and keeps act actions accessible above the mobile safe area.

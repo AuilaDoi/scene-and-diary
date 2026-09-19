@@ -1,17 +1,13 @@
-# 兼容配置清单
+# Compatibility
 
-scene&diary 只过滤自己标记的普通 RP 消息，不会修改其他扩展的设置。为了让“当前幕完整、旧幕按日记回忆”生效，请在导入创世回廊和 SP·数据库后手动确认以下配置。
+## SP·数据库 / shujuku
 
-| 配置 | 建议状态 | 原因 |
-|---|---|---|
-| `【隐藏不发送】远楼层正则` | 关闭 | 它按固定楼层隐藏消息，会先于 scene&diary 的幕过滤执行。 |
-| `10楼外只发送摘要` | 关闭 | 它会把当前幕早期正文替换为摘要。 |
-| `10楼内不发送摘要` | 关闭或按需 | 首版的幕日记替代逐轮摘要；保留时请确认不会清空正文。 |
-| 正文阅读器/时间头美化 | 保留 | 这些规则只负责显示时可以继续使用。 |
-| 创世回廊请求改写 | 首版关闭 | 工具传输、输入转码和附加文本会改变辅助请求与主请求的可验证性。 |
-| SP·数据库自动填表 | 可保留 | v0.1 不调用它的写入接口；它仍可按自己的规则运行。 |
+scene&diary 0.2 is intentionally incompatible with SP·数据库. Both products own long-term relationship data and prompt injection, so enabling them together can duplicate or contradict context.
 
-如果使用“数据库本体”JSON，请确保没有同时加载同一版本的独立 SP·数据库扩展，以免初始化两次。
+When the verified `AutoCardUpdaterAPI` runtime marker is found, scene&diary becomes read-only: it does not filter acts, run diary or memory requests, or inject diary/memory context. It does not alter other extensions, their settings, or their stored data. Stop SP·数据库 and reload SillyTavern to resume scene&diary.
 
-scene&diary 面板里的兼容性检查只做提醒，不会自动禁用或修改这些选项。
+The check cannot reliably identify renamed, forked, or manually embedded copies that do not expose this marker. Those installations remain unsupported and must be disabled manually.
 
+## SillyTavern
+
+Requires SillyTavern 1.18.0 or newer and a solo character chat. Auxiliary diary and memory generation needs Chat Completion through the active connection or a Connection Manager profile. The extension has no server-side component and stores no API key.

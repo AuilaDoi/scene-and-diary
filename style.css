@@ -103,3 +103,18 @@
 #scene_diary_panel h4 { margin-bottom: 0.25rem; }
 #scene_diary_panel ul { margin-top: 0; padding-left: 1.2rem; }
 
+.scene-diary-tabs { display: flex; gap: .35rem; overflow-x: auto; margin: .8rem 0; padding-bottom: .2rem; }
+.scene-diary-tabs button { white-space: nowrap; min-height: 44px; }
+.scene-diary-warning { color: #ffe08a; }
+.scene-diary-candidate { padding: .45rem; border: 1px solid var(--scene-diary-border); border-radius: .3rem; }
+.scene-diary-candidate input, #scene_diary_panel input[type="checkbox"] { width: auto; margin-right: .35rem; }
+#scene_diary_panel small { opacity: .75; }
+#scene_diary_panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 40vh; overflow: auto; }
+
+@media (max-width: 600px) {
+    #scene_diary_panel { inset: 0; width: auto; max-height: none; border-radius: 0; padding: 1rem max(1rem, env(safe-area-inset-right)) calc(1rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); }
+    #scene_diary_toolbar { flex-wrap: wrap; }
+    #scene_diary_toolbar [data-role="status"] { order: 3; flex-basis: 100%; }
+    #scene_diary_panel button { min-height: 44px; }
+    .scene-diary-actions { position: sticky; bottom: 0; padding: .5rem 0; background: var(--scene-diary-surface); }
+}
