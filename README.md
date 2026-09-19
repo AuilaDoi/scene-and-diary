@@ -1,4 +1,4 @@
-# scene&diary 0.2.2
+# scene&diary 0.2.3
 
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act's dialogue in the normal context and carries continuity through short character diaries, act handoff details, and a searchable per-chat long-term memory library.
 
@@ -27,6 +27,8 @@ Story time is copied only from the configured story-time tags. It may be relativ
 Recall is local Chinese keyword/BM25-style matching. Aliases and titles receive a small boost, with importance as a secondary tie-breaker. The Diagnostics page displays the exact query, matches, scores, and token budget result.
 
 The recall query inherits the same player/character body-tag rules used for diary and memory extraction. Text outside configured body tags never enters retrieval. If a recent message misses its required body tag, the generation is stopped and the affected floor is reported instead of recalling against unfiltered text.
+
+Recent diaries, the previous-act handoff, and recalled long-term memories are injected together at the long-term-memory chat position, in that order. Keeping them in one system block prevents other preset additions from being inserted between the continuity records. Existing settings, diaries, memories, and v0.1/v0.2 chat data remain compatible and are normalized without rewriting their content.
 
 ## Data and migration
 
