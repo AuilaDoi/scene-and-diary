@@ -1,4 +1,4 @@
-# scene&diary 0.2.3
+# scene&diary 0.2.4
 
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act's dialogue in the normal context and carries continuity through short character diaries, act handoff details, and a searchable per-chat long-term memory library.
 
@@ -22,6 +22,8 @@ If configured tags do not match a message, closing and generation stop with the 
 
 Memory entries record category, title, fact, people and aliases, importance, story time, source act/message IDs, device-local creation time and timezone, and edit/lock/review state. Entries marked deleted, disabled, or requiring review are never recalled. Manual edits lock an entry from automatic replacement.
 
+Each memory also has a **常驻** switch. Eligible permanent memories are recalled and injected on every generation before keyword-matched entries, even when the current query has no matching terms. They count toward **最多召回条目**; the switch cannot be enabled after that limit is reached, and the limit cannot be reduced below the current permanent-memory count. Permanent entries are always included even when their combined estimate exceeds the long-term memory token budget, while ordinary matches use only the remaining slots and budget.
+
 A closed act enters pending review only when its saved source fingerprint no longer matches the current selected message text. Harmless SillyTavern update events, including closing an editor without changing text, do not invalidate diaries or memories. Saving a pending diary or memory confirms the current content and makes that item eligible for injection again. Existing 0.2.3 data that was falsely marked pending is repaired automatically when its source text still matches; no diary or memory text is rewritten.
 
 Story time is copied only from the configured story-time tags. It may be relative text such as `初夏` and is never replaced with the device date. Device time is used only for management metadata.
@@ -42,7 +44,7 @@ No API key is stored by this extension. A diary and memory model can each use th
 
 - **正文标签**: enter complete, matching opening and closing tags such as `<now_plot>` and `</now_plot>`. Multiple pairs use corresponding lines. Mismatched names, invalid syntax, or unequal line counts are rejected when saving.
 - **最近有效消息数**: 1–20 messages, default 3; this is messages, not dialogue turns.
-- **长期记忆预算**: default 1,200 estimated tokens and at most 8 entries.
+- **长期记忆预算**: default 1,200 estimated tokens and at most 8 entries. Permanent entries occupy the first slots; increase **最多召回条目** before enabling more permanent memories.
 - **近期日记篇数**: default 2. Set to zero to inject no diary at all.
 - **提示词**: the setting displays the effective default text and edits only the model role definition. Available variables are `{{char}}` and `{{user}}`. Character context, current dialogue, and mandatory JSON output instructions are appended internally and cannot be edited from the settings page.
 
