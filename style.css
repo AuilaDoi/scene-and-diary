@@ -107,6 +107,10 @@
 .scene-diary-tabs button { white-space: nowrap; min-height: 44px; }
 .scene-diary-warning { color: #ffe08a; }
 .scene-diary-candidate { padding: .45rem; border: 1px solid var(--scene-diary-border); border-radius: .3rem; }
+.scene-diary-result { margin: .75rem 0; padding: .6rem; border: 1px solid #668cab; border-radius: .35rem; }
+.scene-diary-error { border-color: #ff9b9b; }
+.scene-diary-error p { color: #ffd1d1; }
+.scene-diary-result textarea[readonly] { opacity: .8; }
 .scene-diary-candidate input, #scene_diary_panel input[type="checkbox"] { width: auto; margin-right: .35rem; }
 #scene_diary_panel small { opacity: .75; }
 #scene_diary_panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 40vh; overflow: auto; }
@@ -120,5 +124,6 @@
     #scene_diary_toolbar [data-role="status"] { order: 3; flex-basis: 100%; }
     #scene_diary_panel button { min-height: 44px; }
     .scene-diary-actions { position: sticky; bottom: 0; padding: .5rem 0; background: var(--scene-diary-surface); }
+    [data-page="growth"] textarea { min-height: 42vh; }
     .scene-diary-tag-pair { grid-template-columns: 1fr; }
 }
