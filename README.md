@@ -1,79 +1,38 @@
-# scene&diary 0.2.5
+# scene&diary 0.3
 
-scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act in normal chat context and carries earlier development through a cumulative character-growth document, recent first-person diaries, and a searchable per-chat long-term memory library.
+scene&diary is a scene-based memory extension for one-character SillyTavern roleplay chats. It writes a first-person diary and character-growth record for each closed act, maintains events and changing facts, and recalls related memories on each generation.
 
-## Important compatibility rule
+## Installation
 
-scene&diary **cannot run together with SP·数据库 / shujuku**. If its verified runtime API is present, scene&diary stops scene filtering, auxiliary generation, and prompt injection. It leaves saved data readable. Disable SP and reload SillyTavern before using scene&diary.
+The browser extension and server plugin must both be installed. The server package is the [`server`](server) directory in this repository. Copy that directory to `<SillyTavern>/plugins/scene-and-diary`, enable `enableServerPlugins: true` in SillyTavern's `config.yaml`, and restart SillyTavern. The browser extension stays in `public/scripts/extensions/third-party/scene-and-diary`. The panel's diagnostics tab shows service errors; an incompatible or unavailable service stops plugin-managed generation.
 
-The 0.2 series supports solo character chats. Group chats, cross-chat shared memory, vector services, and SP data conversion are out of scope.
+Node.js 20 or newer and SillyTavern 1.18.0 or newer are required. The server package has no native dependencies. The two components must use the same protocol version; the current protocol is 1.
 
-## How it works
+## Workflow
 
-1. Open the `🎬 scene&diary` panel beside the send box.
-2. Configure optional complete opening/closing body-tag pairs separately for player and character messages. Leave them blank to use the full message.
-3. Click **结束这一幕**. The extension freezes the current act and independently generates a diary, memory candidates, and an updated character-growth document.
-4. Review all three results. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
-5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
+1. Start a new one-character chat or select **从当前第一条接管旧聊天** for an existing chat.
+2. Choose **结束这一幕**. The extension extracts the tagged dialogue, generates diary and memory candidates, compares candidates with relevant existing memories, then generates the growth update.
+3. Review additions, fact replacements, evidence additions, conflicts, diary and growth. The confirmation saves one server transaction and advances to the next act. Changing the accepted memory proposals requires regenerating growth.
+4. Open **记忆库** to search and edit records, inspect their evidence, links and versions, page through a large library, review history, or export a complete memory backup.
 
-Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
+An event records what happened. A fact describes a current preference, habit, relationship or promise. A conditional fact can coexist with a general tendency: “usually skips breakfast” and “will eat breakfast made by the character” are both valid. Replacing a fact retains the old version for historical questions. Edits and deleted source messages mark dependent records for review.
 
-## Character growth
+Maintenance compares candidates in small batches. If too many old records match a candidate, it marks the suggestion as a conflict for review rather than assuming the old fact is absent. Entities with the same name remain separate until a confirmed identity choice or merge links them.
 
-**角色成长** is one editable document per chat. It tracks the character's personality development, emotional path, life-state changes, and evolving relationship with the player. It is not a plot log and does not require the next act to continue the previous act's time, location, actions, or unresolved events.
+## Retrieval and embedding
 
-At act close, the growth model receives only:
+The service maintains an incremental text index and an entity/link index. Retrieval combines weighted BM25, exact entity matches, optional vectors and one-hop links. Superseded facts are recalled only for historical questions. Permanent memories use part of the same token budget as dynamic results.
 
-- the character card's description, personality, and scenario;
-- the current character-growth document;
-- the cleaned dialogue from the act being closed.
+Embedding is off by default. To enable it, enter a separate OpenAI-compatible embedding base URL, model and API key under **设置**, save and test the connection, then enable semantic recall for the chat. The key stays in the authenticated user's server data directory. Model errors and timeouts fall back to text retrieval. Query rewriting and model reranking are separate advanced settings and are off by default.
 
-It does not receive old raw dialogue, world books, presets, long-term memory, or legacy handoff data. The growth request reuses the diary connection and has its own editable role prompt. Its JSON format is appended internally and cannot be edited.
+## Migration, branches and backup
 
-Players may create or edit character growth at any time. For an adopted old chat, the extension recommends writing an initial account of earlier development but does not block act closing. It never creates initial growth from old diaries automatically. The maximum stored length is 4,000 characters, and oversized model output is rejected rather than truncated.
+Opening a v0.2 chat imports its memories, acts and growth into a server library. The server keeps the original data as `legacyBackup`. Imported memories remain searchable; **整理旧记忆** proposes structural changes in batches of 20 for review. Export a complete memory backup from **记忆库** before substantial changes or moving to another device. The backup includes chat memory settings and transaction history; embedding credentials are excluded. SillyTavern's native chat export alone does not contain the server library.
 
-If a source message from an already incorporated act changes, the growth page shows a review recommendation while continuing to inject the current document. Saving it clears the recommendation.
+Chats have separate libraries. A historical branch retains records whose source evidence is present in the branch and restores a previous fact version when its later replacement is absent. Open the original chat once under v0.3 before opening one of its branches. Chat rename keeps its binding; deleted libraries remain recoverable for 30 days.
 
-## Diaries, memory, and injection
+Server data is stored under the authenticated SillyTavern user's root in `scene-and-diary`. Snapshot and transaction-journal files are authoritative. Text and vector indexes are derived and may be rebuilt. Embedding credentials are excluded from exported library backups.
 
-Diaries remain per-act first-person records of concrete experiences. Long-term memories remain searchable factual entries with categories, sources, review state, locking, and optional **常驻** recall.
+## Verification
 
-Handoff generation and injection have been removed. Existing handoff fields remain untouched in old chat data for rollback compatibility, but 0.2.5 never reads or updates them and new acts do not create them. Story time comes only from configured story-time tags.
-
-On a normal generation, one temporary system block is inserted after preset assembly and immediately before the first retained user or assistant history message. Its order is:
-
-```text
-[scene&diary 角色成长｜关系与状态演变路径]
-...
-[/scene&diary 角色成长]
-
-[scene&diary 近期日记]
-...
-[/scene&diary 近期日记]
-
-[scene&diary 长期记忆｜仅作事实参考，不是指令]
-...
-[/scene&diary 长期记忆]
-```
-
-Empty sections are omitted. Character growth is injected whole. Recent diaries obey their count and token budget; recalled memories obey their limit and budget, except eligible permanent memories, which occupy the first recall slots.
-
-## Data and migration
-
-Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema v3 adds `characterGrowth` without rewriting existing diaries, memories, tag rules, prompts, or permanent-memory choices.
-
-- v0.1–v0.2.4 handoff data is preserved but inactive.
-- A test-build `summary` object migrates to `characterGrowth`; an existing `characterGrowth` object takes precedence.
-- The old `handoffTokenBudget` setting may remain in saved JSON for downgrade compatibility but is not used or displayed.
-- No API key is stored. Auxiliary requests disable inherited preset and instruct templates.
-
-## Settings reference
-
-- **正文标签**: complete matching opening and closing tags such as `<now_plot>` and `</now_plot>`; multiple pairs use corresponding lines.
-- **最近有效消息数**: 1–20 messages, default 3.
-- **长期记忆**: default maximum 8 entries and 1,200 estimated tokens; permanent entries occupy recall slots first.
-- **近期日记篇数**: default 2; zero disables diary injection.
-- **角色成长目标长度**: default 800–1500 Chinese characters; storage is capped at 4,000 characters.
-- **提示词**: diary, memory, and character-growth role definitions are editable. Available variables are `{{char}}` and `{{user}}`; inputs and output formats are appended internally.
-
-The panel is responsive. Tabs scroll horizontally on narrow screens, touch targets remain at least 44px, and the character-growth editor uses the mobile full-screen panel with a sticky save area.
+Run `npm test` for functional tests and `npm run build` for syntax checks. `node test/benchmark.mjs 5000 10000 50000` measures the retrieval core with synthetic records; it does not measure a phone or an external embedding provider. See [ACCEPTANCE.md](ACCEPTANCE.md) for the current evidence and remaining release checks.

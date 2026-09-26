@@ -7,7 +7,7 @@
   "js": "index.js",
   "css": "style.css",
   "author": "scene&diary contributors",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "homePage": "https://github.com/AuilaDoi/scene-and-diary",
   "auto_update": true,
   "minimum_client_version": "1.18.0"

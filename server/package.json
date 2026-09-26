@@ -1,0 +1,8 @@
+{
+  "name": "scene-and-diary-server",
+  "version": "0.3.0",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "description": "SillyTavern scene&diary memory server plugin"
+}

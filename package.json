@@ -2,10 +2,12 @@
   "name": "scene-and-diary",
   "private": true,
   "type": "module",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "scripts": {
-    "build": "node --check index.js && node --check core.js",
-    "test": "node --test test/*.test.mjs"
+    "build": "node --check index.js && node --check core.js && node --check service.js && node --check server/index.mjs && node --check server/engine.mjs && node --check server/search.mjs && node --check server/embedding.mjs && node --check server/vector-worker.mjs && node --check server/index-worker.mjs",
+    "test": "node --test test/*.test.mjs",
+    "quality": "node test/quality.mjs",
+    "benchmark": "node test/benchmark.mjs"
   }
 }
 
