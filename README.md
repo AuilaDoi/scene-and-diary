@@ -1,4 +1,8 @@
-# scene&diary 0.2.5
+# scene&diary 0.3.0-rc.1
+
+This release candidate is for manual testing. Install the `v0.3.0-rc.1` tag or `release/v0.3.0-rc.1` branch; the stable `main` branch remains on v0.2.5. Automatic updates are disabled for this RC. Before opening an existing chat with the RC, export a full SillyTavern chat backup. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until manual verification is complete.
+
+开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act in normal chat context and carries earlier development through a cumulative character-growth document, recent first-person diaries, and a searchable per-chat long-term memory library.
 
@@ -6,14 +10,14 @@ scene&diary is a standalone SillyTavern extension for scene-based romance rolepl
 
 scene&diary **cannot run together with SP·数据库 / shujuku**. If its verified runtime API is present, scene&diary stops scene filtering, auxiliary generation, and prompt injection. It leaves saved data readable. Disable SP and reload SillyTavern before using scene&diary.
 
-The 0.2 series supports solo character chats. Group chats, cross-chat shared memory, vector services, and SP data conversion are out of scope.
+The 0.3 series supports solo character chats. Group chats, cross-chat shared memory, and SP data conversion are out of scope. Optional vector retrieval uses a direct browser connection to an OpenAI-compatible embeddings endpoint.
 
 ## How it works
 
 1. Open the `🎬 scene&diary` panel beside the send box.
 2. Configure optional complete opening/closing body-tag pairs separately for player and character messages. Leave them blank to use the full message.
 3. Click **结束这一幕**. The extension freezes the current act and independently generates a diary, memory candidates, and an updated character-growth document.
-4. Review all three results. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
+4. Review all three results. Memory candidates include source excerpts and proposed additions or updates to earlier memories. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
 
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
@@ -36,9 +40,9 @@ If a source message from an already incorporated act changes, the growth page sh
 
 ## Diaries, memory, and injection
 
-Diaries remain per-act first-person records of concrete experiences. Long-term memories remain searchable factual entries with categories, sources, review state, locking, and optional **常驻** recall.
+Diaries remain per-act first-person records of concrete experiences. Long-term memory stores objective facts with source excerpts, review state, locking, and optional **常驻** recall. Wishes, speculation, internal monologue, and unfulfilled plans must not become accomplished events. Memory maintenance is proposed at act close and committed only after review.
 
-Handoff generation and injection have been removed. Existing handoff fields remain untouched in old chat data for rollback compatibility, but 0.2.5 never reads or updates them and new acts do not create them. Story time comes only from configured story-time tags.
+Handoff generation and injection remain removed. Existing handoff fields remain untouched in old chat data for rollback compatibility. Story time comes only from configured story-time tags.
 
 On a normal generation, one temporary system block is inserted after preset assembly and immediately before the first retained user or assistant history message. Its order is:
 
@@ -60,12 +64,23 @@ Empty sections are omitted. Character growth is injected whole. Recent diaries o
 
 ## Data and migration
 
-Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema v3 adds `characterGrowth` without rewriting existing diaries, memories, tag rules, prompts, or permanent-memory choices.
+Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema v4 adds source evidence, lifecycle, revision, maintenance history, memory-space identity, and optional semantic settings. Old entries retain their content and control choices; unavailable old evidence is marked unverified.
 
 - v0.1–v0.2.4 handoff data is preserved but inactive.
 - A test-build `summary` object migrates to `characterGrowth`; an existing `characterGrowth` object takes precedence.
 - The old `handoffTokenBudget` setting may remain in saved JSON for downgrade compatibility but is not used or displayed.
-- No API key is stored. Auxiliary requests disable inherited preset and instruct templates.
+- Optional embedding API keys may be saved in SillyTavern account storage when explicitly selected. This browser storage is accessible to same-origin scripts. Keys never enter chat metadata or memory exports.
+- Embeddings are a rebuildable IndexedDB cache. Losing that cache does not delete memory entries.
+- Rollback to v0.2.5 requires restoring a pre-migration chat backup, not only switching extension code.
+- Auxiliary requests disable inherited preset and instruct templates when using a dedicated Connection Manager profile.
+
+## Memory maintenance and semantic retrieval
+
+The memory page offers duplicate, contradiction and promise-status review, undo of the latest unchanged maintenance result, JSON memory export and import, and recovery of a locally staged save. Exact duplicates are proposed locally; when a memory model is available, further suggestions are reviewed in batches of 30 entries. Inspect every suggestion against its source messages before accepting it. Import previews the replacement count and keeps the previous library in maintenance history.
+
+Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Enabling it sends memory text and recall queries to that service. The endpoint must allow browser CORS requests. An unavailable endpoint falls back to local retrieval; model reranking is separately optional. The settings page can clear a remembered key and rebuild missing vectors.
+
+Current automated checks do not prove live SillyTavern save, model accuracy, CORS support, or visual behavior. Validate those flows with a backed-up chat before relying on a migrated library.
 
 ## Settings reference
 
