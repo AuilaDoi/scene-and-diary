@@ -11,7 +11,7 @@
 | 远端仓库 | <https://github.com/AuilaDoi/scene-and-diary> |
 | 基准版本 | `v0.2.5` |
 | 基准提交 | `ebce4287f6ce63f3233178bb315c618e4faf47fd` |
-| 数据结构版本 | 基线为 3；v0.3.0-rc.1 升级至 `SCHEMA_VERSION = 4` |
+| 数据结构版本 | 基线为 3；v0.3.0-rc.2 升级至 `SCHEMA_VERSION = 4` |
 | 最低宿主版本声明 | SillyTavern `1.18.0` |
 | 文档核对日期 | 2026-09-27 |
 

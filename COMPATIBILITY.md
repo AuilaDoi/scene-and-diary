@@ -1,6 +1,6 @@
 # Compatibility
 
-`v0.3.0-rc.1` is a manual-testing release candidate. Its schema 4 migration preserves legacy memory content and control fields, but opening a v0.1–v0.2.5 chat upgrades its saved data. Keep a full pre-migration chat backup; returning to v0.2.5 requires restoring that backup. The extension stores a second, browser-local pre-migration copy and keeps the chat read-only until that copy is written and the upgraded save is verified. Live-host migration and rollback still need manual verification.
+`v0.3.0-rc.2` is a manual-testing release candidate. Its schema 4 migration preserves legacy memory content and control fields, but opening a v0.1–v0.2.5 chat upgrades its saved data. Keep a full pre-migration chat backup; returning to v0.2.5 requires restoring that backup. The extension stores a second, browser-local pre-migration copy and keeps the chat read-only until that copy is written and the upgraded save is verified. Live-host migration and rollback still need manual verification.
 
 ## SP·数据库 / shujuku
 

@@ -2,9 +2,9 @@
   "name": "scene-and-diary",
   "private": true,
   "type": "module",
-  "version": "0.3.0-rc.1",
+  "version": "0.3.0-rc.2",
   "scripts": {
-    "build": "node --check index.js && node --check core.js && node --check memory-system.js && node --check semantic.js",
+    "build": "node --check index.js && node --check core.js && node --check memory-system.js && node --check semantic.js && node --check model-protocol.js",
     "test": "node --test test/*.test.mjs"
   }
 }

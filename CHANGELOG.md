@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0-rc.2 — structured model output
+
+- Request JSON object output through SillyTavern for diary, memory, growth and maintenance responses.
+- Increase output allowances and retry only malformed JSON responses once; preserve completed close tasks.
+- Keep plain-output fallback for providers that reject structured output.
+- Verified the three close response types with the saved siliconflow-glm5.2 profile through the SillyTavern backend using synthetic dialogue. Real chat and UI testing remain pending.
+
 ## 0.3.0-rc.1 — manual testing candidate
 
 - Added evidence-backed objective memory extraction and reviewable maintenance proposals.

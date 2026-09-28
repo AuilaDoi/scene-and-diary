@@ -1,6 +1,6 @@
-# scene&diary 0.3.0-rc.1
+# scene&diary 0.3.0-rc.2
 
-This release candidate is for manual testing. Install the `v0.3.0-rc.1` tag or `release/v0.3.0-rc.1` branch; the stable `main` branch remains on v0.2.5. Automatic updates are disabled for this RC. Before opening an existing chat with the RC, export a full SillyTavern chat backup. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until manual verification is complete.
+This release candidate is for manual testing. Install the `v0.3.0-rc.2` tag or `release/v0.3.0-rc.2` branch; the stable `main` branch remains on v0.2.5. Automatic updates are disabled for this RC. Before opening an existing chat with the RC, export a full SillyTavern chat backup. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until manual verification is complete.
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
@@ -19,6 +19,8 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 3. Click **结束这一幕**. The extension freezes the current act and independently generates a diary, memory candidates, and an updated character-growth document.
 4. Review all three results. Memory candidates include source excerpts and proposed additions or updates to earlier memories. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
+
+RC.2 asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry.
 
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
 
