@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0-rc.4 — memory references are informational
+
+- Stop checking generated or manually edited memory references against chat messages; missing or mismatched references no longer reject a memory.
+- Stop marking memories for review after edits to older messages, and allow legacy `dirty` memories to participate in recall. Diary and character-growth review behavior remains.
+- Let status updates and archive suggestions operate without source excerpts, while keeping structural checks, lock rules, user confirmation, and save verification.
+- Keep existing source fields as optional, unverified reference information. Schema remains 4.
+
 ## 0.3.0-rc.3 — evidence review and memory workflow
 
 - Match source quotes despite punctuation, whitespace and full-width formatting differences, then store the exact span from the source message. Invalid IDs and factual rewrites remain rejected.

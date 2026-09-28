@@ -6,31 +6,26 @@ import { cacheKey, validateSemanticEndpoint } from '../semantic.js';
 
 const row = { id: 'msg-1', body: '小林答应周末一起去海边。', speaker: '小林' };
 const candidate = { category: 'promise', title: '周末海边约定', content: '小林答应周末一起去海边', status: 'active', sources: [{ messageId: 'msg-1', excerpt: '答应周末一起去海边' }] };
-test('candidate evidence must be present in its exact source message', () => {
+test('memory sources are optional references and are not checked against messages', () => {
     const result = validateCandidates([candidate], [row], 1);
     assert.equal(result[0].sources[0].messageId, 'msg-1');
     assert.equal(result[0].status, 'active');
-    assert.throws(() => validateCandidates([{ ...candidate, sources: [{ messageId: 'wrong', excerpt: '答应' }] }], [row], 1), /来源或证据无效/);
-    assert.throws(() => validateCandidates([{ ...candidate, sources: [{ messageId: 'msg-1', excerpt: '已经去了海边' }] }], [row], 1), /来源或证据无效/);
-    assert.throws(() => validateCandidates([{ ...candidate, sources: [] }], [row], 1), /缺少来源/);
+    const [uncited] = validateCandidates([{ ...candidate, sources: [] }], [row], 1);
+    assert.deepEqual(uncited.sources, []);
+    assert.deepEqual(validateCandidates([{ ...candidate, sources: undefined }], [row], 1)[0].sources, []);
+    const [unverified] = validateCandidates([{ ...candidate, sources: [{ messageId: 'wrong', excerpt: '已经去了海边' }] }], [row], 1);
+    assert.equal(unverified.sources[0].messageId, 'wrong');
+    assert.equal(unverified.sources[0].excerpt, '已经去了海边');
+    assert.equal(unverified.sources[0].fingerprint, '');
     assert.throws(() => validateCandidates([{ ...candidate, status: 'invented' }], [row], 1), /状态无效/);
 });
-test('format-only quote differences map back to the original message, without accepting invented facts', () => {
-    const source = { id: 'msg-emoji', body: '🌊小林说：“周末，去海边！”' };
-    const quoted = { ...candidate, sources: [{ messageId: source.id, excerpt: '小林说: "周末 去海边!"' }] };
-    const [valid] = validateCandidates([quoted], [source], 2);
-    assert.equal(valid.sources[0].excerpt, '小林说：“周末，去海边！”');
-    const [wrapped] = validateCandidates([{ ...quoted, sources: [{ messageId: source.id, excerpt: '[消息ID:msg-emoji] 小林：周末，去海边！' }] }], [{ ...source, speaker: '小林' }], 2);
-    assert.equal(wrapped.sources[0].excerpt, '周末，去海边！');
-    assert.throws(() => validateCandidates([{ ...quoted, sources: [{ messageId: source.id, excerpt: '小林说周末已经去了海边' }] }], [source], 2), /来源或证据无效/);
-});
-test('one invalid candidate does not discard a valid candidate, and the rejection stays reviewable', () => {
-    const batch = validateCandidateBatch([candidate, { ...candidate, title: '误引', sources: [{ messageId: 'wrong', excerpt: '答应' }] }], [row], 1);
+test('invalid memory structure is still excluded without discarding valid memories', () => {
+    const batch = validateCandidateBatch([candidate, { ...candidate, category: 'invented', title: '无效分类' }], [row], 1);
     assert.equal(batch.candidates.length, 1);
     assert.equal(batch.rejected.length, 1);
-    assert.match(batch.rejected[0].reason, /来源或证据无效/);
+    assert.match(batch.rejected[0].reason, /类别无效/);
 });
-test('maintenance preserves evidence and can undo unchanged result', () => {
+test('maintenance preserves optional references and can undo unchanged result', () => {
     const state = createState(1), [newMemory] = validateCandidates([candidate], [row], 1);
     const add = planMemoryChanges([newMemory], [], null);
     applyMemoryChanges(state, [newMemory], add, 'tx1');
@@ -47,6 +42,20 @@ test('locked targets, incomplete proposals and invalid archive are rejected', ()
     assert.throws(() => planMemoryChanges([fresh], [], []), /缺少维护决策/);
     const promise = { ...locked, locked: false };
     assert.throws(() => planMemoryChanges([fresh], [promise], [{ action: 'archive', candidateId: fresh.id, targetId: 'old' }]), /不可归档/);
+});
+test('maintenance can update a sourced or unsourced memory without checking its origin', () => {
+    const state = createState(1), target = { ...validateCandidates([{ ...candidate, sources: [] }], [row], 1)[0], id: 'old' };
+    state.memories = [target];
+    const [incoming] = validateCandidates([{ ...candidate, title: '已完成', sources: [] }], [row], 2);
+    const operations = planMemoryChanges([incoming], state.memories, [{ action: 'set_status', candidateId: incoming.id, targetId: 'old', status: 'completed' }]);
+    applyMemoryChanges(state, [incoming], operations);
+    assert.equal(state.memories[0].status, 'completed');
+    assert.deepEqual(state.memories[0].sources, []);
+    const archived = createState(1);
+    archived.memories = [{ ...target, category: 'event' }];
+    const archive = planMemoryChanges([incoming], archived.memories, [{ action: 'archive', candidateId: incoming.id, targetId: 'old' }]);
+    applyMemoryChanges(archived, [incoming], archive);
+    assert.equal(archived.memories[0].lifecycle, 'archived');
 });
 test('schema 4 migration is repeatable and future schemas are refused', () => {
     const old = { version: 3, memories: [{ id: 'a', title: '旧记忆', content: '事实', sourceActId: 1, sourceMessageIds: ['m'], locked: true, permanent: true, custom: 'keep' }] };
@@ -94,7 +103,7 @@ test('legacy memory libraries preserve facts, controls, provenance limits and re
         assert.deepEqual(repeated.memories, migrated.memories);
         assert.equal(repeated.memorySpaceId, migrated.memorySpaceId);
         assert.deepEqual(retrieveMemories(migrated.memories, '薄荷茶', migrated.settings).selected.map(item => item.memory.id), ['fixed', 'plain']);
-        assert.deepEqual(retrieveMemories(migrated.memories, '海边电影花店', migrated.settings).selected.map(item => item.memory.id), ['fixed']);
+        assert.deepEqual(retrieveMemories(migrated.memories, '海边电影花店', migrated.settings).selected.map(item => item.memory.id), ['fixed', 'dirty']);
     }
 });
 test('lexical cache does not reuse a different chat with the same IDs and revision', () => {
@@ -126,14 +135,11 @@ test('embedding endpoint never persists a URL containing credentials', () => {
     assert.throws(() => validateSemanticEndpoint('https://user:secret@example.test/v1/embeddings'), /密钥/);
     assert.throws(() => validateSemanticEndpoint('https://example.test/v1/embeddings?api_key=secret'), /密钥/);
 });
-test('sixty synthetic romance source scenarios reject unsupported assertions', () => {
+test('sixty synthetic romance candidates remain valid without source matching', () => {
     const events = ['约好一起看电影', '确认喜欢薄荷茶', '在雨中交换了伞', '送出了生日卡片', '一起做了晚饭', '解释了自己的昵称', '约好周五通话', '第一次见到小猫', '明确取消周末约会', '共同整理了照片'];
-    let accepted = 0, rejected = 0;
     for (let i = 0; i < 60; i++) {
         const fact = events[i % events.length], id = `case-${i}`, source = { id, body: `第${i + 1}幕：两人${fact}。` };
         const item = { category: 'event', title: `${fact}${i}`, content: `两人${fact}`, sources: [{ messageId: id, excerpt: i % 2 ? `已经完成${fact}` : fact }] };
-        if (i % 2) { assert.throws(() => validateCandidates([item], [source], i + 1), /来源或证据无效/); rejected++; }
-        else { assert.equal(validateCandidates([item], [source], i + 1)[0].sources[0].actId, i + 1); accepted++; }
+        assert.equal(validateCandidates([item], [source], i + 1)[0].sources[0].actId, i + 1);
     }
-    assert.equal(accepted, 30); assert.equal(rejected, 30);
 });

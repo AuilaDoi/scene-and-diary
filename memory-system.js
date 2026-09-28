@@ -2,75 +2,31 @@ import { MEMORY_CATEGORIES, estimateTokens, fingerprint, newId, normalizeMemory,
 
 const arr = value => Array.isArray(value) ? value : [];
 const clean = value => String(value ?? '').trim();
-export const memoryEligible = memory => memory && !memory.deletedAt && !memory.disabled && !memory.dirty && memory.lifecycle !== 'archived' && memory.lifecycle !== 'superseded';
+export const memoryEligible = memory => memory && !memory.deletedAt && !memory.disabled && memory.lifecycle !== 'archived' && memory.lifecycle !== 'superseded';
 export const memoryText = memory => `${memory.title} ${memory.content} ${arr(memory.people).join(' ')} ${arr(memory.aliases).join(' ')}`;
 export const memoryLine = memory => `【${memory.category}｜${memory.status}${memory.lifecycle === 'superseded' ? '｜历史版本' : ''}】${memory.title}：${memory.content}${memory.storyTime ? `（故事时间：${memory.storyTime}）` : ''}`;
 
-// Match only formatting differences, then keep the exact span from the source message.
-function evidenceKey(value) {
-    const chars = [], positions = [];
-    for (const [index, character] of [...String(value ?? '')].entries()) {
-        for (const normalized of character.normalize('NFKC')) {
-            if (/[\p{P}\p{Z}\s]/u.test(normalized)) continue;
-            chars.push(normalized);
-            positions.push(index);
-        }
-    }
-    return { chars, positions };
-}
-
-function sourceExcerpt(body, excerpt, row) {
-    const source = String(body ?? '');
-    let quoted = clean(excerpt);
-    const idPrefix = `[消息ID:${row.id}]`;
-    if (quoted.startsWith(idPrefix)) quoted = quoted.slice(idPrefix.length).trim();
-    for (const separator of [':', '：']) {
-        const speakerPrefix = `${row.speaker}${separator}`;
-        if (row.speaker && quoted.startsWith(speakerPrefix)) { quoted = quoted.slice(speakerPrefix.length).trim(); break; }
-    }
-    if (source.includes(quoted)) return quoted;
-    const original = [...source], sourceMap = evidenceKey(source), quote = evidenceKey(quoted).chars;
-    if (quote.length < 2) return null;
-    for (let offset = 0; offset <= sourceMap.chars.length - quote.length; offset++) {
-        if (quote.every((character, index) => character === sourceMap.chars[offset + index])) {
-            const start = sourceMap.positions[offset];
-            let end = sourceMap.positions[offset + quote.length - 1] + 1;
-            while (end < original.length && end - start < 500 && /[\p{P}\p{Z}\s]/u.test(original[end])) end++;
-            return original.slice(start, end).join('');
-        }
-    }
-    return null;
-}
-
-function validateCandidate(item, index, known, actId) {
+function validateCandidate(item, index, actId) {
     if (!item || typeof item !== 'object' || !MEMORY_CATEGORIES.includes(item.category)) throw new Error(`记忆 ${index + 1} 类别无效`);
     if (item.status != null && !['active', 'completed', 'cancelled', 'historical'].includes(item.status)) throw new Error(`记忆 ${index + 1} 状态无效`);
     const title = clean(item.title), content = clean(item.content);
     if (!title || !content || title.length > 120 || content.length > 500) throw new Error(`记忆 ${index + 1} 标题或内容为空、超长`);
-    if (!Array.isArray(item.sources) || !item.sources.length) throw new Error(`记忆 ${index + 1} 缺少来源证据`);
-    const sources = item.sources.map(source => {
-        const row = known.get(String(source?.messageId)), excerpt = clean(source?.excerpt);
-        const original = row && excerpt && excerpt.length <= 500 ? sourceExcerpt(row.body, excerpt, row) : null;
-        if (!original || original.length > 500) throw new Error(`记忆 ${index + 1} 来源或证据无效（消息 ID 不存在，或摘录不是该消息的原文）`);
-        return { actId, messageId: String(row.id), excerpt: original, fingerprint: fingerprint(row.body) };
-    });
+    const sources = arr(item.sources).filter(source => source && typeof source === 'object').slice(0, 30).map(source => ({ actId, messageId: clean(source.messageId).slice(0, 120), excerpt: clean(source.excerpt).slice(0, 500) })).filter(source => source.messageId);
     return normalizeMemory({ category: item.category, title, content, people: item.people, aliases: item.aliases, importance: item.importance, status: item.status, storyTime: item.storyTime, sources, sourceActId: actId, sourceMessageIds: [...new Set(sources.map(source => source.messageId))] });
 }
 
-export function validateCandidates(raw, rows, actId) {
+export function validateCandidates(raw, _rows, actId) {
     if (!Array.isArray(raw)) throw new Error('记忆结果必须是数组');
     if (raw.length > 30) throw new Error('单幕记忆候选超过 30 条');
-    const known = new Map(arr(rows).map(row => [String(row.id), row]));
-    return raw.map((item, index) => validateCandidate(item, index, known, actId));
+    return raw.map((item, index) => validateCandidate(item, index, actId));
 }
 
-export function validateCandidateBatch(raw, rows, actId) {
+export function validateCandidateBatch(raw, _rows, actId) {
     if (!Array.isArray(raw)) throw new Error('记忆结果必须是数组');
     if (raw.length > 30) throw new Error('单幕记忆候选超过 30 条');
-    const known = new Map(arr(rows).map(row => [String(row.id), row]));
     const candidates = [], rejected = [];
     raw.forEach((item, index) => {
-        try { candidates.push(validateCandidate(item, index, known, actId)); }
+        try { candidates.push(validateCandidate(item, index, actId)); }
         catch (error) { rejected.push({ index: index + 1, title: clean(item?.title).slice(0, 120), reason: error.message }); }
     });
     return { candidates, rejected };
@@ -104,12 +60,11 @@ export function planMemoryChanges(candidates, memories, proposals = null) {
     const planned = operations.map((raw, index) => {
         const action = clean(raw?.action), candidate = byCandidate.get(clean(raw?.candidateId)), target = byTarget.get(clean(raw?.targetId));
         if (!['add', 'merge', 'supersede', 'set_status', 'archive', 'skip'].includes(action)) throw new Error(`维护操作 ${index + 1} 不支持`);
-        if (!candidate && ['add', 'merge', 'supersede'].includes(action)) throw new Error(`维护操作 ${index + 1} 的候选不存在`);
+        if (!candidate && ['add', 'merge', 'supersede', 'set_status', 'archive'].includes(action)) throw new Error(`维护操作 ${index + 1} 的候选不存在`);
         if (!target && ['merge', 'supersede', 'set_status', 'archive'].includes(action)) throw new Error(`维护操作 ${index + 1} 的目标不存在`);
         if (target?.locked && !['skip'].includes(action)) throw new Error(`锁定记忆 ${target.title} 不可由模型修改`);
         if (action === 'archive' && (target.permanent || target.category === 'promise' && target.status === 'active')) throw new Error('常驻或未完成承诺不可归档');
         if (action === 'set_status' && !['completed', 'cancelled', 'historical', 'active'].includes(raw.status)) throw new Error('维护状态无效');
-        if (['set_status', 'archive'].includes(action) && !candidate?.sources?.some(source => source.excerpt && !source.unverifiedLegacy)) throw new Error('状态变化缺少可核对的来源证据');
         const key = candidate?.id || `target:${target?.id}`;
         if (seen.has(key)) throw new Error('记忆维护存在重复操作');
         seen.add(key);
@@ -130,8 +85,8 @@ export function applyMemoryChanges(state, candidates, operations, transactionId 
         if (operation.action === 'add') { if (!candidate) throw new Error('候选已失效'); const added = normalizeMemory(candidate); result.push(added); map.set(added.id, added); }
         if (operation.action === 'merge') { if (!candidate || !target) throw new Error('合并目标已失效'); target.sources = [...arr(target.sources), ...candidate.sources].filter((source, index, all) => all.findIndex(other => other.messageId === source.messageId && other.excerpt === source.excerpt) === index); target.sourceMessageIds = [...new Set(target.sources.map(source => source.messageId))]; target.revision++; const existing = map.get(candidate.id); if (existing && existing.id !== target.id) { existing.lifecycle = 'archived'; existing.mergedInto = target.id; existing.revision++; } }
         if (operation.action === 'supersede') { if (!candidate || !target || candidate.id === target.id) throw new Error('替代目标已失效'); target.lifecycle = 'superseded'; target.revision++; const existing = map.get(candidate.id); if (existing) { existing.supersedes = [...new Set([...arr(existing.supersedes), target.id])]; existing.revision++; } else { const added = normalizeMemory({ ...candidate, supersedes: [target.id] }); result.push(added); map.set(added.id, added); } }
-        if (operation.action === 'set_status') { if (!target || !candidate?.sources?.length) throw new Error('状态目标或证据已失效'); target.status = operation.status; target.sources = [...arr(target.sources), ...candidate.sources]; target.revision++; }
-        if (operation.action === 'archive') { if (!target || !candidate?.sources?.length || target.permanent || target.category === 'promise' && target.status === 'active') throw new Error('归档目标不可用'); target.lifecycle = 'archived'; target.revision++; }
+        if (operation.action === 'set_status') { if (!target || !candidate) throw new Error('状态目标或候选已失效'); target.status = operation.status; target.sources = [...arr(target.sources), ...arr(candidate.sources)]; target.revision++; }
+        if (operation.action === 'archive') { if (!target || !candidate || target.permanent || target.category === 'promise' && target.status === 'active') throw new Error('归档目标不可用'); target.lifecycle = 'archived'; target.revision++; }
     }
     state.memories = result;
     state.memoryRevision = (+state.memoryRevision || 0) + 1;
@@ -150,7 +105,7 @@ export function undoLastMaintenance(state) {
 const vectorCosine = (a, b) => { if (!a || !b || a.length !== b.length) return 0; let dot = 0, an = 0, bn = 0; for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; an += a[i] ** 2; bn += b[i] ** 2; } return an && bn ? dot / Math.sqrt(an * bn) : 0; };
 export function retrieveMemories(memories, query, settings, { vectors = new Map(), queryVector = null, recentQuery = '', revision = null } = {}) {
     const retrospective = /以前|过去|当时|曾经|之前|还记得|回忆/.test(query);
-    const eligible = memories.filter(memory => memoryEligible(memory) || retrospective && memory.lifecycle === 'superseded' && !memory.deletedAt && !memory.disabled && !memory.dirty), permanent = eligible.filter(memory => memory.permanent && memory.lifecycle !== 'superseded'), ordinary = eligible.filter(memory => !permanent.includes(memory));
+    const eligible = memories.filter(memory => memoryEligible(memory) || retrospective && memory.lifecycle === 'superseded' && !memory.deletedAt && !memory.disabled), permanent = eligible.filter(memory => memory.permanent && memory.lifecycle !== 'superseded'), ordinary = eligible.filter(memory => !permanent.includes(memory));
     const terms = [...new Set(frequencyTerms(query))], recentTerms = [...new Set(frequencyTerms(recentQuery))], index = lexicalIndex(ordinary, revision);
     const lexical = index.docs.map(doc => {
         const memory = doc.memory, hits = terms.filter(term => doc.tf.has(term)), recentHits = recentTerms.filter(term => doc.tf.has(term));
