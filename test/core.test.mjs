@@ -2,6 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_DIARY_PROMPT, DEFAULT_GROWTH_PROMPT, DEFAULT_MEMORY_PROMPT, acknowledgeActReview, acknowledgeMemoryReview, assignMessageToAct, beginNextAct, buildCharacterContext, buildContinuityBlock, buildDialogue, buildDiaryBlock, buildDiaryPrompt, buildGrowthPrompt, buildMemoryBlock, buildMemoryPrompt, buildRecallQuery, canSetMemoryPermanent, createState, extractMessage, filterPromptMessages, insertContinuityBeforeHistory, markActDirty, normalizeSettings, normalizeState, parseDiaryResponse, parseGrowthResponse, parseMemoryResponse, permanentMemoryCount, recallMemories, sourceChanged, sourceFingerprint, validateTagPair } from '../core.js';
 
+test('growth length is a storage limit, not a soft target setting', () => {
+    const settings = normalizeSettings({ growthTargetLength: '800–1500', customSetting: 'keep' });
+    assert.equal('growthTargetLength' in settings, false);
+    assert.equal(settings.customSetting, 'keep');
+    assert.doesNotMatch(buildGrowthPrompt({ characterName: '林', userName: '玩家', dialogue: '你好' }), /目标长度/);
+    assert.equal(settings.maxGrowthChars, 4000);
+});
+
 test('scene transition assigns the first next-scene user message', () => { const s=createState(1),first={is_user:true,mes:'第一幕',extra:{}};assignMessageToAct(s,first,1,0);s.acts[0].status='closed';s.status='pending_next_act';const next={is_user:true,mes:'第二幕',extra:{}};beginNextAct(s,next,1);assert.equal(s.currentActId,2);assert.equal(next.extra.scene_diary.actId,2); });
 test('tag extraction uses full text when unset and reports unmatched configured tags', () => { assert.equal(extractMessage('<thinking>x</thinking>正文',{bodyTagPairs:[]}).body,'<thinking>x</thinking>正文');assert.equal(extractMessage('<now_plot>正文</now_plot>',{bodyTagPairs:[{open:'<now_plot>',close:'</now_plot>'}]}).body,'正文');assert.deepEqual(extractMessage('正文',{bodyTagPairs:[{open:'<now_plot>',close:'</now_plot>'}]}).errors,['未匹配任何正文标签对','提取后的正文为空']); });
 test('dialogue keeps speaker ordering and time separate', () => { const messages=[{is_user:true,mes:'<u>你好</u>',extra:{scene_diary:{messageId:'u'}}},{name:'林',mes:'<p>晚安</p><time>初夏</time>',extra:{scene_diary:{messageId:'c'}}}];const out=buildDialogue(messages,{user:{bodyTags:['u']},character:{bodyTags:['p'],storyTimeTags:['time']}},'角色','玩家');assert.match(out.text,/玩家: 你好[\s\S]*林: 晚安[\s\S]*故事时间：初夏/); });

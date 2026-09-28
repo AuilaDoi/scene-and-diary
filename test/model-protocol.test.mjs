@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { OUTPUT_SCHEMAS, requestStructured } from '../model-protocol.js';
+import { OUTPUT_SCHEMAS, requestStructured, requireArrayField } from '../model-protocol.js';
 
 test('all close outputs request a structured object with the required fields', () => {
     for (const [kind, fields] of [['diary', ['title', 'diary']], ['memory', ['memories']], ['growth', ['characterGrowth']]]) {
@@ -37,4 +37,13 @@ test('network and quota failures do not trigger duplicate model calls', async ()
     let calls = 0;
     await assert.rejects(requestStructured(async () => { calls++; throw new Error('429 rate limit'); }, '记忆', OUTPUT_SCHEMAS.memory, JSON.parse, 8192, '记忆'), /429/);
     assert.equal(calls, 1);
+});
+test('a valid JSON object missing memories is retried, but an empty memories array succeeds', async () => {
+    let calls = 0;
+    const result = await requestStructured(async () => ++calls === 1 ? '{"message":"none"}' : '{"memories":[]}', '提取记忆', OUTPUT_SCHEMAS.memory, value => requireArrayField(JSON.parse(value), 'memories', '记忆模型'), 8192, '记忆');
+    assert.deepEqual(result.memories, []);
+    assert.equal(calls, 2);
+    calls = 0;
+    await assert.rejects(requestStructured(async () => { calls++; return '{"message":"none"}'; }, '提取记忆', OUTPUT_SCHEMAS.memory, value => requireArrayField(JSON.parse(value), 'memories', '记忆模型'), 8192, '记忆'), /两次输出均未满足.*memories 数组/);
+    assert.equal(calls, 2);
 });

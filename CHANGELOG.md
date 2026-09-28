@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0-rc.3 — evidence review and memory workflow
+
+- Match source quotes despite punctuation, whitespace and full-width formatting differences, then store the exact span from the source message. Invalid IDs and factual rewrites remain rejected.
+- Keep valid facts when another candidate fails source validation; show each excluded candidate in the close preview with a regenerate option.
+- Retry a well-formed JSON response once when its required `memories` array is absent.
+- Remove the ineffective growth target-length setting. Growth still has a 4,000-character storage limit and is injected in full.
+- Present memory maintenance as a review flow, with plain-language changes and backup/recovery controls grouped separately.
+- Continue RC development on `release/v0.3.0-rc`; retain prior RC tags.
+
 ## 0.3.0-rc.2 — structured model output
 
 - Request JSON object output through SillyTavern for diary, memory, growth and maintenance responses.

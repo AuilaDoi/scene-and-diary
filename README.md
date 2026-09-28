@@ -1,6 +1,6 @@
-# scene&diary 0.3.0-rc.2
+# scene&diary 0.3.0-rc.3
 
-This release candidate is for manual testing. Install the `v0.3.0-rc.2` tag or `release/v0.3.0-rc.2` branch; the stable `main` branch remains on v0.2.5. Automatic updates are disabled for this RC. Before opening an existing chat with the RC, export a full SillyTavern chat backup. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until manual verification is complete.
+This release candidate is for manual testing. Install the `v0.3.0-rc.3` tag or `release/v0.3.0-rc` branch; the stable `main` branch remains on v0.2.5. Automatic updates are disabled for this RC. Before opening an existing chat with the RC, export a full SillyTavern chat backup. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until manual verification is complete.
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
@@ -20,7 +20,7 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 4. Review all three results. Memory candidates include source excerpts and proposed additions or updates to earlier memories. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
 
-RC.2 asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry.
+RC.3 asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Evidence quotes may differ in punctuation, spacing or full-width formatting; the extension restores the exact excerpt from the source message. Candidates with an invalid message ID or factual rewrite are excluded and shown in the preview.
 
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
 
@@ -78,7 +78,7 @@ Data remains in `chat_metadata.scene_diary`; message ownership remains in `messa
 
 ## Memory maintenance and semantic retrieval
 
-The memory page offers duplicate, contradiction and promise-status review, undo of the latest unchanged maintenance result, JSON memory export and import, and recovery of a locally staged save. Exact duplicates are proposed locally; when a memory model is available, further suggestions are reviewed in batches of 30 entries. Inspect every suggestion against its source messages before accepting it. Import previews the replacement count and keeps the previous library in maintenance history.
+In the memory page, **检查记忆** reviews duplicates, fact changes and promise status. Each suggestion shows the existing fact, proposed change, source excerpt and reason; choose which changes to save. You can undo the most recent unchanged maintenance result. Export, import and save recovery are under **备份与恢复**. Exact duplicates are proposed locally; when a memory model is available, further suggestions are reviewed in batches of 30 entries. Inspect every suggestion against its source messages before accepting it. Import previews the replacement count and keeps the previous library in maintenance history.
 
 Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Enabling it sends memory text and recall queries to that service. The endpoint must allow browser CORS requests. An unavailable endpoint falls back to local retrieval; model reranking is separately optional. The settings page can clear a remembered key and rebuild missing vectors.
 
@@ -90,7 +90,7 @@ Current automated checks do not prove live SillyTavern save, model accuracy, COR
 - **最近有效消息数**: 1–20 messages, default 3.
 - **长期记忆**: default maximum 8 entries and 1,200 estimated tokens; permanent entries occupy recall slots first.
 - **近期日记篇数**: default 2; zero disables diary injection.
-- **角色成长目标长度**: default 800–1500 Chinese characters; storage is capped at 4,000 characters.
+- **角色成长**: stored content is capped at 4,000 characters; the full saved document is injected.
 - **提示词**: diary, memory, and character-growth role definitions are editable. Available variables are `{{char}}` and `{{user}}`; inputs and output formats are appended internally.
 
 The panel is responsive. Tabs scroll horizontally on narrow screens, touch targets remain at least 44px, and the character-growth editor uses the mobile full-screen panel with a sticky save area.

@@ -22,7 +22,16 @@ export const OUTPUT_SCHEMAS = Object.freeze({
 function errorChain(error) { const messages = []; for (let current = error, depth = 0; current && depth < 4; current = current.cause, depth++) messages.push(String(current.message || current)); return messages.join(' '); }
 const unsupportedFormat = error => /(?:json_schema|response_format|json object|structured output).*(?:unsupported|not supported|invalid|unknown)|(?:unsupported|not supported|invalid|unknown).*(?:json_schema|response_format|json object|structured output)/i.test(errorChain(error));
 const invalidJson = error => error instanceof SyntaxError || /JSON.*(?:无法解析|invalid|parse|syntax)|(?:control character|property value|unexpected end)/i.test(errorChain(error));
-const retryInstruction = '上一轮响应不是可解析的完整 JSON。请重新输出完整 JSON 对象；字符串内的换行写成 \\n，双引号写成 \\"。不要输出 Markdown 或说明。';
+export function requireArrayField(value, field, label) {
+    if (!value || typeof value !== 'object' || !Array.isArray(value[field])) {
+        const keys = value && typeof value === 'object' ? Object.keys(value).slice(0, 8).join('、') : typeof value;
+        const error = new Error(`${label}未返回 ${field} 数组（实际字段：${keys || '无'}）`);
+        error.code = 'SCENE_DIARY_SCHEMA';
+        throw error;
+    }
+    return value;
+}
+const retryInstruction = '上一轮响应缺少必需字段，或不是可解析的完整 JSON。请按格式重新输出完整 JSON 对象及必需数组；字符串内的换行写成 \\n，双引号写成 \\"。不要输出 Markdown 或说明。';
 
 export async function requestStructured(send, prompt, outputSchema, parse, maxTokens, label) {
     let useSchema = true;
@@ -36,9 +45,9 @@ export async function requestStructured(send, prompt, outputSchema, parse, maxTo
     };
     try { return parse(await run(prompt, maxTokens)); }
     catch (error) {
-        if (!invalidJson(error)) throw error;
+        if (!invalidJson(error) && error?.code !== 'SCENE_DIARY_SCHEMA') throw error;
         const retryPrompt = Array.isArray(prompt) ? [...prompt, { role: 'user', content: retryInstruction }] : `${prompt}\n${retryInstruction}`;
         try { return parse(await run(retryPrompt, Math.min(maxTokens * 2, 16384))); }
-        catch (retryError) { throw new Error(`${label}两次输出均无法解析为完整 JSON：${errorChain(retryError)}`, { cause: retryError }); }
+        catch (retryError) { throw new Error(`${label}两次输出均未满足 JSON 格式或必需字段：${errorChain(retryError)}`, { cause: retryError }); }
     }
 }

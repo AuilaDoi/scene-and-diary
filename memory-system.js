@@ -6,23 +6,74 @@ export const memoryEligible = memory => memory && !memory.deletedAt && !memory.d
 export const memoryText = memory => `${memory.title} ${memory.content} ${arr(memory.people).join(' ')} ${arr(memory.aliases).join(' ')}`;
 export const memoryLine = memory => `【${memory.category}｜${memory.status}${memory.lifecycle === 'superseded' ? '｜历史版本' : ''}】${memory.title}：${memory.content}${memory.storyTime ? `（故事时间：${memory.storyTime}）` : ''}`;
 
+// Match only formatting differences, then keep the exact span from the source message.
+function evidenceKey(value) {
+    const chars = [], positions = [];
+    for (const [index, character] of [...String(value ?? '')].entries()) {
+        for (const normalized of character.normalize('NFKC')) {
+            if (/[\p{P}\p{Z}\s]/u.test(normalized)) continue;
+            chars.push(normalized);
+            positions.push(index);
+        }
+    }
+    return { chars, positions };
+}
+
+function sourceExcerpt(body, excerpt, row) {
+    const source = String(body ?? '');
+    let quoted = clean(excerpt);
+    const idPrefix = `[消息ID:${row.id}]`;
+    if (quoted.startsWith(idPrefix)) quoted = quoted.slice(idPrefix.length).trim();
+    for (const separator of [':', '：']) {
+        const speakerPrefix = `${row.speaker}${separator}`;
+        if (row.speaker && quoted.startsWith(speakerPrefix)) { quoted = quoted.slice(speakerPrefix.length).trim(); break; }
+    }
+    if (source.includes(quoted)) return quoted;
+    const original = [...source], sourceMap = evidenceKey(source), quote = evidenceKey(quoted).chars;
+    if (quote.length < 2) return null;
+    for (let offset = 0; offset <= sourceMap.chars.length - quote.length; offset++) {
+        if (quote.every((character, index) => character === sourceMap.chars[offset + index])) {
+            const start = sourceMap.positions[offset];
+            let end = sourceMap.positions[offset + quote.length - 1] + 1;
+            while (end < original.length && end - start < 500 && /[\p{P}\p{Z}\s]/u.test(original[end])) end++;
+            return original.slice(start, end).join('');
+        }
+    }
+    return null;
+}
+
+function validateCandidate(item, index, known, actId) {
+    if (!item || typeof item !== 'object' || !MEMORY_CATEGORIES.includes(item.category)) throw new Error(`记忆 ${index + 1} 类别无效`);
+    if (item.status != null && !['active', 'completed', 'cancelled', 'historical'].includes(item.status)) throw new Error(`记忆 ${index + 1} 状态无效`);
+    const title = clean(item.title), content = clean(item.content);
+    if (!title || !content || title.length > 120 || content.length > 500) throw new Error(`记忆 ${index + 1} 标题或内容为空、超长`);
+    if (!Array.isArray(item.sources) || !item.sources.length) throw new Error(`记忆 ${index + 1} 缺少来源证据`);
+    const sources = item.sources.map(source => {
+        const row = known.get(String(source?.messageId)), excerpt = clean(source?.excerpt);
+        const original = row && excerpt && excerpt.length <= 500 ? sourceExcerpt(row.body, excerpt, row) : null;
+        if (!original || original.length > 500) throw new Error(`记忆 ${index + 1} 来源或证据无效（消息 ID 不存在，或摘录不是该消息的原文）`);
+        return { actId, messageId: String(row.id), excerpt: original, fingerprint: fingerprint(row.body) };
+    });
+    return normalizeMemory({ category: item.category, title, content, people: item.people, aliases: item.aliases, importance: item.importance, status: item.status, storyTime: item.storyTime, sources, sourceActId: actId, sourceMessageIds: [...new Set(sources.map(source => source.messageId))] });
+}
+
 export function validateCandidates(raw, rows, actId) {
     if (!Array.isArray(raw)) throw new Error('记忆结果必须是数组');
     if (raw.length > 30) throw new Error('单幕记忆候选超过 30 条');
     const known = new Map(arr(rows).map(row => [String(row.id), row]));
-    return raw.map((item, index) => {
-        if (!item || typeof item !== 'object' || !MEMORY_CATEGORIES.includes(item.category)) throw new Error(`记忆 ${index + 1} 类别无效`);
-        if (item.status != null && !['active', 'completed', 'cancelled', 'historical'].includes(item.status)) throw new Error(`记忆 ${index + 1} 状态无效`);
-        const title = clean(item.title), content = clean(item.content);
-        if (!title || !content || title.length > 120 || content.length > 500) throw new Error(`记忆 ${index + 1} 标题或内容为空、超长`);
-        if (!Array.isArray(item.sources) || !item.sources.length) throw new Error(`记忆 ${index + 1} 缺少来源证据`);
-        const sources = item.sources.map(source => {
-            const row = known.get(String(source?.messageId)), excerpt = clean(source?.excerpt);
-            if (!row || !excerpt || excerpt.length > 500 || !String(row.body).includes(excerpt)) throw new Error(`记忆 ${index + 1} 来源或证据无效`);
-            return { actId, messageId: String(row.id), excerpt, fingerprint: fingerprint(row.body) };
-        });
-        return normalizeMemory({ category: item.category, title, content, people: item.people, aliases: item.aliases, importance: item.importance, status: item.status, storyTime: item.storyTime, sources, sourceActId: actId, sourceMessageIds: [...new Set(sources.map(source => source.messageId))] });
+    return raw.map((item, index) => validateCandidate(item, index, known, actId));
+}
+
+export function validateCandidateBatch(raw, rows, actId) {
+    if (!Array.isArray(raw)) throw new Error('记忆结果必须是数组');
+    if (raw.length > 30) throw new Error('单幕记忆候选超过 30 条');
+    const known = new Map(arr(rows).map(row => [String(row.id), row]));
+    const candidates = [], rejected = [];
+    raw.forEach((item, index) => {
+        try { candidates.push(validateCandidate(item, index, known, actId)); }
+        catch (error) { rejected.push({ index: index + 1, title: clean(item?.title).slice(0, 120), reason: error.message }); }
     });
+    return { candidates, rejected };
 }
 
 function words(value) { return tokenize(value); }

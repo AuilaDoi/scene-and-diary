@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createState, normalizeState } from '../core.js';
-import { applyMemoryChanges, planMemoryChanges, retrieveMemories, undoLastMaintenance, validateCandidates } from '../memory-system.js';
+import { applyMemoryChanges, planMemoryChanges, retrieveMemories, undoLastMaintenance, validateCandidateBatch, validateCandidates } from '../memory-system.js';
 import { cacheKey, validateSemanticEndpoint } from '../semantic.js';
 
 const row = { id: 'msg-1', body: '小林答应周末一起去海边。', speaker: '小林' };
@@ -14,6 +14,21 @@ test('candidate evidence must be present in its exact source message', () => {
     assert.throws(() => validateCandidates([{ ...candidate, sources: [{ messageId: 'msg-1', excerpt: '已经去了海边' }] }], [row], 1), /来源或证据无效/);
     assert.throws(() => validateCandidates([{ ...candidate, sources: [] }], [row], 1), /缺少来源/);
     assert.throws(() => validateCandidates([{ ...candidate, status: 'invented' }], [row], 1), /状态无效/);
+});
+test('format-only quote differences map back to the original message, without accepting invented facts', () => {
+    const source = { id: 'msg-emoji', body: '🌊小林说：“周末，去海边！”' };
+    const quoted = { ...candidate, sources: [{ messageId: source.id, excerpt: '小林说: "周末 去海边!"' }] };
+    const [valid] = validateCandidates([quoted], [source], 2);
+    assert.equal(valid.sources[0].excerpt, '小林说：“周末，去海边！”');
+    const [wrapped] = validateCandidates([{ ...quoted, sources: [{ messageId: source.id, excerpt: '[消息ID:msg-emoji] 小林：周末，去海边！' }] }], [{ ...source, speaker: '小林' }], 2);
+    assert.equal(wrapped.sources[0].excerpt, '周末，去海边！');
+    assert.throws(() => validateCandidates([{ ...quoted, sources: [{ messageId: source.id, excerpt: '小林说周末已经去了海边' }] }], [source], 2), /来源或证据无效/);
+});
+test('one invalid candidate does not discard a valid candidate, and the rejection stays reviewable', () => {
+    const batch = validateCandidateBatch([candidate, { ...candidate, title: '误引', sources: [{ messageId: 'wrong', excerpt: '答应' }] }], [row], 1);
+    assert.equal(batch.candidates.length, 1);
+    assert.equal(batch.rejected.length, 1);
+    assert.match(batch.rejected[0].reason, /来源或证据无效/);
 });
 test('maintenance preserves evidence and can undo unchanged result', () => {
     const state = createState(1), [newMemory] = validateCandidates([candidate], [row], 1);
