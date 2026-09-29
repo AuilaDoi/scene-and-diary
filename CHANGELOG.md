@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 — 2026-09-29
+
+- Promote the tested RC.4 memory system to the stable `main` branch without changing schema 4 or memory behavior.
+- Enable automatic updates for the stable extension. Back up complete chats before migration; returning to v0.2.5 requires restoring the pre-migration chat backup.
+- The project owner confirmed the principal functions in manual SillyTavern testing. Automated checks cover the core behavior; fault-injection and every host configuration were not separately verified.
+
 ## 0.3.0-rc.4 — memory references are informational
 
 - Stop checking generated or manually edited memory references against chat messages; missing or mismatched references no longer reject a memory.

@@ -1,6 +1,6 @@
-# scene&diary 0.3.0-rc.4
+# scene&diary 0.3.0
 
-This release candidate is for manual testing. Install the `v0.3.0-rc.4` tag or `release/v0.3.0-rc` branch; the stable `main` branch remains on v0.2.5. Automatic updates are disabled for this RC. Before opening an existing chat with the RC, export a full SillyTavern chat backup. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until manual verification is complete.
+The stable release is available from the `main` branch and the `v0.3.0` tag. Automatic updates are enabled. Before updating an existing installation, export a full SillyTavern chat backup: opening an older chat upgrades its scene&diary data to schema 4. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until you have checked the migrated chat.
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
@@ -20,7 +20,7 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 4. Review all three results. Memory candidates may include unverified reference excerpts and proposed additions or updates to earlier memories. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
 
-RC.4 asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Memory references are optional and are not checked against chat messages. Review proposed facts yourself before confirming them.
+The extension asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Memory references are optional and are not checked against chat messages. Review proposed facts yourself before confirming them.
 
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
 
@@ -66,7 +66,7 @@ Empty sections are omitted. Character growth is injected whole. Recent diaries o
 
 ## Data and migration
 
-Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema v4 adds optional reference metadata, lifecycle, revision, maintenance history, memory-space identity, and optional semantic settings. Old entries retain their content and control choices; unavailable old references remain marked unverified. No schema change is needed for RC.4.
+Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema v4 adds optional reference metadata, lifecycle, revision, maintenance history, memory-space identity, and optional semantic settings. Old entries retain their content and control choices; unavailable old references remain marked unverified. This release uses the same schema as RC.4.
 
 - v0.1–v0.2.4 handoff data is preserved but inactive.
 - A test-build `summary` object migrates to `characterGrowth`; an existing `characterGrowth` object takes precedence.

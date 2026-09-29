@@ -1,6 +1,6 @@
 # Compatibility
 
-`v0.3.0-rc.4` is a manual-testing release candidate. It keeps schema 4 and preserves legacy memory content and control fields. Memory references are no longer checked against chat messages, and legacy memory `dirty` flags no longer block recall. Opening a v0.1–v0.2.5 chat upgrades its saved data. Keep a full pre-migration chat backup; returning to v0.2.5 requires restoring that backup. The extension stores a second, browser-local pre-migration copy and keeps the chat read-only until that copy is written and the upgraded save is verified. Live-host migration and rollback still need manual verification.
+`v0.3.0` is the stable release of the schema 4 memory upgrade. It preserves legacy memory content and control fields. Memory references are not checked against chat messages, and legacy memory `dirty` flags no longer block recall. Opening a v0.1–v0.2.5 chat upgrades its saved data. Keep a full pre-migration chat backup; returning to v0.2.5 requires restoring that backup. The extension stores a second, browser-local pre-migration copy and keeps the chat read-only until that copy is written and the upgraded save is verified. The project owner manually confirmed the principal RC.4 functions; fault-injection, migration rollback, and all host configurations have not been individually verified.
 
 ## SP·数据库 / shujuku
 
