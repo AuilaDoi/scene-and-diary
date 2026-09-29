@@ -1,6 +1,6 @@
 # Compatibility
 
-`v0.3.0` is the stable release of the schema 4 memory upgrade. It preserves legacy memory content and control fields. Memory references are not checked against chat messages, and legacy memory `dirty` flags no longer block recall. Opening a v0.1–v0.2.5 chat upgrades its saved data. Keep a full pre-migration chat backup; returning to v0.2.5 requires restoring that backup. The extension stores a second, browser-local pre-migration copy and keeps the chat read-only until that copy is written and the upgraded save is verified. The project owner manually confirmed the principal RC.4 functions; fault-injection, migration rollback, and all host configurations have not been individually verified.
+`v0.3.1` retains schema 4 and preserves legacy memory content and control fields. Memory references are not checked against chat messages, and legacy memory `dirty` flags do not block recall. Opening a v0.1–v0.2.5 chat upgrades its saved data. Keep a full pre-migration chat backup; returning to v0.2.5 requires restoring that backup. The extension stores a second, browser-local pre-migration copy and keeps the chat read-only until that copy is written and the upgraded save is verified. The new content backup is tied to one chat and does not replace a full SillyTavern chat backup.
 
 ## SP·数据库 / shujuku
 
@@ -12,4 +12,4 @@ The check cannot reliably identify renamed, forked, or manually embedded copies 
 
 ## SillyTavern
 
-Requires SillyTavern 1.18.0 or newer and a solo character chat. Auxiliary diary and memory generation needs Chat Completion through the active connection or a Connection Manager profile. The extension has no server-side component. Optional embeddings use browser fetch and require a CORS-enabled OpenAI-compatible endpoint. A key is stored only when the user selects the account-local remember option; same-origin scripts can read it.
+Requires SillyTavern 1.18.0 or newer and a solo character chat. Auxiliary diary and memory generation needs Chat Completion through the active connection or a Connection Manager profile. The extension has no server-side component. Optional embeddings and reranking use browser fetch and require CORS-enabled compatible endpoints. Each key is stored only when the user selects its account-local remember option; same-origin scripts can read it.

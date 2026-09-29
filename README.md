@@ -1,6 +1,6 @@
-# scene&diary 0.3.0
+# scene&diary 0.3.1
 
-The stable release is available from the `main` branch and the `v0.3.0` tag. Automatic updates are enabled. Before updating an existing installation, export a full SillyTavern chat backup: opening an older chat upgrades its scene&diary data to schema 4. The extension also saves a browser-local pre-migration copy of the complete chat metadata and messages, available from the memory page. Keep the backup until you have checked the migrated chat.
+The stable release is available from the `main` branch and the `v0.3.1` tag. Automatic updates are enabled. Before updating an older installation, export a full SillyTavern chat backup. Opening a pre-0.3 chat upgrades its scene&diary data to schema 4 and saves a browser-local pre-migration copy of its metadata and messages.
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
@@ -71,23 +71,23 @@ Data remains in `chat_metadata.scene_diary`; message ownership remains in `messa
 - v0.1–v0.2.4 handoff data is preserved but inactive.
 - A test-build `summary` object migrates to `characterGrowth`; an existing `characterGrowth` object takes precedence.
 - The old `handoffTokenBudget` setting may remain in saved JSON for downgrade compatibility but is not used or displayed.
-- Optional embedding API keys may be saved in SillyTavern account storage when explicitly selected. This browser storage is accessible to same-origin scripts. Keys never enter chat metadata or memory exports.
+- Optional embedding and rerank API keys may be saved in SillyTavern account storage when explicitly selected. This browser storage is accessible to same-origin scripts. Keys never enter chat metadata or content backups.
 - Embeddings are a rebuildable IndexedDB cache. Losing that cache does not delete memory entries.
 - Rollback to v0.2.5 requires restoring a pre-migration chat backup, not only switching extension code.
 - Auxiliary requests disable inherited preset and instruct templates when using a dedicated Connection Manager profile.
 
-## Memory maintenance and semantic retrieval
+## Content backup and retrieval
 
-In the memory page, **检查记忆** reviews duplicates, fact changes and promise status. Each suggestion shows the existing fact, proposed change, optional reference excerpt and reason; choose which changes to save. The plugin does not verify these excerpts or require them for maintenance. You can undo the most recent unchanged maintenance result. Export, import and save recovery are under **备份与恢复**. Exact duplicates are proposed locally; when a memory model is available, further suggestions are reviewed in batches of 30 entries. Import previews the replacement count and keeps the previous library in maintenance history.
+The memory page exports one JSON backup containing every visible diary, the character-growth document, and every visible memory in the current chat. Importing that file restores all three content types together after confirmation. Backups are bound to their originating chat and require the corresponding acts to exist. They do not contain chat messages or API keys, so keep a separate full SillyTavern chat backup for migration rollback. If a save cannot be verified, the local recovery button appears so the pending state can be saved again.
 
-Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Enabling it sends memory text and recall queries to that service. The endpoint must allow browser CORS requests. An unavailable endpoint falls back to local retrieval; model reranking is separately optional. The settings page can clear a remembered key and rebuild missing vectors.
+Memory retrieval uses the latest player message at 40% and the two preceding effective messages at 30% each; when fewer messages exist, the available weights are normalized. Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Optional reranking uses a separate rerank URL, model, and key through a direct browser request to a `/rerank`-style API returning `results` with `index` and `relevance_score`. Each message is scored separately and combined with the same weights. Both endpoints require browser CORS support. Failed embedding or rerank requests fall back to the available local result.
 
 Current automated checks do not prove live SillyTavern save, model accuracy, CORS support, or visual behavior. Validate those flows with a backed-up chat before relying on a migrated library.
 
 ## Settings reference
 
 - **正文标签**: complete matching opening and closing tags such as `<now_plot>` and `</now_plot>`; multiple pairs use corresponding lines.
-- **最近有效消息数**: 1–20 messages, default 3.
+- **最近有效消息**: fixed at three for recall, weighted 40% / 30% / 30% from newest to oldest.
 - **长期记忆**: default maximum 8 entries and 1,200 estimated tokens; permanent entries occupy recall slots first.
 - **近期日记篇数**: default 2; zero disables diary injection.
 - **角色成长**: stored content is capped at 4,000 characters; the full saved document is injected.

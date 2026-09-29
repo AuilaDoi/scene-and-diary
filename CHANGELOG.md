@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 — 2026-09-29
+
+- Replace chat-model memory reranking with a separately configured, browser-direct rerank endpoint, model, and optional key. Failed requests keep the local recall result.
+- Replace memory-only export/import and manual memory inspection controls with one per-chat backup that saves and restores visible diaries, character growth, and memories together.
+- Weight the latest player message and two preceding messages at 40%, 30%, and 30% for lexical, vector, and rerank retrieval. Keep schema 4 and existing chats.
+
 ## 0.3.0 — 2026-09-29
 
 - Promote the tested RC.4 memory system to the stable `main` branch without changing schema 4 or memory behavior.

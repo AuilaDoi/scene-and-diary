@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createState, normalizeState } from '../core.js';
-import { applyMemoryChanges, planMemoryChanges, retrieveMemories, undoLastMaintenance, validateCandidateBatch, validateCandidates } from '../memory-system.js';
+import { applyMemoryChanges, planMemoryChanges, retrieveMemories, validateCandidateBatch, validateCandidates } from '../memory-system.js';
 import { cacheKey, validateSemanticEndpoint } from '../semantic.js';
 
 const row = { id: 'msg-1', body: '小林答应周末一起去海边。', speaker: '小林' };
@@ -25,15 +25,14 @@ test('invalid memory structure is still excluded without discarding valid memori
     assert.equal(batch.rejected.length, 1);
     assert.match(batch.rejected[0].reason, /类别无效/);
 });
-test('maintenance preserves optional references and can undo unchanged result', () => {
+test('memory changes preserve optional references and record the prior state', () => {
     const state = createState(1), [newMemory] = validateCandidates([candidate], [row], 1);
     const add = planMemoryChanges([newMemory], [], null);
     applyMemoryChanges(state, [newMemory], add, 'tx1');
     assert.equal(state.memories.length, 1);
     assert.equal(state.memories[0].sources.length, 1);
-    undoLastMaintenance(state);
-    assert.equal(state.memories.length, 0);
-    assert.throws(() => undoLastMaintenance(state), /无法撤销/);
+    assert.equal(state.maintenanceHistory.at(-1).before.length, 0);
+    assert.equal(state.maintenanceHistory.at(-1).after.length, 1);
 });
 test('locked targets, incomplete proposals and invalid archive are rejected', () => {
     const [fresh] = validateCandidates([candidate], [row], 1);

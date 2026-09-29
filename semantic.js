@@ -12,7 +12,20 @@ const openDb = () => new Promise((resolve, reject) => {
 async function read(key) { const db = await openDb(); try { return await new Promise((resolve, reject) => { const request = db.transaction(STORE).objectStore(STORE).get(key); request.onsuccess = () => resolve(request.result || null); request.onerror = () => reject(request.error); }); } finally { db.close(); } }
 async function write(key, value) { const db = await openDb(); try { await new Promise((resolve, reject) => { const tx = db.transaction(STORE, 'readwrite'); tx.objectStore(STORE).put(value, key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); }); } finally { db.close(); } }
 export const cacheKey = (identity, config, memory) => [identity.account, identity.chat, identity.space, config.endpoint, config.model, config.dimensions || '', memory.id, fingerprint(memoryText(memory))].join('|');
-export function validateSemanticEndpoint(value) { let url; try { url = new URL(value); } catch { throw new Error('向量接口地址无效'); } if (!['http:', 'https:'].includes(url.protocol)) throw new Error('向量接口须为 HTTP(S) 地址'); if (url.username || url.password || [...url.searchParams.keys()].some(key => /key|secret|token|password|auth/i.test(key))) throw new Error('请不要把密钥放在向量接口地址中'); return url.href; }
+export function validateSemanticEndpoint(value, label = '向量') { let url; try { url = new URL(value); } catch { throw new Error(`${label}接口地址无效`); } if (!['http:', 'https:'].includes(url.protocol)) throw new Error(`${label}接口须为 HTTP(S) 地址`); if (url.username || url.password || [...url.searchParams.keys()].some(key => /key|secret|token|password|auth/i.test(key))) throw new Error(`请不要把密钥放在${label}接口地址中`); return url.href; }
+export async function rerank(query, documents, config, key, timeoutMs = 5000) {
+    const endpoint = validateSemanticEndpoint(config.rerankEndpoint, '重排');
+    if (!config.rerankModel) throw new Error('未设置重排模型');
+    if (!documents.length) return [];
+    const controller = new AbortController(), timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(endpoint, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', ...(key ? { Authorization: `Bearer ${key}` } : {}) }, body: JSON.stringify({ model: config.rerankModel, query, documents, top_n: documents.length }), signal: controller.signal });
+        if (!response.ok) throw new Error(`重排服务返回 ${response.status}`);
+        const data = await response.json(), results = data?.results;
+        if (!Array.isArray(results) || results.length !== documents.length || results.some(item => !Number.isInteger(item?.index) || item.index < 0 || item.index >= documents.length || !Number.isFinite(item.relevance_score)) || new Set(results.map(item => item.index)).size !== results.length) throw new Error('重排服务返回的数据无效');
+        return results.slice().sort((a, b) => a.index - b.index).map(item => item.relevance_score);
+    } finally { clearTimeout(timer); }
+}
 export async function embed(inputs, config, key, timeoutMs = 3000) {
     const endpoint = validateSemanticEndpoint(config.endpoint);
     if (!config.model) throw new Error('未设置向量模型');

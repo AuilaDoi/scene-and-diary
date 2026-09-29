@@ -5,6 +5,16 @@ const clean = value => String(value ?? '').trim();
 export const memoryEligible = memory => memory && !memory.deletedAt && !memory.disabled && memory.lifecycle !== 'archived' && memory.lifecycle !== 'superseded';
 export const memoryText = memory => `${memory.title} ${memory.content} ${arr(memory.people).join(' ')} ${arr(memory.aliases).join(' ')}`;
 export const memoryLine = memory => `【${memory.category}｜${memory.status}${memory.lifecycle === 'superseded' ? '｜历史版本' : ''}】${memory.title}：${memory.content}${memory.storyTime ? `（故事时间：${memory.storyTime}）` : ''}`;
+export function weightedRecallQueries(rows) {
+    const latestUser = [...rows].reverse().find(row => row.isUser);
+    if (!latestUser) return [];
+    const prior = rows.slice(0, rows.lastIndexOf(latestUser)).slice(-2).reverse();
+    const weights = [0.4, 0.3, 0.3], selected = [latestUser, ...prior].filter(row => row.body), total = selected.reduce((sum, _, index) => sum + weights[index], 0);
+    return selected.map((row, index) => ({ text: row.body, weight: weights[index] / total }));
+}
+export function rankWeightedScores(scores, queries, count) {
+    return Array.from({ length: count }, (_, index) => index).sort((a, b) => queries.reduce((sum, item, index) => sum + item.weight * (scores[index][b] - scores[index][a]), 0));
+}
 
 function validateCandidate(item, index, actId) {
     if (!item || typeof item !== 'object' || !MEMORY_CATEGORIES.includes(item.category)) throw new Error(`记忆 ${index + 1} 类别无效`);
@@ -95,26 +105,25 @@ export function applyMemoryChanges(state, candidates, operations, transactionId 
     return state;
 }
 
-export function undoLastMaintenance(state) {
-    const item = state.maintenanceHistory?.at(-1);
-    if (!item || JSON.stringify(state.memories) !== JSON.stringify(item.after)) throw new Error('记忆库已变化，无法撤销最近一次维护');
-    state.memories = structuredClone(item.before); state.maintenanceHistory.pop(); state.memoryRevision = (+state.memoryRevision || 0) + 1;
-    return state;
-}
-
 const vectorCosine = (a, b) => { if (!a || !b || a.length !== b.length) return 0; let dot = 0, an = 0, bn = 0; for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; an += a[i] ** 2; bn += b[i] ** 2; } return an && bn ? dot / Math.sqrt(an * bn) : 0; };
-export function retrieveMemories(memories, query, settings, { vectors = new Map(), queryVector = null, recentQuery = '', revision = null } = {}) {
+export function retrieveMemories(memories, query, settings, { vectors = new Map(), queryVector = null, queries = null, queryVectors = null, revision = null } = {}) {
     const retrospective = /以前|过去|当时|曾经|之前|还记得|回忆/.test(query);
     const eligible = memories.filter(memory => memoryEligible(memory) || retrospective && memory.lifecycle === 'superseded' && !memory.deletedAt && !memory.disabled), permanent = eligible.filter(memory => memory.permanent && memory.lifecycle !== 'superseded'), ordinary = eligible.filter(memory => !permanent.includes(memory));
-    const terms = [...new Set(frequencyTerms(query))], recentTerms = [...new Set(frequencyTerms(recentQuery))], index = lexicalIndex(ordinary, revision);
+    const weighted = Array.isArray(queries) && queries.length ? queries.filter(item => item?.text).map(item => ({ text: item.text, weight: item.weight })) : [{ text: query, weight: 1 }];
+    const index = lexicalIndex(ordinary, revision);
     const lexical = index.docs.map(doc => {
-        const memory = doc.memory, hits = terms.filter(term => doc.tf.has(term)), recentHits = recentTerms.filter(term => doc.tf.has(term));
-        const exact = [memory.title, ...arr(memory.aliases)].some(label => clean(label) && query.toLowerCase().includes(clean(label).toLowerCase()));
-        const bm25 = hits.reduce((sum, term) => { const tf = doc.tf.get(term), df = index.df.get(term); return sum + Math.log(1 + (ordinary.length - df + 0.5) / (df + 0.5)) * tf * 2.2 / (tf + 1.2 * (0.25 + 0.75 * doc.length / Math.max(1, index.average))); }, 0);
-        const score = bm25 + recentHits.length * 0.15 + (exact ? 2 : 0);
-        return { memory, score, hits, source: exact ? 'exact' : 'lexical' };
+        const memory = doc.memory, hits = new Set(); let exact = false, score = 0;
+        for (const item of weighted) {
+            const terms = [...new Set(frequencyTerms(item.text))], matched = terms.filter(term => doc.tf.has(term));
+            matched.forEach(term => hits.add(term));
+            const direct = [memory.title, ...arr(memory.aliases)].some(label => clean(label) && item.text.toLowerCase().includes(clean(label).toLowerCase()));
+            const bm25 = matched.reduce((sum, term) => { const tf = doc.tf.get(term), df = index.df.get(term); return sum + Math.log(1 + (ordinary.length - df + 0.5) / (df + 0.5)) * tf * 2.2 / (tf + 1.2 * (0.25 + 0.75 * doc.length / Math.max(1, index.average))); }, 0);
+            score += item.weight * (bm25 + (direct ? 2 : 0)); exact ||= direct;
+        }
+        return { memory, score, hits: [...hits], source: exact ? 'exact' : 'lexical' };
     }).filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 30);
-    const semantic = queryVector ? ordinary.map(memory => ({ memory, score: vectorCosine(queryVector, vectors.get(memory.id)), hits: [], source: 'vector' })).filter(item => item.score > 0.15).sort((a, b) => b.score - a.score).slice(0, 30) : [];
+    const weightedVectors = Array.isArray(queryVectors) && queryVectors.length ? queryVectors : queryVector ? [{ vector: queryVector, weight: 1 }] : [];
+    const semantic = weightedVectors.length ? ordinary.map(memory => ({ memory, score: weightedVectors.reduce((sum, item) => sum + item.weight * vectorCosine(item.vector, vectors.get(memory.id)), 0), hits: [], source: 'vector' })).filter(item => item.score > 0.15).sort((a, b) => b.score - a.score).slice(0, 30) : [];
     const scores = new Map();
     for (const [channel, items] of [['lexical', lexical], ['vector', semantic]]) items.forEach((item, rank) => { const previous = scores.get(item.memory.id) || { ...item, score: 0, sources: [] }; previous.score += 1 / (60 + rank + 1); previous.sources.push(channel); scores.set(item.memory.id, previous); });
     const ranked = [...scores.values()].sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id));
@@ -126,5 +135,5 @@ export function retrieveMemories(memories, query, settings, { vectors = new Map(
         const item = remaining.shift(), cost = estimateTokens(memoryLine(item.memory));
         if (budgetUsed + cost <= +settings.memoryTokenBudget) { selected.push({ ...item, permanent: false }); budgetUsed += cost; }
     }
-    return { query, selected, candidates: [...permanent.map(memory => ({ memory, score: 0, hits: [], permanent: true })), ...ranked], budgetUsed, degraded: !queryVector && !!settings.semantic?.enabled };
+    return { query, selected, candidates: [...permanent.map(memory => ({ memory, score: 0, hits: [], permanent: true })), ...ranked], budgetUsed, degraded: !weightedVectors.length && !!settings.semantic?.enabled };
 }

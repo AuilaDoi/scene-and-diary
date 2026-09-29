@@ -15,8 +15,6 @@ export const OUTPUT_SCHEMAS = Object.freeze({
     memory: schema('memory', { memories: { type: 'array', items: memory } }),
     growth: schema('growth', { characterGrowth: string }),
     comparison: schema('comparison', { operations: { type: 'array', items: object({ action: { type: 'string', enum: ['add', 'merge', 'supersede', 'skip'] }, candidateId: string, targetId: nullableString, reason: string }) } }),
-    maintenance: schema('maintenance', { operations: { type: 'array', items: object({ action: { type: 'string', enum: ['merge', 'supersede', 'set_status', 'archive'] }, candidateId: string, targetId: string, status: { type: ['string', 'null'], enum: ['active', 'completed', 'cancelled', 'historical', null] }, reason: string }) } }),
-    rerank: schema('rerank', { selected_ids: { type: 'array', items: string } }),
 });
 
 function errorChain(error) { const messages = []; for (let current = error, depth = 0; current && depth < 4; current = current.cause, depth++) messages.push(String(current.message || current)); return messages.join(' '); }
