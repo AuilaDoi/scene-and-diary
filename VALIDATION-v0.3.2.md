@@ -27,6 +27,18 @@
 
 已核对本机 SillyTavern 1.18.0 的 src/endpoints/extensions.js：/update 调用 git.pull('origin', currentBranch.current)，/branches 获取所有远端分支，/switch 可从 origin/<branch> 创建本地分支。因此 main 的 v0.3.1 安装不会仅因 RC 推送而升级；按 [升级说明](UPGRADE-v0.3.2.md) 切换 RC，再更新/刷新。此源码核对不等同于完整真实宿主界面验收。
 
+## 远端 RC 更新验证
+
+2026-10-04，实现提交 `9e34f06b171ab713f1fed226efb37d989916e7ba` 已推送到 `origin/release/v0.3.2-rc`。随后从 GitHub 的 main 创建独立浅克隆，调用本机 SillyTavern 1.18.0 **实际**扩展路由处理器（只模拟请求/响应与安装目录）：
+
+1. /version 和 /update 确认 main 保持 `e817739` / v0.3.1。
+2. /branches 解浅克隆并获取远端 RC；/switch 创建并切换到 release/v0.3.2-rc。
+3. 仅将临时克隆的 RC 分支退到 v0.3.1 基线，再由 /update 实际拉取 origin 当前分支，成功快进到 `9e34f06`。
+4. /version 读回正确分支/提交；manifest 为 0.3.2、auto_update=false，下载的 core.js 将 v0.3.1 合成样例迁移到 schema 5，保留 8 条符合规则的记忆及长正文。
+5. 下载副本的入口语法检查和全部 78 项测试再次通过。独立克隆随后清理；未读写用户真实聊天，未启动真实模型请求。
+
+此验证覆盖远端获取、宿主 Git 分支切换/拉取和下载代码的迁移回归。聊天存储仍为模拟接口，不能据此宣称完成真实浏览器、磁盘保存和模型端到端验收。后续文档记录提交不改变已验证的实现代码。
+
 ## 可复现的合成预览
 
 在插件目录运行 node test/preview-server.mjs，打开 http://127.0.0.1:8765 。首次测试先点“重置合成数据”。预览只有合成素材和固定模型结果，不连接真实模型或读写真实聊天；关闭终端进程即可停止。
