@@ -2,30 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createState, normalizeMemory } from '../core.js';
 import { createContentBackup, restoreContentBackup } from '../backup.js';
-import { rankWeightedScores, retrieveMemories, weightedRecallQueries } from '../memory-system.js';
 import { rerank } from '../semantic.js';
-
-test('weighted recall assigns 40/30/30 to the latest player message and two prior messages', () => {
-    const rows = [{ body: '旧话题', isUser: true }, { body: '角色回复', isUser: false }, { body: '最新话题', isUser: true }];
-    assert.deepEqual(weightedRecallQueries(rows), [{ text: '最新话题', weight: 0.4 }, { text: '角色回复', weight: 0.3 }, { text: '旧话题', weight: 0.3 }]);
-    assert.deepEqual(weightedRecallQueries(rows.slice(2)), [{ text: '最新话题', weight: 1 }]);
-    assert.deepEqual(weightedRecallQueries(rows.slice(0, 2)), [{ text: '旧话题', weight: 1 }]);
-});
-
-test('weighted messages participate in lexical recall', () => {
-    const memories = [normalizeMemory({ id: 'new', title: '最新话题', content: '最新话题' }), normalizeMemory({ id: 'old', title: '旧话题', content: '旧话题' })];
-    const settings = { recallLimit: 2, memoryTokenBudget: 1200 };
-    const queries = weightedRecallQueries([{ body: '旧话题', isUser: true }, { body: '角色回复', isUser: false }, { body: '最新话题', isUser: true }]);
-    const result = retrieveMemories(memories, queries[0].text, settings, { queries });
-    assert.deepEqual(result.candidates.map(item => item.memory.id), ['new', 'old']);
-    assert.equal(result.candidates[0].score > 0, true);
-});
-
-test('rerank scores combine the three messages with 40/30/30 weights', () => {
-    const queries = [{ weight: 0.4 }, { weight: 0.3 }, { weight: 0.3 }];
-    const scores = [[1, 0], [0, 1], [0, 1]];
-    assert.deepEqual(rankWeightedScores(scores, queries, 2), [1, 0]);
-});
 
 test('dedicated rerank endpoint receives model, query, documents and bearer key', async () => {
     const original = globalThis.fetch;

@@ -1,6 +1,6 @@
 import { extension_prompt_roles, extension_prompt_types, setExtensionPrompt } from '../../../../script.js';
 import { getContext } from '../../../st-context.js';
-import { applyMemoryChanges, findMemoryNeighbors, memoryEligible, memoryLine, memoryText, planMemoryChanges, rankWeightedScores, retrieveMemories, validateCandidateBatch, weightedRecallQueries } from './memory-system.js';
+import { appendExtractedMemories, applyMaintenance, maintenanceTasks, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, selectRecallGroups, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
 import { OUTPUT_SCHEMAS, requestStructured, requireArrayField } from './model-protocol.js';
 import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint } from './semantic.js';
 import { createContentBackup, restoreContentBackup } from './backup.js';
@@ -8,9 +8,9 @@ import {
     SCHEMA_VERSION, STORAGE_KEY, DEFAULT_SETTINGS, DEFAULT_DIARY_PROMPT, DEFAULT_MEMORY_PROMPT, DEFAULT_GROWTH_PROMPT,
     MEMORY_CATEGORIES, acknowledgeActReview, acknowledgeMemoryReview, assignMessageToAct, beginNextAct,
     buildCharacterContext, buildContinuityBlock, buildDialogue, buildDiaryPrompt, buildGrowthPrompt, buildMemoryPrompt,
-    buildRecallQuery, canSetMemoryPermanent, createState, currentAct, estimateTokens, filterPromptMessages, findAct,
-    insertContinuityBeforeHistory, isNormalRpMessage, localTime, markActDirty, newId, normalizeMemory, normalizeSettings,
-    normalizeState, parseDiaryResponse, parseGrowthResponse, parseMemoryResponse, permanentMemoryCount,
+    buildRecallQuery, createState, currentAct, estimateTokens, filterPromptMessages, findAct,
+    insertContinuityBeforeHistory, isNormalRpMessage, localTime, markActDirty, newId, normalizeMemory, normalizeMemoryLinks, normalizeSettings,
+    normalizeState, parseDiaryResponse, parseGrowthResponse,
     sourceChanged, sourceFingerprint, validateTagPair, fingerprint, extractMessage,
 } from './core.js';
 
@@ -21,8 +21,8 @@ const DIARY_KEY = 'scene_diary_diaries';
 const MEMORY_KEY = 'scene_diary_memories';
 let activeChatKey = '', disabledReason = '', initialized = false, closingPromise = null, lastRecall = null, lastContinuity = null, awaitingMainPrompt = false, migrationPending = false;
 let recallContent = '', recallCache = new Map(), semanticKey = '', rerankKey = '', sessionAccount = '', pendingSave = false, saveUnverified = false;
-let recallGeneration = 0;
-const migrationReady = new Map(), migrationPreparing = new Set(), migrationSaving = new Set();
+let recallGeneration = 0, draftMemory = null, memoryRenderKey = '';
+const migrationReady = new Map(), migrationPreparing = new Set(), migrationSaving = new Set(), migrationRecoveries = new Map();
 
 const ctx = () => getContext();
 const chat = () => ctx().chat || [];
@@ -49,7 +49,17 @@ async function verifyPersistedCommit(state, key = activeChatKey) {
     if (chat().some(message => message?.extra?.scene_diary?.messageId && !savedOwnership.has(`${message.extra.scene_diary.messageId}:${message.extra.scene_diary.actId}`))) throw new Error('保存后消息归属核验失败');
     return true;
 }
-async function saveState(state = getState(), key = activeChatKey, verified = false) { if (!state || key !== activeChatKey || String(ctx().chatId) !== String(key)) { if (verified) throw new Error('聊天已切换，保存已取消'); return false; } await (ctx().saveMetadata || ctx().saveChat)?.(); if (verified) await verifyPersistedCommit(state, key); migrationPending = false; return true; }
+let saveQueue = Promise.resolve();
+function saveState(state = getState(), key = activeChatKey, verified = false) {
+    const task = async () => {
+        if (!state || key !== activeChatKey || String(ctx().chatId) !== String(key)) { if (verified) throw new Error('聊天已切换，保存已取消'); return false; }
+        const snapshot = structuredClone(meta()[STORAGE_KEY]);
+        await (ctx().saveMetadata || ctx().saveChat)?.();
+        if (verified) await verifyPersistedCommit(snapshot, key);
+        migrationPending = false; return true;
+    };
+    const result = saveQueue.then(task); saveQueue = result.catch(() => {}); return result;
+}
 const recoveryKey = (state, key = activeChatKey) => `scene_diary_recovery_${semanticIdentity(state).account}_${key}_${state.memorySpaceId}`;
 async function preserveRecovery(state, key = activeChatKey) { try { await SillyTavern.libs.localforage.setItem(recoveryKey(state, key), structuredClone(state)); } catch (error) { throw new Error(`无法保存本地恢复副本：${error.message}`); } }
 async function clearRecovery(state, key = activeChatKey) { await SillyTavern.libs.localforage.removeItem(recoveryKey(state, key)); }
@@ -63,19 +73,40 @@ function initializeChat() {
     if (!ctx().chatId || ctx().groupId) { disabledReason = 'scene&diary v0.3 只支持单角色聊天。'; clearPrompts(); render(); return null; }
     if (!compatible()) { render(); return null; }
     const key = String(ctx().chatId);
-    if (key !== activeChatKey) { activeChatKey = key; closingPromise = null; lastRecall = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
+    if (key !== activeChatKey) { draftMemory = null; memoryRenderKey = ''; activeChatKey = key; closingPromise = null; lastRecall = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
     const original = meta()[STORAGE_KEY];
     if (original && schemaVersion(original) < SCHEMA_VERSION && migrationReady.get(key) !== original) {
-        if (!migrationPreparing.has(key)) { migrationPreparing.add(key); void (async () => { try { const account = semanticIdentity({ memorySpaceId: 'legacy' }).account, backupKey = `scene_diary_migration_backup_${account}_${key}`, snapshot = { savedAt: Date.now(), codeVersion: '0.3.0', schema: original.version, metadata: structuredClone(meta()), messages: structuredClone(chat()) }; if (!await SillyTavern.libs.localforage.getItem(backupKey)) await SillyTavern.libs.localforage.setItem(backupKey, snapshot); if (key === activeChatKey && String(ctx().chatId) === key && meta()[STORAGE_KEY] === original) { migrationReady.set(key, original); initializeChat(); } } catch (error) { disabledReason = `迁移备份失败，未修改聊天：${error.message}`; render(); } finally { migrationPreparing.delete(key); } })(); }
+        if (!migrationPreparing.has(key)) {
+            migrationPreparing.add(key);
+            void (async () => {
+                try {
+                    const account = semanticIdentity({ memorySpaceId: 'legacy' }).account;
+                    const backupKey = `scene_diary_migration_backup_${account}_${key}_schema${schemaVersion(original)}_to5`;
+                    const snapshot = { savedAt: Date.now(), codeVersion: '0.3.2', schema: original.version, metadata: structuredClone(meta()), messages: structuredClone(chat()) };
+                    const pendingRecovery = original.memorySpaceId ? await SillyTavern.libs.localforage.getItem(`scene_diary_recovery_${account}_${key}_${original.memorySpaceId}`) : null;
+                    if (pendingRecovery) snapshot.pendingRecovery = structuredClone(pendingRecovery);
+                    if (!await SillyTavern.libs.localforage.getItem(backupKey)) await SillyTavern.libs.localforage.setItem(backupKey, snapshot);
+                    if (key === activeChatKey && String(ctx().chatId) === key && meta()[STORAGE_KEY] === original) {
+                        migrationRecoveries.set(key, pendingRecovery || null); migrationReady.set(key, original); initializeChat();
+                    }
+                } catch (error) { if (key === activeChatKey) { disabledReason = `迁移备份失败，未修改聊天：${error.message}`; render(); } }
+                finally { migrationPreparing.delete(key); }
+            })();
+        }
         return null;
     }
     let state = getState();
     if (!state && meta()[STORAGE_KEY] && schemaVersion(meta()[STORAGE_KEY]) > SCHEMA_VERSION) { render(); return null; }
     if (state) {
         if (migrationSaving.has(key)) { disabledReason = '旧版聊天迁移正在核验保存，完成前保持只读。'; render(state); return state; }
+        // Never overwrite a v0.3.1 unverified save with the older persisted library.
+        // Its original snapshot is backed up separately and remains user-restorable.
+        if (migrationPending && migrationRecoveries.get(key)) { saveUnverified = true; disabledReason = '发现旧版未核验的保存副本，请在记忆库“恢复未完成的保存”后继续迁移。'; render(state); return state; }
         const checkingKey = key; void SillyTavern.libs.localforage.getItem(recoveryKey(state)).then(copy => { if (copy && checkingKey === activeChatKey) { saveUnverified = true; disabledReason = '发现未核验的本地保存副本，请在记忆库恢复保存后继续聊天。'; render(getState()); } }).catch(error => notify('warning', `恢复副本检查失败：${error.message}`));
         disabledReason = migrationSaving.has(key) ? '旧版聊天迁移正在核验保存，完成前保持只读。' : saveUnverified ? '上次保存尚未核验，请在记忆库恢复保存后继续聊天。' : '';
         let repaired = migrationPending;
+        const maintenance = state.maintenanceTransaction;
+        if (maintenance?.status === 'running' && !maintenanceRuns.has(maintenance.id)) { maintenance.status = 'error'; for (const task of maintenance.tasks) if (task.status === 'running') { task.status = 'error'; task.error = '请求中断，可重试此批。'; } repaired = true; }
         if (state.status === 'closing') { state.status = 'preview'; const act = currentAct(state); if (act) act.status = 'closing'; for (const result of Object.values(state.pendingTransaction?.results || {})) if (result.status === 'pending') { result.status = 'error'; result.error = '请求中断，请仅重试本项。'; } state.lastError = '上次整理已中断，成功部分保留在预览中。'; repaired = true; }
         if (state.status === 'preview' && !state.pendingTransaction) { state.status = 'active'; const act = currentAct(state); if (act?.status === 'closing') act.status = 'active'; repaired = true; }
         repaired = repair(state) || repaired;
@@ -133,34 +164,25 @@ async function generateClosePart(transaction, kind, settings) {
     const common = { characterName: transaction.character.char, userName: transaction.character.user, characterContext: transaction.character.context, dialogue: transaction.dialogue.text };
     if (kind === 'diary') { const prompt = modelMessages(buildDiaryPrompt({ ...common, targetLength: settings.diaryTargetLength, prompt: settings.prompts.diary })); return requestJson(settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.diary, parseDiaryResponse, 4096, '日记'); }
     if (kind === 'memory') {
-        const dialogue = transaction.dialogue.rows.map(row => `[消息ID:${row.id}] ${row.speaker}: ${row.body}${row.storyTime ? `\n[故事时间:${row.storyTime}]` : ''}`).join('\n\n');
-        let candidates = transaction.memoryCandidates;
-        if (!candidates) { const prompt = modelMessages(buildMemoryPrompt({ ...common, dialogue, prompt: settings.prompts.memory })); const parsed = await requestJson(settings.memoryConnectionProfile || settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.memory, value => requireArrayField(modelJson(value, '记忆模型'), 'memories', '记忆模型'), 8192, '记忆'); const checked = validateCandidateBatch(parsed.memories, transaction.dialogue.rows, transaction.actId); candidates = checked.candidates; transaction.memoryRejected = checked.rejected; }
-        transaction.memoryCandidates = candidates;
-        const neighbors = findMemoryNeighbors(candidates, getState()?.memories || []);
-        if (!neighbors.some(group => group.neighbors.length)) return { candidates, rejected: transaction.memoryRejected || [], operations: planMemoryChanges(candidates, getState()?.memories || []) };
-        const old = new Map((getState()?.memories || []).map(memory => [memory.id, memory]));
-        const comparison = neighbors.map(group => ({ candidate: candidates.find(candidate => candidate.id === group.candidateId), old: group.neighbors.map(id => old.get(id)).filter(Boolean).map(memory => ({ id: memory.id, title: memory.title, content: memory.content, status: memory.status, storyTime: memory.storyTime, locked: memory.locked })) }));
-        const instruction = '只返回严格 JSON {"operations":[{"action":"add|merge|supersede|skip","candidateId":"候选ID","targetId":"仅 merge/supersede 时填写旧记忆ID","reason":"依据"}]}。每条候选恰好一项操作；不同时间分别成立的事实应保留。锁定条目只能跳过或新增，不能修改。相似不等于重复。';
-        const output = await requestJson(settings.memoryConnectionProfile || settings.diaryConnectionProfile, modelMessages(`${instruction}\n${JSON.stringify(comparison)}`), OUTPUT_SCHEMAS.comparison, value => modelJson(value, '记忆对照'), 4096, '记忆对照');
-        return { candidates, rejected: transaction.memoryRejected || [], operations: planMemoryChanges(candidates, getState()?.memories || [], output?.operations) };
+        const prompt = modelMessages(buildMemoryPrompt({ ...common, prompt: settings.prompts.memory }));
+        const parsed = await requestJson(settings.memoryConnectionProfile || settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.memory, value => requireArrayField(modelJson(value, '记忆提取'), 'memories', '记忆提取'), 8192, '记忆提取');
+        return validateCandidateBatch(parsed.memories);
     }
     const prompt = modelMessages(buildGrowthPrompt({ ...common, currentGrowth: transaction.baseGrowth, prompt: settings.prompts.growth }));
     return requestJson(settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.growth, value => parseGrowthResponse(value, settings.maxGrowthChars), 6144, '角色成长');
 }
 
 async function runCloseParts(transactionId, kinds) {
-    const before = getState(), transaction = before?.pendingTransaction;
+    const key = activeChatKey, before = getState(), transaction = before?.pendingTransaction;
     if (!transaction || transaction.id !== transactionId) return;
     for (const kind of kinds) transaction.results[kind] = { status: 'pending' };
-    setState(before); try { await saveState(before, activeChatKey, true); } catch (error) { kinds.forEach(kind => { transaction.results[kind] = { status: 'error', error: `任务启动状态保存失败：${error.message}` }; }); before.status = 'preview'; setState(before); render(before); showSaveError(error); return; } render(before);
+    setState(before); try { await saveState(before, key, true); } catch (error) { if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transactionId) return; kinds.forEach(kind => { transaction.results[kind] = { status: 'error', error: `任务启动状态保存失败：${error.message}` }; }); before.status = 'preview'; setState(before); render(before); showSaveError(error); return; } if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transactionId) return; render(before);
     const settled = await Promise.allSettled(kinds.map(async kind => ({ kind, value: await generateClosePart(transaction, kind, before.settings) })));
-    if (String(ctx().chatId) !== activeChatKey) return;
+    if (key !== activeChatKey || String(ctx().chatId) !== key) return;
     const state = getState(), current = state?.pendingTransaction;
     if (!current || current.id !== transactionId || current.chatKey !== activeChatKey) return;
-    if (transaction.memoryCandidates) { current.memoryCandidates = transaction.memoryCandidates; current.memoryRejected = transaction.memoryRejected || []; }
     settled.forEach((result, index) => { const kind = kinds[index]; current.results[kind] = result.status === 'fulfilled' ? { status: 'success', value: result.value.value } : { status: 'error', error: result.reason?.message || String(result.reason) }; });
-    state.status = 'preview'; setState(state); let previewSaved = true; try { await saveState(state, activeChatKey, true); } catch (error) { previewSaved = false; showSaveError(error); } render(state);
+    state.status = 'preview'; setState(state); let previewSaved = true; try { await saveState(state, key, true); } catch (error) { previewSaved = false; showSaveError(error); } if (key !== activeChatKey) return; render(state);
     if (!previewSaved) return;
     const failures = kinds.filter(kind => current.results[kind].status === 'error');
     if (failures.length) notify('error', `${failures.map(kindLabel).join('、')}生成失败；成功部分已保留，可单独重试。`); else notify('success', '日记、记忆与角色成长已生成，请预览确认。');
@@ -169,85 +191,219 @@ async function runCloseParts(transactionId, kinds) {
 function kindLabel(kind) { return ({ diary: '日记', memory: '记忆', growth: '角色成长' })[kind] || kind; }
 async function closeAct() {
     if (closingPromise) return closingPromise;
-    const state = getState(), act = currentAct(state);
+    const key = activeChatKey, state = getState(), act = currentAct(state);
+    if (pendingSave) return;
     if (!state || disabledReason || !act || state.status !== 'active' || !compatible()) return;
     const sourceMessages = messagesFor(act.id), character = characterData(), dialogue = buildDialogue(sourceMessages, state.settings.extraction, character.char, character.user);
     if (dialogue.errors.length) { state.drafts = [{ kind: 'extraction-errors', actId: act.id, errors: dialogue.errors, createdAt: Date.now() }]; setState(state); await saveState(state); render(state); notify('error', '正文标签无法匹配：请在“当前幕”检查并修正规则，或明确跳过楼层。'); return; }
     if (!sourceMessages.length) { notify('info', '当前幕还没有可整理内容。'); return; }
     const transaction = { id: newId('close'), chatKey: activeChatKey, actId: act.id, sourceFingerprint: sourceFingerprint(sourceMessages), sourceMessageIds: sourceMessages.map(message => message.extra.scene_diary.messageId), settingsFingerprint: fingerprint(JSON.stringify(state.settings)), startedAt: Date.now(), dialogue, character, baseGrowth: state.characterGrowth.content, memoryRevision: state.memoryRevision, growthRevision: state.characterGrowth.revision, results: { diary: { status: 'pending' }, memory: { status: 'pending' }, growth: { status: 'pending' } } };
-    state.status = 'closing'; act.status = 'closing'; state.pendingTransaction = transaction; setState(state); try { await saveState(state, activeChatKey, true); } catch (error) { state.status = 'active'; act.status = 'active'; state.pendingTransaction = null; setState(state); render(state); notify('error', `关幕准备未保存，尚未调用模型：${error.message}`); return; } render(state);
-    closingPromise = runCloseParts(transaction.id, ['diary', 'memory', 'growth']).finally(() => closingPromise = null);
+    state.status = 'closing'; act.status = 'closing'; state.pendingTransaction = transaction; setState(state); try { await saveState(state, key, true); } catch (error) { if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transaction.id) return; state.status = 'active'; act.status = 'active'; state.pendingTransaction = null; setState(state); render(state); notify('error', `关幕准备未保存，尚未调用模型：${error.message}`); return; } if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transaction.id) return; render(state);
+    const running = runCloseParts(transaction.id, ['diary', 'memory', 'growth']).finally(() => { if (closingPromise === running) closingPromise = null; }); closingPromise = running;
     return closingPromise;
 }
 
-function retryClosePart(kind, regenerate = false) { const state = getState(), transaction = state?.pendingTransaction; if (!transaction || !['diary', 'memory', 'growth'].includes(kind) || transaction.results[kind]?.status === 'pending') return; if (kind === 'memory' && regenerate) { transaction.memoryCandidates = null; transaction.memoryRejected = []; } void runCloseParts(transaction.id, [kind]); }
+function retryClosePart(kind) { const state = getState(), transaction = state?.pendingTransaction; if (!transaction || !['diary', 'memory', 'growth'].includes(kind) || transaction.results[kind]?.status === 'pending') return; void runCloseParts(transaction.id, [kind]); }
 function allPartsReady(transaction) { return ['diary', 'memory', 'growth'].every(kind => transaction?.results?.[kind]?.status === 'success'); }
 
 async function confirmClose() {
-    if (pendingSave) return;
-    const state = getState(), transaction = state?.pendingTransaction, act = transaction && findAct(state, transaction.actId);
-    if (!state || disabledReason || state.status !== 'preview' || !transaction || !act || !allPartsReady(transaction)) { notify('error', '日记、记忆和角色成长必须全部生成成功后才能确认关幕。'); return; }
-    const sourceMessages = messagesFor(act.id), fresh = sourceFingerprint(sourceMessages);
-    if (fresh !== transaction.sourceFingerprint || transaction.chatKey !== activeChatKey || fingerprint(JSON.stringify(state.settings)) !== transaction.settingsFingerprint) { notify('error', '本幕内容或设置已变更，请重新整理预览。'); return; }
-    const memoryRevision = state.memoryRevision;
-    if (memoryRevision !== transaction.memoryRevision) { notify('error', '记忆库已变更，请重新整理预览。'); return; }
-    if (state.characterGrowth.revision !== transaction.growthRevision) { notify('error', '角色成长已被修改，请重新整理预览。'); return; }
-    const growthContent = String(transaction.results.growth.value || '').trim();
-    if (!growthContent || growthContent.length > state.settings.maxGrowthChars) { notify('error', `角色成长必须为 1–${state.settings.maxGrowthChars} 个字符。`); return; }
-    const diary = transaction.results.diary.value;
-    act.status = 'closed'; act.closedAt = Date.now(); act.title = diary.title; act.diary = diary.diary;
-    act.endMessageIndex = sourceMessages.at(-1)?.extra?.scene_diary?.messageIndex ?? null;
-    act.endSceneTime = transaction.dialogue.rows.map(row => row.storyTime).filter(Boolean).at(-1) || null;
-    act.sourceFingerprint = fresh; act.revision++; act.dirty = false;
-    const memoryResult = transaction.results.memory.value;
-    try { applyMemoryChanges(state, memoryResult.candidates, memoryResult.operations, transaction.id); } catch (error) { notify('error', error.message); return; }
-    const time = localTime(), generatedGrowth = transaction.results.growth.generatedValue ?? transaction.results.growth.value;
-    state.characterGrowth = { ...state.characterGrowth, content: growthContent, createdAt: state.characterGrowth.createdAt || time.timestamp, updatedAt: time.timestamp, timezoneOffset: time.timezoneOffset, revision: state.characterGrowth.revision + 1, lastIncludedActId: act.id, edited: state.characterGrowth.edited || growthContent !== generatedGrowth, reviewRecommended: false };
-    state.status = 'pending_next_act'; state.pendingTransaction = null; state.takeoverNotice = false; setState(state); pendingSave = true; saveUnverified = true;
-    try { await preserveRecovery(state); await saveState(state, activeChatKey, true); await clearRecovery(state); saveUnverified = false; disabledReason = ''; render(state); notify('success', `第${act.id}幕、记忆与角色成长已保存，下一条玩家消息将开启新幕。`); void syncVectors(state).catch(error => notify('warning', `向量更新失败，本地召回仍可用：${error.message}`)); }
-    catch (error) { disabledReason = '上次保存尚未核验，请在记忆库恢复保存后继续聊天。'; showSaveError(error); render(state); }
-    finally { pendingSave = false; }
+    if (pendingSave || disabledReason) return;
+    const key = activeChatKey, original = getState(), transactionId = original?.pendingTransaction?.id;
+    if (!transactionId) return;
+    const prepare = base => {
+        const transaction = base?.pendingTransaction, act = transaction && findAct(base, transaction.actId);
+        if (!base || base.status !== 'preview' || transaction?.id !== transactionId || !act || !allPartsReady(transaction)) throw new Error('日记、记忆和角色成长必须全部生成成功后才能确认关幕');
+        const sourceMessages = messagesFor(act.id), fresh = sourceFingerprint(sourceMessages);
+        if (fresh !== transaction.sourceFingerprint || transaction.chatKey !== key || fingerprint(JSON.stringify(base.settings)) !== transaction.settingsFingerprint) throw new Error('本幕内容或设置已变更，请重新整理预览');
+        if (base.characterGrowth.revision !== transaction.growthRevision) throw new Error('角色成长已被修改，请重新整理预览');
+        const growthContent = String(transaction.results.growth.value || '').trim(), diary = transaction.results.diary.value;
+        if (!growthContent || growthContent.length > base.settings.maxGrowthChars || !String(diary.diary || '').trim()) throw new Error('日记或角色成长为空、超长');
+        const state = appendExtractedMemories(base, transaction.results.memory.value.candidates), committedAct = findAct(state, act.id);
+        committedAct.status = 'closed'; committedAct.closedAt = Date.now(); committedAct.title = diary.title; committedAct.diary = diary.diary;
+        committedAct.endMessageIndex = sourceMessages.at(-1)?.extra?.scene_diary?.messageIndex ?? null;
+        committedAct.endSceneTime = transaction.dialogue.rows.map(row => row.storyTime).filter(Boolean).at(-1) || null;
+        committedAct.sourceFingerprint = fresh; committedAct.revision++; committedAct.dirty = false;
+        const time = localTime(), generatedGrowth = transaction.results.growth.generatedValue ?? transaction.results.growth.value;
+        state.characterGrowth = { ...state.characterGrowth, content: growthContent, createdAt: state.characterGrowth.createdAt || time.timestamp, updatedAt: time.timestamp, timezoneOffset: time.timezoneOffset, revision: state.characterGrowth.revision + 1, lastIncludedActId: act.id, edited: state.characterGrowth.edited || growthContent !== generatedGrowth, reviewRecommended: false };
+        state.status = 'pending_next_act'; state.pendingTransaction = null; state.takeoverNotice = false;
+        return state;
+    };
+    let state, applied = false;
+    try { state = prepare(original); } catch (error) { notify('error', error.message); return; }
+    pendingSave = true;
+    try {
+        await preserveRecovery(state, key);
+        if (key !== activeChatKey || key !== String(ctx().chatId)) return;
+        state = prepare(getState());
+        await preserveRecovery(state, key);
+        if (key !== activeChatKey || key !== String(ctx().chatId)) return;
+        // Recheck source/growth after asynchronous backup; merge into the current library.
+        state = prepare(getState()); setState(state); applied = true; saveUnverified = true;
+        await preserveRecovery(state, key); await saveState(state, key, true); await clearRecovery(state, key);
+        if (key !== activeChatKey) return;
+        saveUnverified = false; disabledReason = ''; recallCache.clear(); render(state);
+        notify('success', `第${state.currentActId}幕、记忆与角色成长已保存，下一条玩家消息将开启新幕。`);
+        void syncVectors(state).catch(error => notify('warning', `向量更新失败，本地召回仍可用：${error.message}`));
+    } catch (error) {
+        if (key === activeChatKey) {
+            if (applied) { disabledReason = '上次保存尚未核验，请在记忆库恢复保存后继续聊天。'; showSaveError(error); }
+            else { await clearRecovery(state, key).catch(() => {}); notify('error', `关幕未提交，预览仍保留：${error.message}`); }
+            render(getState());
+        }
+    } finally { pendingSave = false; }
 }
 
 function cancelClose() { const state = getState(), act = currentAct(state); if (!state || !act) return; state.status = 'active'; act.status = 'active'; state.pendingTransaction = null; setState(state); void saveState(state); render(state); }
 function skipExtraction(id) { const state = getState(), transaction = state?.pendingTransaction; if (!transaction?.dialogue) return; transaction.dialogue.errors = transaction.dialogue.errors.filter(item => item.id !== id); transaction.dialogue.rows = transaction.dialogue.rows.filter(item => item.id !== id); transaction.dialogue.text = transaction.dialogue.rows.map(row => `${row.speaker}: ${row.body}`).join('\n\n'); setState(state); void saveState(state); render(state); }
 
-function recallInput(state) { const current = chat().filter(message => isNormalRpMessage(message) && +message.extra?.scene_diary?.actId === state.currentActId).slice(-3), built = buildRecallQuery(current, state.settings.extraction), queries = weightedRecallQueries(built.rows); return { ...built, query: queries[0]?.text || '', queries }; }
-function localContinuity(state, input = recallInput(state)) { lastRecall = retrieveMemories(state.memories, input.query, state.settings, { queries: input.queries, revision: state.memoryRevision }); return { recallQuery: input, content: buildContinuityBlock(state, lastRecall, state.settings) }; }
+function recallInput(state) { const current = chat().filter(message => isNormalRpMessage(message) && String(message.mes || '').trim()).slice(-3); const built = buildRecallQuery(current, state.settings.extraction); return { ...built, query: built.text }; }
+function localContinuity(state, input = recallInput(state)) { lastRecall = retrieveMemories(state.memories, input.query, state.settings, { links: state.memoryLinks, revision: state.memoryRevision }); return { recallQuery: input, content: buildContinuityBlock(state, lastRecall, state.settings) }; }
 async function syncVectors(state) { const config = state.settings.semantic; if (!config?.enabled) return; await indexVectors(state.memories.filter(memoryEligible), semanticIdentity(state), config, semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || ''); }
 async function prepareContinuity(state, input, chatKey) {
-    const key = fingerprint(JSON.stringify([chatKey, state.memoryRevision, state.settings.semantic, input.queries]));
-    if (recallCache.has(key)) return recallCache.get(key);
-    let vectors = new Map(), queryVectors = [], degraded = '';
-    if (state.settings.semantic?.enabled && input.queries.length) {
-        try { const config = state.settings.semantic; vectors = await loadVectors(state.memories.filter(memoryEligible), semanticIdentity(state), config); const embedded = await embed(input.queries.map(item => item.text), config, semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || '', 3000); queryVectors = embedded.map((vector, index) => ({ vector, weight: input.queries[index].weight })); }
-        catch (error) { degraded = error.message; }
-    }
-    let recall = retrieveMemories(state.memories, input.query, state.settings, { vectors, queryVectors, queries: input.queries, revision: state.memoryRevision });
-    const pool = recall.candidates.filter(item => !item.permanent).slice(0, 20);
-    if (state.settings.semantic?.rerank && pool.length && input.queries.length) {
+    const cacheId = fingerprint(JSON.stringify([chatKey, state.memoryRevision, state.settings, input.query]));
+    if (recallCache.has(cacheId)) return recallCache.get(cacheId);
+    let vectors = new Map(), queryVector = null; const warnings = [];
+    if (state.settings.semantic?.enabled && input.query) {
         try {
-            const config = state.settings.semantic, documents = pool.map(item => memoryText(item.memory)), key = rerankKey || ctx().accountStorage?.getItem('scene_diary_rerank_key') || '';
-            const scores = await Promise.all(input.queries.map(item => rerank(item.text, documents, config, key)));
-            const order = rankWeightedScores(scores, input.queries, pool.length);
-            const fixed = recall.selected.filter(item => item.permanent), chosen = order.map(index => pool[index]);
-            let used = fixed.reduce((total, item) => total + estimateTokens(memoryLine(item.memory)), 0);
-            const allowed = []; for (const item of chosen) { if (fixed.length + allowed.length >= state.settings.recallLimit) break; const cost = estimateTokens(memoryLine(item.memory)); if (used + cost <= state.settings.memoryTokenBudget) { allowed.push(item); used += cost; } }
-            recall.selected = [...fixed, ...allowed]; recall.budgetUsed = used;
-        } catch (error) { degraded = degraded ? `${degraded}；${error.message}` : error.message; }
+            const config = state.settings.semantic;
+            vectors = await loadVectors(state.memories.filter(memoryEligible), semanticIdentity(state), config);
+            [queryVector] = await embed([input.query], config, semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || '', 3000);
+            if ([...vectors.values()].some(vector => vector.length !== queryVector.length || vector.some(value => !Number.isFinite(value)))) throw new Error('缓存向量维度或内容不兼容');
+        } catch (error) { vectors = new Map(); queryVector = null; warnings.push(`embedding 失败，已回退关键词召回：${error.message}`); }
+    }
+    const recall = retrieveMemories(state.memories, input.query, state.settings, { vectors, queryVector, links: state.memoryLinks, revision: state.memoryRevision });
+    const pool = recall.candidates.filter(item => !item.permanent);
+    if (state.settings.semantic?.rerank && pool.length && input.query) {
+        try {
+            const scores = await rerank(input.query, pool.map(item => memoryText(item.memory)), state.settings.semantic, rerankKey || ctx().accountStorage?.getItem('scene_diary_rerank_key') || '');
+            recall.candidates = [...recall.candidates.filter(item => item.permanent), ...rankRecallCandidates(pool, scores).map(item => ({ ...item, source: 'rerank' }))];
+            Object.assign(recall, selectRecallGroups(state.memories, recall.candidates, state.settings, state.memoryLinks));
+        } catch (error) { warnings.push(`rerank 失败，已保留重排前排序：${error.message}`); }
     }
     if (chatKey !== activeChatKey || state.memoryRevision !== getState()?.memoryRevision) return null;
-    recall.degradedReason = degraded; recallCache.set(key, recall); if (recallCache.size > 20) recallCache.delete(recallCache.keys().next().value); return recall;
+    recall.degradedReason = warnings.join('；');
+    if (!warnings.length) { recallCache.set(cacheId, recall); if (recallCache.size > 20) recallCache.delete(recallCache.keys().next().value); }
+    return recall;
 }
-async function sceneDiaryRearrangeChat(promptChat, _contextSize, abort) { const state = getState(), chatKey = activeChatKey, generation = ++recallGeneration; clearPrompts(); awaitingMainPrompt = false; if (!state || !compatible() || state.status !== 'active' || !Array.isArray(promptChat)) return; const input = recallInput(state); if (input.errors.length) { notify('error', `最近消息不符合正文标签规则：${input.errors.map(item => `楼层 ${item.index ?? '?'} ${item.errors.join('、')}`).join('；')}`); abort?.(true); return; } try { lastRecall = await prepareContinuity(state, input, chatKey); if (!lastRecall) localContinuity(state, input); } catch (error) { notify('warning', `语义召回失败，已使用本地召回：${error.message}`); localContinuity(state, input); } if (chatKey !== activeChatKey || generation !== recallGeneration) { abort?.(true); return; } recallContent = buildContinuityBlock(state, lastRecall, state.settings); promptChat.splice(0, promptChat.length, ...filterPromptMessages(promptChat, state.currentActId)); if (String(ctx().mainApi || '').toLowerCase() === 'openai') awaitingMainPrompt = true; else setExtensionPrompt(MEMORY_KEY, recallContent, extension_prompt_types.IN_CHAT, Math.min(promptChat.length, 100), false, extension_prompt_roles.SYSTEM); }
+async function sceneDiaryRearrangeChat(promptChat, _contextSize, abort) { let state = getState(); const chatKey = activeChatKey, generation = ++recallGeneration; clearPrompts(); awaitingMainPrompt = false; if (!state || disabledReason || !compatible() || state.status !== 'active' || !Array.isArray(promptChat)) return; const input = recallInput(state); if (input.errors.length) { notify('error', `最近消息不符合正文标签规则：${input.errors.map(item => `楼层 ${item.index ?? '?'} ${item.errors.join('、')}`).join('；')}`); abort?.(true); return; } try { lastRecall = await prepareContinuity(state, input, chatKey); if (!lastRecall && chatKey === activeChatKey) { state = getState(); localContinuity(state, recallInput(state)); } } catch (error) { notify('warning', `语义召回失败，已使用本地召回：${error.message}`); localContinuity(state, input); } if (chatKey !== activeChatKey || generation !== recallGeneration) { abort?.(true); return; } const notices = [lastRecall?.degradedReason, lastRecall?.skippedGroups?.length ? `${lastRecall.skippedGroups.length} 个关联记忆组超出 token 预算，已整组跳过（含常驻组）。` : ''].filter(Boolean); if (notices.length) notify('warning', notices.join('；')); recallContent = buildContinuityBlock(state, lastRecall, state.settings); promptChat.splice(0, promptChat.length, ...filterPromptMessages(promptChat, state.currentActId)); if (String(ctx().mainApi || '').toLowerCase() === 'openai') awaitingMainPrompt = true; else setExtensionPrompt(MEMORY_KEY, recallContent, extension_prompt_types.IN_CHAT, Math.min(promptChat.length, 100), false, extension_prompt_roles.SYSTEM); }
 function promptReady(eventData) { const state = getState(), requestChat = eventData?.chat, dryRun = !!eventData?.dryRun; if (!dryRun && !awaitingMainPrompt) return; awaitingMainPrompt = false; if (!state || disabledReason || state.status !== 'active' || !Array.isArray(requestChat)) { lastContinuity = { included: false, reason: '聊天未处于可注入状态', dryRun }; return; } const input = dryRun ? recallInput(state) : null; if (input?.errors?.length) { lastContinuity = { included: false, reason: '召回正文提取失败', dryRun }; return; } const content = dryRun ? localContinuity(state, input).content : recallContent; const index = insertContinuityBeforeHistory(requestChat, content); lastContinuity = { included: index >= 0, index, length: content.length, growthIncluded: !!state.characterGrowth.content, growthRevision: state.characterGrowth.revision, dryRun, reason: index >= 0 ? '' : '没有可注入的角色成长、日记或记忆' }; recallContent = ''; }
 globalThis.sceneDiaryRearrangeChat = sceneDiaryRearrangeChat;
 
+const maintenanceRuns = new Set();
+const maintenanceInstruction = `你是记忆库语义整理器。素材只有下列已保存记忆及关联，不读取或补写外部事实。寻找同一事实的重复表达并建议 merge；不同时间分别成立、发展、兑现、取消的事实保持独立并建议 link。仅人物或地点相同不足以关联。锁定条目不能合并，但允许关联。所有结果只是供用户批准的建议。
+返回严格 JSON {"operations":[]}。merge 项：action, memberIds（至少两个输入ID）, targetId（成员之一）, title, content, category, a:null,b:null,reason。link 项：action, memberIds:[],targetId:null,title:null,content:null,category:null,a,b,reason。理由最多300字符，合并标题最多120字符、正文最多500字符，category 必须是 preference/habit/promise/relationship/event/item_place。不要在同一批中生成重复操作。既有关系无需重复建议。`;
+function editCandidate(field) {
+    if (pendingSave || disabledReason) return;
+    const state = getState(), memory = state?.pendingTransaction?.results?.memory?.value?.candidates?.[+field.dataset.candidateIndex]; if (!memory) return;
+    const key = field.dataset.candidateField; memory[key] = key === 'accepted' ? field.checked : key === 'importance' ? +field.value : key === 'storyTime' ? field.value.trim() || null : field.value;
+    setState(state); void saveState(state).catch(showSaveError);
+}
+function editMaintenance(field) {
+    if (pendingSave || disabledReason) return;
+    const state = getState(), tx = state?.maintenanceTransaction, op = tx?.operations?.find(item => item.id === field.dataset.operationId); if (!op) return;
+    const key = field.dataset.maintenanceField;
+    if (key === 'accepted') op.accepted = field.checked;
+    else if (key === 'storyTime') { op.merged.storyTime = field.value || null; op.timeResolved = field.value !== '__choose__'; }
+    else if (key === 'reason') op.reason = field.value;
+    else op.merged[key] = field.value;
+    setState(state); void saveState(state).catch(showSaveError);
+}
+function maintenanceCurrent(id, key) {
+    if (key !== activeChatKey || key !== String(ctx().chatId) || !compatible()) return null;
+    const state = getState(); return state?.maintenanceTransaction?.id === id ? state : null;
+}
+async function startMaintenance() {
+    const state = getState(); if (!state || disabledReason || pendingSave) return;
+    if (state.maintenanceTransaction?.status === 'running') { notify('info', '记忆整理正在运行。'); return; }
+    if (state.memories.length < 2) { notify('info', '至少需要两条已保存记忆才能整理。'); return; }
+    const snapshot = structuredClone(state.memories), id = newId('maintenance');
+    state.maintenanceTransaction = { id, chatKey: activeChatKey, memoryRevision: state.memoryRevision, profile: state.settings.memoryConnectionProfile || state.settings.diaryConnectionProfile, snapshot, links: structuredClone(state.memoryLinks), tasks: maintenanceTasks(snapshot), status: 'ready', startedAt: Date.now() };
+    setState(state); await saveState(state, activeChatKey, true); if (getState()?.maintenanceTransaction?.id !== id) return; render(state); await runMaintenance(id);
+}
+async function runMaintenance(id) {
+    if (maintenanceRuns.has(id) || pendingSave || disabledReason) return;
+    const key = activeChatKey; let state = maintenanceCurrent(id, key); if (!state) return;
+    if (state.memoryRevision !== state.maintenanceTransaction.memoryRevision) { notify('warning', '记忆库已变化，请重新点击“记忆整理”。'); return; }
+    maintenanceRuns.add(id);
+    try {
+        state.maintenanceTransaction.status = 'running'; setState(state); await saveState(state, key, true); render(state);
+        while ((state = maintenanceCurrent(id, key))) {
+            const tx = state.maintenanceTransaction;
+            if (state.memoryRevision !== tx.memoryRevision) { tx.status = 'stale'; setState(state); await saveState(state, key); render(state); return; }
+            const task = tx.tasks.find(item => item.status !== 'success');
+            if (!task) {
+                tx.operations = planMaintenance(tx.snapshot, tx.links, tx.tasks.flatMap(item => item.operations || [])); tx.status = 'preview';
+                setState(state); await saveState(state, key, true); render(state); notify('success', `记忆整理完成：${tx.operations.length} 项建议，等待批准。`); return;
+            }
+            task.status = 'running'; task.error = ''; setState(state); await saveState(state, key); if (!maintenanceCurrent(id, key)) return; render(state);
+            try {
+                const byId = new Map(tx.snapshot.map(memory => [memory.id, memory])), input = [...task.left, ...task.right].map(id => byId.get(id)), ids = new Set([...task.left, ...task.right]);
+                const material = id => { const memory = byId.get(id); return Object.fromEntries(['id', 'category', 'title', 'content', 'people', 'aliases', 'importance', 'storyTime', 'locked', 'permanent', 'disabled'].map(field => [field, memory[field]])); };
+                const prompt = `${maintenanceInstruction}\n本批${task.right.length ? '为跨块比较，重点检查左块与右块之间的语义重复和发展关联' : '为块内比较'}。\n${JSON.stringify({ left: task.left.map(material), right: task.right.map(material), links: tx.links.filter(link => ids.has(link.a) && ids.has(link.b)) })}`;
+                const output = await requestJson(tx.profile, modelMessages(prompt), OUTPUT_SCHEMAS.maintenance, value => requireArrayField(modelJson(value, '记忆整理'), 'operations', '记忆整理'), 8192, '记忆整理');
+                // Validate only IDs, fields and locks. No factual/source verification.
+                planMaintenance(input, tx.links, output.operations);
+                state = maintenanceCurrent(id, key); if (!state) return;
+                const current = state.maintenanceTransaction.tasks.find(item => item.id === task.id); if (!current) return;
+                current.operations = output.operations; current.status = 'success';
+            } catch (error) {
+                state = maintenanceCurrent(id, key); if (!state) return;
+                const current = state.maintenanceTransaction.tasks.find(item => item.id === task.id); if (!current) return;
+                const split = /context|too (?:many|long)|token.*(?:limit|exceed)|上下文|超限|两次输出均未满足/i.test(error.message) ? splitMaintenanceTask(current) : null;
+                if (split) state.maintenanceTransaction.tasks.splice(state.maintenanceTransaction.tasks.indexOf(current), 1, ...split);
+                else { current.status = 'error'; current.error = error.message; state.maintenanceTransaction.status = 'error'; setState(state); await saveState(state, key); render(state); notify('error', `整理批次失败，成功批次已保留：${error.message}`); return; }
+            }
+            setState(state); await saveState(state, key); render(state);
+        }
+    } catch (error) {
+        state = maintenanceCurrent(id, key);
+        if (state) { state.maintenanceTransaction.status = 'error'; state.maintenanceTransaction.error = error.message; setState(state); render(state); notify('error', `整理未完成：${error.message}`); }
+    } finally { maintenanceRuns.delete(id); }
+}
+async function confirmMaintenance() {
+    if (pendingSave || disabledReason) return;
+    const state = getState(), tx = state?.maintenanceTransaction, key = activeChatKey;
+    if (!tx || tx.status !== 'preview') return;
+    if (state.memoryRevision !== tx.memoryRevision) { notify('error', '记忆库已变化，请重新整理。'); return; }
+    let next;
+    try { next = applyMaintenance(state, tx.operations); } catch (error) { notify('error', `整理未保存：${error.message}`); return; }
+    pendingSave = true; let applied = false;
+    try {
+        await preserveRecovery(next, key);
+        const latest = maintenanceCurrent(tx.id, key);
+        if (!latest || latest.memoryRevision !== tx.memoryRevision) throw new Error('保存准备期间记忆库已变化，请重新整理');
+        // Keep any new chat/act/diary state that arrived during the recovery write.
+        Object.assign(latest, { memories: next.memories, memoryLinks: next.memoryLinks, memoryRevision: next.memoryRevision, maintenanceTransaction: null });
+        setState(latest); applied = true; saveUnverified = true; await preserveRecovery(latest, key);
+        await saveState(latest, key, true); await clearRecovery(latest, key); saveUnverified = false; recallCache.clear(); render(latest);
+        notify('success', '已保存批准的整理操作。'); void syncVectors(latest).catch(error => notify('warning', `向量更新失败：${error.message}`));
+    } catch (error) { if (key === activeChatKey) { if (applied) { disabledReason = '整理保存尚未核验，请恢复未完成的保存。'; showSaveError(error); } else { await clearRecovery(next, key).catch(() => {}); notify('error', `整理未提交，预览仍保留：${error.message}`); } render(getState()); } }
+    finally { pendingSave = false; }
+}
+function renderMaintenance(state) {
+    const root = document.querySelector('#scene_diary_maintenance'); if (!root) return;
+    const tx = state?.maintenanceTransaction; if (!tx) { root.innerHTML = ''; return; }
+    const stale = state.memoryRevision !== tx.memoryRevision, completed = tx.tasks.filter(task => task.status === 'success').length;
+    const header = `<h4>记忆整理</h4><p>${completed}/${tx.tasks.length} 批已完成（预计 ${tx.tasks.length} 次请求，超限拆批后可能增加）。${stale ? '记忆库已变化，需重新整理。' : tx.status === 'running' ? '正在分析…' : ''}</p>${tx.error ? `<p>${escape(tx.error)}</p>` : ''}${tx.tasks.filter(task => task.status === 'error').map(task => `<p class="scene-diary-warning">${escape(task.error)}</p>`).join('')}`;
+    const operations = tx.status === 'preview' ? tx.operations.map(op => {
+        const attrs = field => `data-operation-id="${escape(op.id)}" data-maintenance-field="${field}"`;
+        const members = op.action === 'merge' ? tx.snapshot.filter(memory => op.memberIds.includes(memory.id)) : tx.snapshot.filter(memory => [op.a, op.b].includes(memory.id));
+        return `<div class="scene-diary-candidate"><label><input ${attrs('accepted')} type="checkbox" ${op.accepted ? 'checked' : ''}> ${op.action === 'merge' ? '合并重复记忆' : '关联独立记忆'}</label>${members.map(memory => `<p><strong>${escape(memory.title)}</strong>：${escape(memory.content)}<br><small>故事时间：${escape(memory.storyTime || '未记录')}；重要度 ${memory.importance}；${memory.permanent ? '常驻' : '普通'}；${memory.disabled ? '停用' : '启用'}</small></p>`).join('')}${op.action === 'merge' ? `<p>保留 ID：${escape(op.targetId)}；重要度 ${op.merged.importance}；${op.merged.permanent ? '常驻' : '普通'}；${op.merged.disabled ? '停用' : '启用'}</p><label>合并标题<input ${attrs('title')} maxlength="120" value="${escape(op.merged.title)}"></label><label>合并正文<textarea ${attrs('content')} maxlength="500">${escape(op.merged.content)}</textarea></label><label>类别<select ${attrs('category')}>${MEMORY_CATEGORIES.map(category => `<option ${category === op.merged.category ? 'selected' : ''}>${category}</option>`).join('')}</select></label><label>故事时间<select ${attrs('storyTime')}>${!op.timeResolved ? '<option value="__choose__" selected>请选择最新故事时间</option>' : ''}${op.timeChoices.length ? op.timeChoices.map(time => `<option value="${escape(time)}" ${op.merged.storyTime === time ? 'selected' : ''}>${escape(time)}</option>`).join('') : '<option value="">未记录</option>'}</select></label>${op.conflicts?.length ? '<p class="scene-diary-warning">存在共享成员的互斥合并建议，只能批准其中一项。</p>' : ''}` : ''}<label>关联／合并理由<textarea ${attrs('reason')} maxlength="300">${escape(op.reason)}</textarea></label></div>`;
+    }).join('') : '';
+    root.innerHTML = `${header}${operations}${tx.status === 'preview' && !tx.operations.length ? '<p>没有需要整理的建议。</p>' : ''}<div class="scene-diary-actions">${!stale && tx.status === 'preview' ? '<button data-action="confirm-maintenance">保存批准的操作</button>' : ''}${!stale && tx.status === 'error' ? `<button data-action="retry-maintenance" data-transaction-id="${escape(tx.id)}">重试未完成批次</button>` : ''}<button data-action="cancel-maintenance">取消整理</button></div>`;
+}
+
 function renderMemories(state) {
-    const root = document.querySelector('#scene_diary_memories'); if (!root) return;
+    const root = document.querySelector('#scene_diary_memories'); if (!root || !state) return;
     const query = document.querySelector('[data-memory-search]')?.value?.toLowerCase() || '', category = document.querySelector('[data-memory-category]')?.value || '';
-    const entries = state.memories.filter(memory => !memory.deletedAt && (!query || `${memory.title} ${memory.content} ${memory.people.join(' ')}`.toLowerCase().includes(query)) && (!category || memory.category === category));
-    root.innerHTML = entries.length ? entries.map(memory => `<details class="scene-diary-entry" data-memory-id="${escape(memory.id)}"><summary>${escape(memory.title)} <small>${escape(memory.category)}${memory.lifecycle !== 'current' ? ` · ${escape(memory.lifecycle)}` : ''}${memory.permanent ? ' · 常驻' : ''}</small></summary><label>标题<input data-memory-field="title" value="${escape(memory.title)}"></label><label>内容<textarea data-memory-field="content" rows="3">${escape(memory.content)}</textarea></label>${memory.sources?.map((source, index) => `<label>第${source.actId || '?'}幕 · ${escape(source.messageId)} 参考片段（未核对）<textarea data-source-index="${index}" rows="2">${escape(source.excerpt || '')}</textarea></label>`).join('') || '<p>无参考片段。</p>'}<label>类别<select data-memory-field="category">${MEMORY_CATEGORIES.map(item => `<option ${item === memory.category ? 'selected' : ''}>${item}</option>`).join('')}</select></label><label>重要度<input data-memory-field="importance" type="number" min="1" max="5" value="${memory.importance}"></label><label><input data-memory-field="permanent" type="checkbox" ${memory.permanent ? 'checked' : ''}> 常驻，每次生成时固定召回</label><label><input data-memory-field="locked" type="checkbox" ${memory.locked ? 'checked' : ''}> 锁定，自动整理不可覆盖</label><button data-action="save-memory">保存</button><button data-action="delete-memory">删除</button></details>`).join('') : '<p class="scene-diary-muted">没有符合条件的记忆。</p>';
+    const renderKey = JSON.stringify([activeChatKey, state.memorySpaceId, state.memoryRevision, query, category, draftMemory?.id]);
+    if (memoryRenderKey === renderKey) return; memoryRenderKey = renderKey;
+    const all = draftMemory && !state.memories.some(memory => memory.id === draftMemory.id) ? [draftMemory, ...state.memories] : state.memories;
+    const entries = all.filter(memory => !memory.deletedAt && (!query || `${memory.title} ${memory.content} ${memory.people.join(' ')}`.toLowerCase().includes(query)) && (!category || memory.category === category));
+    root.innerHTML = entries.length ? entries.map(memory => {
+        const related = state.memoryLinks.filter(link => link.a === memory.id || link.b === memory.id).map(link => { const id = link.a === memory.id ? link.b : link.a, other = state.memories.find(item => item.id === id); return other ? `<div class="scene-diary-related"><button data-action="open-related" data-related-id="${escape(id)}">${escape(other.title)}</button><p>${escape(other.content)}</p><small>${escape(link.reason)}</small><button data-action="unlink-memory" data-link-a="${escape(link.a)}" data-link-b="${escape(link.b)}">解除关联</button></div>` : ''; }).join('');
+        return `<details ${draftMemory?.id === memory.id ? 'open' : ''} class="scene-diary-entry" data-memory-id="${escape(memory.id)}"><summary>${escape(memory.title)} <small>${escape(memory.category)}${memory.permanent ? ' · 常驻' : ''}${memory.disabled ? ' · 停用' : ''}</small></summary><label>标题<input data-memory-field="title" maxlength="120" value="${escape(memory.title)}"></label><label>内容<textarea data-memory-field="content" maxlength="500" rows="3">${escape(memory.content)}</textarea></label><label>类别<select data-memory-field="category">${MEMORY_CATEGORIES.map(item => `<option ${item === memory.category ? 'selected' : ''}>${item}</option>`).join('')}</select></label><label>重要度<input data-memory-field="importance" type="number" min="1" max="5" value="${memory.importance}"></label><label>故事时间<input data-memory-field="storyTime" value="${escape(memory.storyTime || '')}"></label><label><input data-memory-field="permanent" type="checkbox" ${memory.permanent ? 'checked' : ''}> 常驻，优先召回（遵守组数与预算）</label><label><input data-memory-field="locked" type="checkbox" ${memory.locked ? 'checked' : ''}> 锁定，整理不可合并</label><label><input data-memory-field="disabled" type="checkbox" ${memory.disabled ? 'checked' : ''}> 停用，不参与召回</label><h5>关联记忆</h5>${related || '<p>暂无关联。</p>'}<button data-action="save-memory">保存</button><button data-action="delete-memory">删除</button></details>`;
+    }).join('') : '<p class="scene-diary-muted">没有符合条件的记忆。</p>';
 }
 
 function renderPart(kind, result, transaction) {
@@ -255,16 +411,12 @@ function renderPart(kind, result, transaction) {
     if (result?.status === 'error') return `<section class="scene-diary-result scene-diary-error"><h5>${kindLabel(kind)}</h5><p>${escape(result.error)}</p><button data-action="retry-part" data-kind="${kind}">仅重试${kindLabel(kind)}</button></section>`;
     if (kind === 'diary') return `<section class="scene-diary-result"><h5>日记</h5><label>标题<input data-preview="title" value="${escape(result.value.title)}"></label><label>日记<textarea data-preview="diary" rows="7">${escape(result.value.diary)}</textarea></label><button data-action="retry-part" data-kind="diary">重新生成日记</button></section>`;
     if (kind === 'growth') return `<section class="scene-diary-result"><h5>角色成长</h5><p class="scene-diary-muted">角色成长记录关系与状态演变，不规定下一幕的时间、地点或开场事件。</p><label>当前角色成长<textarea rows="5" readonly>${escape(transaction.baseGrowth || '尚未建立')}</textarea></label><label>更新后角色成长<textarea data-preview="growth" rows="9" maxlength="4000">${escape(result.value)}</textarea></label><button data-action="retry-part" data-kind="growth">重新生成角色成长</button></section>`;
-    const candidates = result.value?.candidates || [], operations = result.value?.operations || [], rejected = result.value?.rejected || [];
-    const warning = rejected.length ? `<div class="scene-diary-review-warning"><strong>${rejected.length} 条候选格式或内容无效，已排除，尚未保存。</strong><ul>${rejected.map(item => `<li>第 ${item.index} 条${item.title ? `「${escape(item.title)}」` : ''}：${escape(item.reason)}</li>`).join('')}</ul><p>如需找回这些记忆，可重新生成。</p></div>` : '';
-    const cards = operations.map((operation, index) => {
-        const memory = candidates.find(item => item.id === operation.candidateId), old = getState()?.memories.find(item => item.id === operation.targetId);
-        return `<div class="scene-diary-candidate"><label><input data-operation="${index}" type="checkbox" ${operation.accepted ? 'checked' : ''}> ${escape(operationLabel(operation.action))}：${escape(memory?.title || old?.title || '')}</label><p>原有事实：${escape(old?.content || '无')}</p>${memory && ['add', 'supersede'].includes(operation.action) ? `<label>标题<input data-candidate-title="${index}" maxlength="120" value="${escape(memory.title)}"></label><label>新事实<textarea data-candidate-content="${index}" maxlength="500" rows="2">${escape(memory.content)}</textarea></label>` : `<p>建议内容：${escape(memory?.content || operation.status || '无')}</p>`}<small>参考片段（未核对）：${escape(memory?.sources?.map(source => source.excerpt).join('；') || '无')}<br>原因：${escape(operation.reason || '未提供')}</small></div>`;
-    }).join('');
-    return `<section class="scene-diary-result"><h5>本幕记忆建议</h5>${warning}${cards || '<p class="scene-diary-muted">本幕没有可保存的记忆候选。</p>'}<div class="scene-diary-actions"><button data-action="retry-part" data-kind="memory">重新对照现有记忆</button><button data-action="regenerate-memory">重新生成记忆</button></div></section>`;
+    const candidates = result.value?.candidates || [], rejected = result.value?.rejected || [];
+    const warning = rejected.length ? `<div class="scene-diary-review-warning"><strong>${rejected.length} 条候选格式无效，尚未保存。</strong>${rejected.map(item => `<p>第 ${item.index} 条：${escape(item.reason)}</p>`).join('')}</div>` : '';
+    return `<section class="scene-diary-result"><h5>本幕新记忆</h5>${warning}${candidates.map((memory, index) => `<div class="scene-diary-candidate"><label><input data-candidate-index="${index}" data-candidate-field="accepted" type="checkbox" ${memory.accepted !== false ? 'checked' : ''}> 保留这条记忆</label><label>标题<input data-candidate-index="${index}" data-candidate-field="title" maxlength="120" value="${escape(memory.title)}"></label><label>事实<textarea data-candidate-index="${index}" data-candidate-field="content" maxlength="500">${escape(memory.content)}</textarea></label><label>类别<select data-candidate-index="${index}" data-candidate-field="category">${MEMORY_CATEGORIES.map(category => `<option ${category === memory.category ? 'selected' : ''}>${category}</option>`).join('')}</select></label><label>重要度<input data-candidate-index="${index}" data-candidate-field="importance" type="number" min="1" max="5" value="${memory.importance}"></label><label>故事时间<input data-candidate-index="${index}" data-candidate-field="storyTime" value="${escape(memory.storyTime || '')}"></label></div>`).join('') || '<p>本幕没有新记忆。</p>'}<button data-action="regenerate-memory">重新提取记忆</button></section>`;
 }
 
-function operationLabel(action) { return { add: '新增事实', merge: '合并重复记忆', supersede: '用新事实替代旧版本', set_status: '更新承诺状态', archive: '归档旧记忆', skip: '跳过' }[action] || action; }
+
 function render(state = getState()) {
     const bar = document.querySelector(`#${BAR}`), panel = document.querySelector(`#${PANEL}`);
     if (bar) { bar.querySelector('[data-role=status]').textContent = disabledReason || (!state ? '等待接管' : state.status === 'closing' ? '正在整理…' : state.status === 'preview' ? '等待确认预览' : state.status === 'pending_next_act' ? `第${state.currentActId}幕已结束` : `第${state.currentActId}幕进行中`); bar.querySelector('[data-action=end]').disabled = !state || !!disabledReason || state.status !== 'active'; }
@@ -277,7 +429,8 @@ function render(state = getState()) {
     const growthMeta = panel.querySelector('[data-growth-meta]'); if (growthMeta) growthMeta.textContent = `最后纳入：${growth.lastIncludedActId ? `第 ${growth.lastIncludedActId} 幕` : '尚无'}；revision ${growth.revision}；约 ${estimateTokens(growth.content)} tokens`;
     const growthCount = panel.querySelector('[data-growth-count]'); if (growthCount) growthCount.textContent = `${growthEditor?.value.length || 0} / ${state?.settings.maxGrowthChars || 4000} 字符`;
     panel.querySelector('#scene_diary_diaries').innerHTML = state?.acts.filter(act => act.diary).slice().reverse().map(act => `<details class="scene-diary-entry"><summary>第${act.id}幕 · ${escape(act.title)}${act.dirty ? ' · 待复核' : ''}</summary><p>故事时间：${escape(act.startSceneTime || '未记录')} → ${escape(act.endSceneTime || '未记录')}</p><textarea data-diary-id="${act.id}" rows="6">${escape(act.diary)}</textarea><button data-action="save-diary">保存日记</button></details>`).join('') || '<p class="scene-diary-muted">尚无日记。</p>';
-    renderMemories(state || createState());
+    renderMemories(state || createState()); renderMaintenance(state);
+    const recallSummary = panel.querySelector('[data-recall-summary]'); if (recallSummary) recallSummary.textContent = `上次召回：${lastRecall?.groups?.length || 0} 组 / ${lastRecall?.selected.length || 0} 条；预算约 ${lastRecall?.budgetUsed || 0} tokens。`;
     const size = panel.querySelector('[data-maintenance-size]'); if (size && state) { const backup = createContentBackup(state, activeChatKey); size.textContent = `备份包含 ${backup.diaries.length} 篇日记、角色成长及 ${backup.memories.length} 条记忆。`; }
     const recovery = panel.querySelector('[data-action=recover-save]'); if (recovery) recovery.hidden = !saveUnverified;
     const transaction = state?.pendingTransaction, preview = panel.querySelector('#scene_diary_preview'); preview.hidden = !transaction || !['closing', 'preview'].includes(state.status);
@@ -291,7 +444,7 @@ function createUi() {
     const form = document.querySelector('#send_form') || document.querySelector('#send_textarea')?.parentElement; if (!form) return;
     const bar = document.createElement('div'); bar.id = BAR; bar.innerHTML = '<button type="button" data-action="open">🎬 scene&diary</button><span data-role="status">等待接管</span><button type="button" data-action="end">结束这一幕</button>'; form.prepend(bar);
     const panel = document.createElement('section'); panel.id = PANEL; panel.hidden = true;
-    panel.innerHTML = `<header class="scene-diary-panel-head"><h3>scene&diary</h3><button data-action="close" aria-label="关闭">×</button></header><p data-role="status" class="scene-diary-warning"></p><nav class="scene-diary-tabs"><button data-tab="act">当前幕</button><button data-tab="growth">角色成长</button><button data-tab="memory">记忆库</button><button data-tab="diary">日记</button><button data-tab="settings">设置</button><button data-tab="debug">诊断</button></nav><section data-page="act"><p>结束当前幕后，会生成日记、记忆候选和角色成长；确认前不会正式写入。</p><div class="scene-diary-actions"><button data-action="end">结束这一幕</button><button data-action="takeover">从当前第一条接管旧聊天</button></div><div id="scene_diary_extraction"></div><div id="scene_diary_preview" hidden></div></section><section data-page="growth" hidden><p data-growth-notice class="scene-diary-warning"></p><label>角色成长<textarea data-growth-editor rows="14" maxlength="4000" placeholder="概括角色的成长路径、情感发展、双方关系与生活状态演变。"></textarea></label><p data-growth-count class="scene-diary-muted"></p><p data-growth-meta class="scene-diary-muted"></p><div class="scene-diary-actions"><button data-action="save-growth">保存角色成长</button></div></section><section data-page="memory" hidden><label>搜索<input data-memory-search placeholder="标题、内容、人物"></label><label>分类<select data-memory-category><option value="">全部分类</option>${MEMORY_CATEGORIES.map(item => `<option>${item}</option>`).join('')}</select></label><button data-action="new-memory">新增记忆</button><div id="scene_diary_memories"></div></section><section data-page="diary" hidden><div id="scene_diary_diaries"></div></section><section data-page="settings" hidden><h4>模型</h4><label>日记／角色成长连接<select data-setting="diaryConnectionProfile"></select></label><label>记忆连接<select data-setting="memoryConnectionProfile"></select></label><h4>召回</h4><label>读取最近有效消息数<input data-setting="recallMessageCount" type="number" min="1" max="20"></label><label>最多召回条目<input data-setting="recallLimit" type="number" min="0" max="30"></label><label>长期记忆预算（tokens）<input data-setting="memoryTokenBudget" type="number" min="100"></label><label>近期日记篇数<input data-setting="recentDiaryCount" type="number" min="0" max="20"></label><h4>正文标签</h4><p class="scene-diary-muted">每行一组完整标签；同一行的开始与结束标签必须同名。全部留空时提取完整消息。</p><div data-pair-editor>${[['角色正文', 'character.bodyTagPairs'], ['玩家正文', 'user.bodyTagPairs'], ['角色故事时间', 'character.storyTimeTagPairs'], ['玩家故事时间', 'user.storyTimeTagPairs']].map(([label, key]) => `<fieldset class="scene-diary-tag-pair"><legend>${label}</legend><label>开始标签<textarea rows="2" data-pair-open="${key}" placeholder="<now_plot>"></textarea></label><label>结束标签<textarea rows="2" data-pair-close="${key}" placeholder="</now_plot>"></textarea></label></fieldset>`).join('')}</div><h4>提示词</h4><p class="scene-diary-muted">这里只编辑模型角色定义。角色卡描述、性格、场景、输入内容和 JSON 格式由插件自动附加。</p><label>日记提示词<textarea data-setting="promptDiary" rows="5"></textarea></label><label>记忆提示词<textarea data-setting="promptMemory" rows="5"></textarea></label><label>角色成长提示词<textarea data-setting="promptGrowth" rows="8"></textarea></label><button data-action="save-settings">保存当前聊天设置</button><button data-action="reset-prompts">恢复默认提示词</button></section><section data-page="debug" hidden><p data-debug></p><pre data-debug-list></pre></section>`;
+    panel.innerHTML = `<header class="scene-diary-panel-head"><h3>scene&diary</h3><button data-action="close" aria-label="关闭">×</button></header><p data-role="status" class="scene-diary-warning"></p><nav class="scene-diary-tabs"><button data-tab="act">当前幕</button><button data-tab="growth">角色成长</button><button data-tab="memory">记忆库</button><button data-tab="diary">日记</button><button data-tab="settings">设置</button><button data-tab="debug">诊断</button></nav><section data-page="act"><p>结束当前幕后，会生成日记、记忆候选和角色成长；确认前不会正式写入。</p><div class="scene-diary-actions"><button data-action="end">结束这一幕</button><button data-action="takeover">从当前第一条接管旧聊天</button></div><div id="scene_diary_extraction"></div><div id="scene_diary_preview" hidden></div></section><section data-page="growth" hidden><p data-growth-notice class="scene-diary-warning"></p><label>角色成长<textarea data-growth-editor rows="14" maxlength="4000" placeholder="概括角色的成长路径、情感发展、双方关系与生活状态演变。"></textarea></label><p data-growth-count class="scene-diary-muted"></p><p data-growth-meta class="scene-diary-muted"></p><div class="scene-diary-actions"><button data-action="save-growth">保存角色成长</button></div></section><section data-page="memory" hidden><label>搜索<input data-memory-search placeholder="标题、内容、人物"></label><label>分类<select data-memory-category><option value="">全部分类</option>${MEMORY_CATEGORIES.map(item => `<option>${item}</option>`).join('')}</select></label><button data-action="new-memory">新增记忆</button><button data-action="organize-memory">记忆整理</button><div id="scene_diary_maintenance"></div><p data-recall-summary class="scene-diary-muted"></p><div id="scene_diary_memories"></div></section><section data-page="diary" hidden><div id="scene_diary_diaries"></div></section><section data-page="settings" hidden><h4>模型</h4><label>日记／角色成长连接<select data-setting="diaryConnectionProfile"></select></label><label>记忆连接<select data-setting="memoryConnectionProfile"></select></label><h4>召回</h4><label>读取最近有效消息数<input data-setting="recallMessageCount" type="number" min="1" max="20"></label><label>最多召回组数<input data-setting="recallLimit" type="number" min="0" max="30"></label><label>长期记忆预算（tokens）<input data-setting="memoryTokenBudget" type="number" min="100"></label><label>近期日记篇数<input data-setting="recentDiaryCount" type="number" min="0" max="20"></label><h4>正文标签</h4><p class="scene-diary-muted">每行一组完整标签；同一行的开始与结束标签必须同名。全部留空时提取完整消息。</p><div data-pair-editor>${[['角色正文', 'character.bodyTagPairs'], ['玩家正文', 'user.bodyTagPairs'], ['角色故事时间', 'character.storyTimeTagPairs'], ['玩家故事时间', 'user.storyTimeTagPairs']].map(([label, key]) => `<fieldset class="scene-diary-tag-pair"><legend>${label}</legend><label>开始标签<textarea rows="2" data-pair-open="${key}" placeholder="<now_plot>"></textarea></label><label>结束标签<textarea rows="2" data-pair-close="${key}" placeholder="</now_plot>"></textarea></label></fieldset>`).join('')}</div><h4>提示词</h4><p class="scene-diary-muted">这里只编辑模型角色定义。输入和 JSON 协议由插件附加；记忆提取仅使用本幕对话，日记与成长附加角色设定。</p><label>日记提示词<textarea data-setting="promptDiary" rows="5"></textarea></label><label>记忆提示词<textarea data-setting="promptMemory" rows="5"></textarea></label><label>角色成长提示词<textarea data-setting="promptGrowth" rows="8"></textarea></label><button data-action="save-settings">保存当前聊天设置</button><button data-action="reset-prompts">恢复默认提示词</button></section><section data-page="debug" hidden><p data-debug></p><pre data-debug-list></pre></section>`;
     panel.querySelector('[data-page=memory]').insertAdjacentHTML('beforeend', `<section class="scene-diary-maintenance"><h4>聊天内容备份与恢复</h4><p class="scene-diary-muted">备份当前聊天所有可见日记、角色成长和记忆内容。恢复时三项内容会一起替换，请先保存当前备份。</p><div class="scene-diary-actions"><button data-action="export-content">备份当前聊天内容</button></div><label>从备份恢复日记、角色成长和记忆<input type="file" accept="application/json" data-content-import></label><button data-action="recover-save" hidden>恢复未完成的保存</button><p data-maintenance-size class="scene-diary-muted"></p></section>`);
     panel.querySelector('[data-page=settings]').insertAdjacentHTML('beforeend', `
         <h4>可选向量召回</h4><p>记忆文本会发送至独立向量服务；浏览器直连需要服务允许跨域。</p>
@@ -308,32 +461,38 @@ function createUi() {
         <label><input type="checkbox" data-rerank-remember>在此账户的浏览器设置中记住重排密钥</label>
         <button data-action="clear-rerank-key">清除已保存重排密钥</button><p>本地保存的密钥可被同源脚本读取。</p>`);
     panel.querySelector('[data-setting=recallMessageCount]').closest('label').remove();
-    panel.querySelector('[data-setting=recallLimit]').closest('label').insertAdjacentHTML('beforebegin', '<p class="scene-diary-muted">记忆召回读取最近三条有效消息：最新玩家消息 40%，此前两条消息各 30%。</p>');
+    panel.querySelector('[data-setting=recallLimit]').closest('label').insertAdjacentHTML('beforebegin', '<p class="scene-diary-muted">记忆召回读取整个聊天最近三条有效消息：按时间顺序合并为同一个查询，允许跨幕。关联组占一个名额，整组遵守 token 预算。</p>');
     document.body.append(panel);
     bar.addEventListener('click', event => { const action = event.target.closest('[data-action]')?.dataset.action; if (action === 'open') { panel.hidden = false; render(); fillSettings(); } if (action === 'end') void closeAct(); });
     panel.addEventListener('click', handlePanelClick);
-    panel.addEventListener('change', handlePanelChange);
     panel.querySelector('[data-content-import]').addEventListener('change', event => { if (!disabledReason) void importContent(event.target.files?.[0]); event.target.value = ''; });
-    panel.addEventListener('input', event => { if (event.target.matches('[data-memory-search],[data-memory-category]')) renderMemories(getState()); if (event.target.matches('[data-growth-editor]')) { const count = panel.querySelector('[data-growth-count]'); if (count) count.textContent = `${event.target.value.length} / ${getState()?.settings.maxGrowthChars || 4000} 字符`; } if (event.target.matches('[data-preview]')) savePreviewField(event.target); });
+    panel.addEventListener('input', event => { if (event.target.matches('[data-memory-search],[data-memory-category]')) renderMemories(getState()); if (event.target.matches('[data-growth-editor]')) { const count = panel.querySelector('[data-growth-count]'); if (count) count.textContent = `${event.target.value.length} / ${getState()?.settings.maxGrowthChars || 4000} 字符`; } if (event.target.matches('[data-preview]')) savePreviewField(event.target); if (event.target.matches('[data-candidate-field]')) editCandidate(event.target); if (event.target.matches('[data-maintenance-field]')) editMaintenance(event.target); });
 }
 
 function savePreviewField(field) { const state = getState(), transaction = state?.pendingTransaction; if (!transaction || disabledReason) return; if (field.dataset.preview === 'title' && transaction.results.diary.status === 'success') transaction.results.diary.value.title = field.value; if (field.dataset.preview === 'diary' && transaction.results.diary.status === 'success') transaction.results.diary.value.diary = field.value; if (field.dataset.preview === 'growth' && transaction.results.growth.status === 'success') { transaction.results.growth.generatedValue ??= transaction.results.growth.value; transaction.results.growth.value = field.value; } setState(state); }
 
 function handlePanelClick(event) {
     const target = event.target.closest('[data-action]'), action = target?.dataset.action, panel = document.querySelector(`#${PANEL}`);
+    if (pendingSave && action && !['open', 'close', 'export-content'].includes(action)) { notify('warning', '正在核验保存，请稍后操作。'); return; }
     if (disabledReason && action && !['close', 'export-content', 'recover-save', 'clear-semantic-key', 'clear-rerank-key'].includes(action)) { notify('warning', disabledReason); return; }
     if (action === 'close') panel.hidden = true;
     if (action === 'end') void closeAct();
     if (action === 'takeover') takeOver(0);
     if (action === 'retry-part') retryClosePart(target.dataset.kind);
-    if (action === 'regenerate-memory') retryClosePart('memory', true);
-    if (action === 'confirm') { const state = getState(), transaction = state?.pendingTransaction; if (transaction && allPartsReady(transaction)) { const diary = transaction.results.diary.value; diary.title = panel.querySelector('[data-preview=title]').value.trim(); diary.diary = panel.querySelector('[data-preview=diary]').value.trim(); const growth = panel.querySelector('[data-preview=growth]').value.trim(); transaction.results.growth.generatedValue ??= transaction.results.growth.value; transaction.results.memory.value.operations.forEach((operation, index) => { operation.accepted = !!panel.querySelector(`[data-operation="${index}"]`)?.checked; const candidate = transaction.results.memory.value.candidates.find(item => item.id === operation.candidateId); const title = panel.querySelector(`[data-candidate-title='${index}']`), content = panel.querySelector(`[data-candidate-content='${index}']`); if (candidate && title && content) { candidate.title = title.value.trim(); candidate.content = content.value.trim(); } }); setState(state); } void confirmClose(); }
+    if (action === 'regenerate-memory') retryClosePart('memory');
+    if (action === 'confirm') { panel.querySelectorAll('[data-candidate-field]').forEach(editCandidate); void confirmClose(); }
     if (action === 'cancel-close') cancelClose();
     if (action === 'skip') skipExtraction(target.dataset.id);
+    if (action === 'organize-memory') void startMaintenance().catch(error => notify('error', error.message));
+    if (action === 'retry-maintenance') void runMaintenance(target.dataset.transactionId).catch(error => notify('error', error.message));
+    if (action === 'cancel-maintenance') { const state = getState(); if (state) { state.maintenanceTransaction = null; setState(state); void saveState(state).catch(showSaveError); render(state); } }
+    if (action === 'confirm-maintenance') { panel.querySelectorAll('[data-maintenance-field]').forEach(editMaintenance); void confirmMaintenance(); }
+    if (action === 'open-related') { const state = getState(); panel.querySelector('[data-memory-search]').value = ''; panel.querySelector('[data-memory-category]').value = ''; renderMemories(state); const entry = [...panel.querySelectorAll('[data-memory-id]')].find(item => item.dataset.memoryId === target.dataset.relatedId); if (entry) { entry.open = true; entry.scrollIntoView({ block: 'nearest' }); } }
+    if (action === 'unlink-memory') void commitMemoryMutation(draft => { draft.memoryLinks = draft.memoryLinks.filter(link => !(link.a === target.dataset.linkA && link.b === target.dataset.linkB)); });
     if (action === 'save-growth') saveGrowth(panel);
-    if (action === 'new-memory') { const state = getState(); if (state) { state.memories.unshift(normalizeMemory({ title: '新记忆', content: '', edited: true, locked: true })); state.memoryRevision++; setState(state); void saveState(state); render(state); } }
+    if (action === 'new-memory') { draftMemory ||= normalizeMemory({ title: '新记忆（未保存）', content: '', edited: true, locked: true }); panel.querySelector('[data-memory-search]').value = ''; panel.querySelector('[data-memory-category]').value = ''; renderMemories(getState()); }
     if (action === 'save-memory') { try { saveMemory(target); } catch (error) { notify('error', `记忆未保存：${error.message}`); } }
-    if (action === 'delete-memory') { const state = getState(), memory = state?.memories.find(item => item.id === target.closest('[data-memory-id]')?.dataset.memoryId); if (memory) { memory.deletedAt = Date.now(); memory.revision++; state.memoryRevision++; setState(state); void saveState(state); render(state); } }
+    if (action === 'delete-memory') { const id = target.closest('[data-memory-id]')?.dataset.memoryId; if (id === draftMemory?.id) { draftMemory = null; renderMemories(getState()); } else if (id) void commitMemoryMutation(draft => { draft.memories = draft.memories.filter(memory => memory.id !== id); }); }
     if (action === 'save-diary') { const entry = target.closest('.scene-diary-entry'), state = getState(), id = +entry?.querySelector('[data-diary-id]')?.dataset.diaryId, act = findAct(state, id); if (act) { act.diary = entry.querySelector('textarea').value.trim(); acknowledgeActReview(act, messagesFor(act.id)); setState(state); void saveState(state); render(state); } }
     if (action === 'save-settings') saveChatSettings(panel);
     if (action === 'export-content') exportContent();
@@ -346,11 +505,40 @@ function handlePanelClick(event) {
 }
 
 function saveGrowth(panel) { const state = getState(); if (!state) return; const content = panel.querySelector('[data-growth-editor]').value.trim(); if (content.length > state.settings.maxGrowthChars) { notify('error', `角色成长不能超过 ${state.settings.maxGrowthChars} 字符。`); return; } const time = localTime(); state.characterGrowth = { ...state.characterGrowth, content, createdAt: state.characterGrowth.createdAt || (content ? time.timestamp : null), updatedAt: time.timestamp, timezoneOffset: time.timezoneOffset, revision: state.characterGrowth.revision + 1, edited: true, reviewRecommended: false }; state.takeoverNotice = false; setState(state); void saveState(state); render(state); notify('success', '角色成长已保存并会在后续生成中注入。'); }
-function saveMemory(target) { const entry = target.closest('[data-memory-id]'), state = getState(), memory = state?.memories.find(item => item.id === entry?.dataset.memoryId); if (!memory) return; const title = entry.querySelector('[data-memory-field=title]').value.trim(), content = entry.querySelector('[data-memory-field=content]').value.trim(); if (!title || title.length > 120 || !content || content.length > 500) throw new Error('标题或事实为空、超长'); const sources = (memory.sources || []).map((source, index) => { const field = entry.querySelector(`[data-source-index='${index}']`); return { ...source, excerpt: field ? field.value.trim().slice(0, 500) : source.excerpt }; }); memory.title = title; memory.content = content; memory.sources = sources; memory.category = entry.querySelector('[data-memory-field=category]').value; memory.importance = +entry.querySelector('[data-memory-field=importance]').value || 3; memory.locked = entry.querySelector('[data-memory-field=locked]').checked; acknowledgeMemoryReview(memory); state.memoryRevision++; setState(state); void saveState(state).catch(showSaveError); render(state); }
+async function commitMemoryMutation(mutate) {
+    if (pendingSave || disabledReason) return;
+    const key = activeChatKey, state = getState(); if (!state) return;
+    const revision = state.memoryRevision, draft = structuredClone(state); mutate(draft);
+    draft.memoryLinks = normalizeMemoryLinks(draft.memoryLinks, draft.memories); draft.memoryRevision++;
+    pendingSave = true; let applied = false;
+    try {
+        await preserveRecovery(draft, key);
+        if (key !== activeChatKey || key !== String(ctx().chatId)) return;
+        const latest = getState(); if (latest.memoryRevision !== revision) throw new Error('记忆库已变化，请重试');
+        Object.assign(latest, { memories: draft.memories, memoryLinks: draft.memoryLinks, memoryRevision: draft.memoryRevision });
+        setState(latest); applied = true; saveUnverified = true; await preserveRecovery(latest, key);
+        await saveState(latest, key, true); await clearRecovery(latest, key);
+        if (key !== activeChatKey) return;
+        saveUnverified = false; recallCache.clear(); render(latest); notify('success', '记忆变更已保存。');
+        void syncVectors(latest).catch(error => notify('warning', `向量更新失败：${error.message}`));
+    } catch (error) {
+        if (key !== activeChatKey) return;
+        if (applied) { disabledReason = '记忆保存尚未核验，请恢复未完成的保存。'; showSaveError(error); }
+        else { await clearRecovery(draft, key).catch(() => {}); notify('error', `记忆未提交：${error.message}`); }
+        render(getState());
+    } finally { pendingSave = false; }
+}
+function saveMemory(target) {
+    const entry = target.closest('[data-memory-id]'), state = getState(), memory = state?.memories.find(item => item.id === entry?.dataset.memoryId) || (draftMemory?.id === entry?.dataset.memoryId ? draftMemory : null); if (!memory) return;
+    const value = field => entry.querySelector(`[data-memory-field=${field}]`);
+    const checked = validateMemoryFormat({ ...memory, title: value('title').value.trim(), content: value('content').value.trim(), category: value('category').value, importance: +value('importance').value, storyTime: value('storyTime').value.trim() || null }, { extendedArrays: true });
+    for (const field of ['locked', 'permanent', 'disabled']) checked[field] = value(field).checked;
+    acknowledgeMemoryReview(checked); void commitMemoryMutation(draft => { if (draft.memories.some(item => item.id === checked.id)) draft.memories = draft.memories.map(item => item.id === checked.id ? checked : item); else draft.memories.unshift(checked); }).then(() => { if (draftMemory?.id === checked.id && getState()?.memories.some(item => item.id === checked.id)) { draftMemory = null; renderMemories(getState()); } });
+}
 function downloadJson(payload, name) { const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 function exportContent() { const state = getState(); if (state) downloadJson(createContentBackup(state, activeChatKey), `scene-diary-content-${activeChatKey}.json`); }
 async function importContent(file) {
-    if (!file) return;
+    if (!file || pendingSave || disabledReason) return;
     try {
         const state = getState(), key = activeChatKey;
         if (!state) return;
@@ -365,14 +553,27 @@ async function importContent(file) {
         recallCache.clear(); render(restored); notify('success', '日记、角色成长和记忆已一起恢复。');
     } catch (error) { notify('error', `恢复备份失败：${error.message}`); }
 }
-async function recoverSave() { if (migrationSaving.has(activeChatKey)) return; const current = getState(); if (!current) return; const raw = await SillyTavern.libs.localforage.getItem(recoveryKey(current)); if (!raw) { notify('info', '没有未核验的本地恢复副本。'); return; } try { const saved = normalizeState(raw); if (saved.currentActId !== current.currentActId) throw new Error('当前幕与恢复副本不一致'); setState(saved); await saveState(saved, activeChatKey, true); await clearRecovery(saved); saveUnverified = false; disabledReason = ''; render(saved); notify('success', '已核验恢复副本。'); } catch (error) { notify('error', `恢复失败：${error.message}`); } }
-function handlePanelChange(event) { if (!event.target.matches('[data-memory-field=permanent]') || disabledReason) return; const state = getState(), entry = event.target.closest('[data-memory-id]'), memory = state?.memories.find(item => item.id === entry?.dataset.memoryId); if (!state || !memory) return; if (event.target.checked && !canSetMemoryPermanent(state.memories, state.settings.recallLimit, memory.id)) { event.target.checked = false; notify('error', `常驻记忆不能超过“最多召回条目”（当前为 ${state.settings.recallLimit}）。请先在设置中调大该值。`); return; } memory.permanent = event.target.checked; memory.updatedAt = Date.now(); memory.revision = (+memory.revision || 0) + 1; state.memoryRevision++; setState(state); void saveState(state); render(state); }
+async function recoverSave() {
+    const key = activeChatKey;
+    if (migrationSaving.has(key) || pendingSave) return;
+    const current = getState(); if (!current) return;
+    pendingSave = true;
+    try {
+        const raw = await SillyTavern.libs.localforage.getItem(recoveryKey(current, key));
+        if (key !== activeChatKey || String(ctx().chatId) !== key) return;
+        if (!raw) { notify('info', '没有未核验的本地恢复副本。'); return; }
+        const saved = normalizeState(raw), latest = getState();
+        if (saved.currentActId !== latest?.currentActId || saved.memorySpaceId !== latest?.memorySpaceId) throw new Error('当前幕或记忆空间与恢复副本不一致');
+        setState(saved); await saveState(saved, key, true); await clearRecovery(saved, key);
+        if (key !== activeChatKey) return;
+        migrationRecoveries.delete(key); saveUnverified = false; disabledReason = ''; render(saved); notify('success', '已核验恢复副本。');
+    } catch (error) { if (key === activeChatKey) notify('error', `恢复失败：${error.message}`); }
+    finally { pendingSave = false; }
+}
 function readPairEditor(panel, key) { const lines = selector => (panel.querySelector(selector)?.value || '').split(/\r?\n/).map(item => item.trim()).filter(Boolean), opens = lines(`[data-pair-open="${key}"]`), closes = lines(`[data-pair-close="${key}"]`); if (opens.length !== closes.length) throw new Error(`${key} 的开始标签与结束标签数量必须一致。`); return opens.map((open, index) => { const pair = validateTagPair({ open, close: closes[index] }); if (!pair) throw new Error(`${key} 第 ${index + 1} 组标签无效或名称不一致。`); return pair; }); }
 function saveChatSettings(panel) {
     const state = getState(); if (!state) return;
     try {
-        const requestedLimit = +panel.querySelector('[data-setting=recallLimit]').value, permanentCount = permanentMemoryCount(state.memories);
-        if (requestedLimit < permanentCount) throw new Error(`当前已有 ${permanentCount} 条常驻记忆。“最多召回条目”不能低于常驻数量。`);
         const settings = structuredClone(state.settings);
         settings.diaryConnectionProfile = panel.querySelector('[data-setting=diaryConnectionProfile]').value;
         settings.memoryConnectionProfile = panel.querySelector('[data-setting=memoryConnectionProfile]').value;
@@ -391,7 +592,12 @@ function saveChatSettings(panel) {
         void saveState(state).then(() => notify('success', '当前聊天设置已保存。')).catch(error => notify('error', error.message)); render(state);
     } catch (error) { notify('error', error.message || String(error)); }
 }
-function renderDebug(panel) { const state = getState(), output = panel.querySelector('[data-debug-list]'); panel.querySelector('[data-debug]').textContent = disabledReason || `当前幕 ${state?.currentActId || '-'}；记忆 ${state?.memories.length || 0} 条；召回本轮 ${lastRecall?.selected.length || 0} 条。`; const growth = state?.characterGrowth; output.textContent = JSON.stringify({ continuity: lastContinuity, characterGrowth: growth ? { included: !!growth.content, revision: growth.revision, lastIncludedActId: growth.lastIncludedActId, reviewRecommended: growth.reviewRecommended, characters: growth.content.length, estimatedTokens: estimateTokens(growth.content) } : null, recall: lastRecall ? { query: lastRecall.query, budgetUsed: lastRecall.budgetUsed, candidates: lastRecall.candidates.slice(0, 12).map(item => ({ title: item.memory.title, score: +item.score.toFixed(2), hits: item.hits, selected: lastRecall.selected.includes(item) })) } : null }, null, 2); }
+function renderDebug(panel) {
+    const state = getState(), output = panel.querySelector('[data-debug-list]');
+    panel.querySelector('[data-debug]').textContent = disabledReason || `当前幕 ${state?.currentActId || '-'}；记忆 ${state?.memories.length || 0} 条；召回本轮 ${lastRecall?.groups?.length || 0} 组 / ${lastRecall?.selected.length || 0} 条。`;
+    const growth = state?.characterGrowth;
+    output.textContent = JSON.stringify({ continuity: lastContinuity, characterGrowth: growth ? { included: !!growth.content, revision: growth.revision, lastIncludedActId: growth.lastIncludedActId, reviewRecommended: growth.reviewRecommended, characters: growth.content.length, estimatedTokens: estimateTokens(growth.content) } : null, recall: lastRecall ? { query: lastRecall.query, budgetUsed: lastRecall.budgetUsed, degradedReason: lastRecall.degradedReason, skippedGroups: lastRecall.skippedGroups, groups: lastRecall.groups.map(group => ({ seeds: group.seedIds, members: group.ids, permanent: group.permanent })), candidates: lastRecall.candidates.map(item => ({ id: item.memory.id, title: item.memory.title, score: item.score, relevance: item.relevance, importanceWeight: item.importanceWeight, source: item.source, channels: item.channels, selected: lastRecall.selected.some(selected => selected.memory.id === item.memory.id) })) } : null }, null, 2);
+}
 function fillSettings() {
     const panel = document.querySelector(`#${PANEL}`), state = getState(); if (!panel || !state) return;
     for (const key of ['recallLimit', 'memoryTokenBudget', 'recentDiaryCount']) panel.querySelector(`[data-setting="${key}"]`).value = state.settings[key];
@@ -407,5 +613,5 @@ function fillSettings() {
     panel.querySelector('[data-rerank-remember]').checked = !!storedRerank;
 }
 function bind() { const eventSource = source(), eventTypes = types(); if (!eventSource?.on) return; eventSource.on(eventTypes.MESSAGE_SENT || 'message_sent', sent); eventSource.on(eventTypes.MESSAGE_RECEIVED || 'message_received', received); eventSource.on(eventTypes.MESSAGE_EDITED || 'message_edited', changed); eventSource.on(eventTypes.MESSAGE_UPDATED || 'message_updated', changed); eventSource.on(eventTypes.MESSAGE_DELETED || 'message_deleted', deleted); eventSource.on(eventTypes.MESSAGE_SWIPED || 'message_swiped', changed); eventSource.on(eventTypes.CHAT_CHANGED || 'chat_id_changed', initializeChat); eventSource.on(eventTypes.CHAT_LOADED || 'chatLoaded', initializeChat); eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY || 'chat_completion_prompt_ready', promptReady); }
-function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.1', getState, closeAct, confirmClose, takeOver }; console.info(`[${NAME}] loaded`); }
+function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.2', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();

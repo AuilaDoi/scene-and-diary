@@ -9,7 +9,9 @@ test('all close outputs request a structured object with the required fields', (
         assert.equal(output.value.additionalProperties, false);
         assert.deepEqual(output.value.required, fields);
     }
-    assert.deepEqual(OUTPUT_SCHEMAS.memory.value.properties.memories.items.properties.sources.items.required, ['messageId', 'excerpt']);
+    assert.equal('sources' in OUTPUT_SCHEMAS.memory.value.properties.memories.items.properties, false);
+    assert.equal('status' in OUTPUT_SCHEMAS.memory.value.properties.memories.items.properties, false);
+    assert.deepEqual(OUTPUT_SCHEMAS.maintenance.value.required, ['operations']);
 });
 
 test('a malformed response retries only that request with a larger output budget', async () => {

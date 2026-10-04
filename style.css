@@ -136,3 +136,9 @@
     [data-page="growth"] textarea { min-height: 42vh; }
     .scene-diary-tag-pair { grid-template-columns: 1fr; }
 }
+
+#scene_diary_panel .scene-diary-candidate input:not([type="checkbox"]) { width: 100%; box-sizing: border-box; }
+#scene_diary_panel .scene-diary-related { border-left: 2px solid var(--scene-diary-border); padding: .5rem .75rem; margin: .5rem 0; overflow-wrap: anywhere; }
+#scene_diary_maintenance { margin-top: .75rem; }
+#scene_diary_maintenance .scene-diary-actions { position: static; }
+#scene_diary_panel [data-memory-id] { scroll-margin-top: 2rem; }

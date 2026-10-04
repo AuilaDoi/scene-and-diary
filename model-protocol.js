@@ -2,19 +2,17 @@ const string = { type: 'string' };
 const nullableString = { type: ['string', 'null'] };
 const object = properties => ({ type: 'object', additionalProperties: false, properties, required: Object.keys(properties) });
 const schema = (name, properties) => ({ name: `scene_diary_${name}`, strict: true, value: object(properties) });
-const source = object({ messageId: string, excerpt: string });
 const memory = object({
     category: { type: 'string', enum: ['preference', 'habit', 'promise', 'relationship', 'event', 'item_place'] },
     title: string, content: string, people: { type: 'array', items: string }, aliases: { type: 'array', items: string },
-    status: { type: 'string', enum: ['active', 'completed', 'cancelled', 'historical'] },
-    importance: { type: 'integer' }, storyTime: nullableString, sources: { type: 'array', items: source },
+    importance: { type: 'integer', minimum: 1, maximum: 5 }, storyTime: nullableString,
 });
 
 export const OUTPUT_SCHEMAS = Object.freeze({
     diary: schema('diary', { title: string, diary: string }),
     memory: schema('memory', { memories: { type: 'array', items: memory } }),
     growth: schema('growth', { characterGrowth: string }),
-    comparison: schema('comparison', { operations: { type: 'array', items: object({ action: { type: 'string', enum: ['add', 'merge', 'supersede', 'skip'] }, candidateId: string, targetId: nullableString, reason: string }) } }),
+    maintenance: schema('maintenance', { operations: { type: 'array', items: object({ action: { type: 'string', enum: ['merge', 'link'] }, memberIds: { type: 'array', items: string }, targetId: nullableString, title: nullableString, content: nullableString, category: nullableString, a: nullableString, b: nullableString, reason: string }) } }),
 });
 
 function errorChain(error) { const messages = []; for (let current = error, depth = 0; current && depth < 4; current = current.cause, depth++) messages.push(String(current.message || current)); return messages.join(' '); }

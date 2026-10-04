@@ -1,6 +1,6 @@
-# scene&diary 0.3.1
+# scene&diary 0.3.2
 
-The stable release is available from the `main` branch and the `v0.3.1` tag. Automatic updates are enabled. Before updating an older installation, export a full SillyTavern chat backup. Opening a pre-0.3 chat upgrades its scene&diary data to schema 4 and saves a browser-local pre-migration copy of its metadata and messages.
+This is the v0.3.2 RC candidate on `release/v0.3.2-rc`, based on v0.3.1. Stable `main` remains v0.3.1; automatic updates are disabled until real-host RC acceptance. SillyTavern updates the extension's current branch, so switch to the RC branch before updating and reload afterward. See [v0.3.1 upgrade instructions](UPGRADE-v0.3.2.md) and [validation evidence](VALIDATION-v0.3.2.md).
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
@@ -17,10 +17,10 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 1. Open the `🎬 scene&diary` panel beside the send box.
 2. Configure optional complete opening/closing body-tag pairs separately for player and character messages. Leave them blank to use the full message.
 3. Click **结束这一幕**. The extension freezes the current act and independently generates a diary, memory candidates, and an updated character-growth document.
-4. Review all three results. Memory candidates may include unverified reference excerpts and proposed additions or updates to earlier memories. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
+4. Review all three results. Edit, keep or reject each new memory candidate. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
 
-The extension asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Memory references are optional and are not checked against chat messages. Review proposed facts yourself before confirming them.
+The extension asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Extraction validates only output format, not factual correctness. It receives only the current act dialogue, proposes new entries, and never compares or modifies existing memories. Review and select each proposed fact before confirming it.
 
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
 
@@ -42,7 +42,7 @@ If a source message from an already incorporated act changes, the growth page sh
 
 ## Diaries, memory, and injection
 
-Diaries remain per-act first-person records of concrete experiences. Long-term memory stores objective facts with optional, unverified reference excerpts, locking, and optional **常驻** recall. Wishes, speculation, internal monologue, and unfulfilled plans must not become accomplished events. Memory maintenance is proposed at act close and committed only after review. Editing or deleting an earlier chat message does not automatically disable a memory.
+Diaries remain per-act first-person records of concrete experiences. Long-term memory stores objective facts, importance (1–5), story time, locking, disabled and optional **常驻** controls. Reference excerpts and lifecycle/status fields have been removed. Wishes, speculation, internal monologue, and unfulfilled plans must not become accomplished events. The **记忆整理** button on the memory page independently proposes semantic duplicate merges and associations between developing facts. Nothing changes until you approve the proposals. Editing or deleting an earlier chat message does not automatically disable a memory.
 
 Handoff generation and injection remain removed. Existing handoff fields remain untouched in old chat data for rollback compatibility. Story time comes only from configured story-time tags.
 
@@ -62,11 +62,13 @@ On a normal generation, one temporary system block is inserted after preset asse
 [/scene&diary 长期记忆]
 ```
 
-Empty sections are omitted. Character growth is injected whole. Recent diaries obey their count and token budget; recalled memories obey their limit and budget, except eligible permanent memories, which occupy the first recall slots.
+Empty sections are omitted. Character growth is injected whole. Recent diaries obey their count and token budget; recalled memory groups obey both their group limit and estimated token budget. Eligible permanent memories become priority seeds and obey those same limits.
 
 ## Data and migration
 
-Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema v4 adds optional reference metadata, lifecycle, revision, maintenance history, memory-space identity, and optional semantic settings. Old entries retain their content and control choices; unavailable old references remain marked unverified. This release uses the same schema as RC.4.
+Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema 5 removes memory sources, source IDs, lifecycle, supersedes, mergedInto, individual revision, status and source-review fields. It removes archived, superseded and deleted entries, retains the remaining content and controls, and adds undirected `memoryLinks`. Old maintenance snapshots are discarded; old close previews retain diary/growth results but require fresh memory extraction. A separate schema-specific local backup is written before migration; migration stays read-only until save verification completes. Downgrading requires restoring the full pre-migration chat backup.
+
+The RC is separate from stable `main`. Schema 4 facts, IDs, importance, story time and user controls are retained except for the explicitly removed archived/superseded/deleted entries. If a v0.3.1 unverified save exists, it is backed up and remains available through **恢复未完成的保存** before migration continues. Migration never overwrites that newer recovery copy with older persisted data. No stable v0.3.2 release or tag has been published.
 
 - v0.1–v0.2.4 handoff data is preserved but inactive.
 - A test-build `summary` object migrates to `characterGrowth`; an existing `characterGrowth` object takes precedence.
@@ -78,17 +80,29 @@ Data remains in `chat_metadata.scene_diary`; message ownership remains in `messa
 
 ## Content backup and retrieval
 
-The memory page exports one JSON backup containing every visible diary, the character-growth document, and every visible memory in the current chat. Importing that file restores all three content types together after confirmation. Backups are bound to their originating chat and require the corresponding acts to exist. They do not contain chat messages or API keys, so keep a separate full SillyTavern chat backup for migration rollback. If a save cannot be verified, the local recovery button appears so the pending state can be saved again.
+The memory page exports a version 2 JSON content backup containing diaries, character growth, saved memories and associations. Version 1 imports remain supported through the schema 5 migration rules. Legacy manually saved bodies over 500 characters survive migration and backup round trips; new extraction candidates retain the 500-character limit. Importing a backup restores all three content types together after confirmation. Backups are bound to their originating chat and require the corresponding acts to exist. They do not contain chat messages or API keys, so keep a separate full SillyTavern chat backup for migration rollback. If a save cannot be verified, the local recovery button appears so the pending state can be saved again.
 
-Memory retrieval uses the latest player message at 40% and the two preceding effective messages at 30% each; when fewer messages exist, the available weights are normalized. Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Optional reranking uses a separate rerank URL, model, and key through a direct browser request to a `/rerank`-style API returning `results` with `index` and `relevance_score`. Each message is scored separately and combined with the same weights. Both endpoints require browser CORS support. Failed embedding or rerank requests fall back to the available local result.
+Memory retrieval merges the entire chat's latest three effective player/character messages, in chronological speaker order, into one query, including across act boundaries. Lexical retrieval, one query embedding and one rerank request share that query. Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Optional reranking uses a separate URL, model and key, returning `results` with `index` and `relevance_score`. Both endpoints require browser CORS support. Failures retain the available local/pre-rerank result and produce one combined warning per generation; failed results are retried on the next generation.
+
+Eligible candidates are sorted with `0.95 × normalized relevance + 0.05 × ((importance − 1) / 4)`. Importance never admits an unrelated entry. Nonnegative relevance is normalized by the largest candidate score; negative score ranges are shifted and scaled. Equal scores use stable IDs.
+
+Each independently matching memory expands only its direct neighbors. A—B—C with only A matching recalls A/B; C is added only if B independently matches as well. Overlapping groups merge and inject each fact once. One group occupies one recall slot regardless of its number of memories. Disabled/deleted entries are excluded, including as neighbors. An entire group is skipped with a warning when it does not fit the remaining token budget, including permanent groups. Diagnostics report seeds, attached entries, group/item counts, scores, budget skips and fallback reasons.
+
+### Independent memory organization
+
+Click **记忆整理** whenever needed. It analyzes all saved entries, including disabled and locked ones, with the extraction connection and a dedicated internal prompt. Duplicate facts may merge; promises and their fulfillment remain independent facts connected by a relationship. Each entry displays its neighbors and allows opening or unlinking them.
+
+Analysis runs sequentially across every within-block and cross-block comparison. Progress reports the estimated request count; large libraries can require many model calls. Context-limit failures split the batch; other failures retain successful batches and permit retry. Cancelling makes no library changes. After all batches finish, review each merge/link and approve selected operations together. Locked entries cannot merge, but their links may be approved. Overlapping merge proposals are mutually exclusive.
+
+Merges keep a chosen existing ID, maximum importance, combined aliases/people, permanent status if any member is permanent, and enabled status if any member is enabled. Existing links redirect and deduplicate. Story time keeps the latest comparable nonempty value; ambiguous relative times require selecting an original value. Changing the memory library during analysis or preview requires a fresh organization run. Normal dialogue and scene closing remain independent, with serialized verified saves.
 
 Current automated checks do not prove live SillyTavern save, model accuracy, CORS support, or visual behavior. Validate those flows with a backed-up chat before relying on a migrated library.
 
 ## Settings reference
 
 - **正文标签**: complete matching opening and closing tags such as `<now_plot>` and `</now_plot>`; multiple pairs use corresponding lines.
-- **最近有效消息**: fixed at three for recall, weighted 40% / 30% / 30% from newest to oldest.
-- **长期记忆**: default maximum 8 entries and 1,200 estimated tokens; permanent entries occupy recall slots first.
+- **最近有效消息**: fixed at three for recall, merged chronologically into one query across acts.
+- **长期记忆**: default maximum 8 groups and 1,200 estimated tokens; permanent groups have priority and obey the budget.
 - **近期日记篇数**: default 2; zero disables diary injection.
 - **角色成长**: stored content is capped at 4,000 characters; the full saved document is injected.
 - **提示词**: diary, memory, and character-growth role definitions are editable. Available variables are `{{char}}` and `{{user}}`; inputs and output formats are appended internally.

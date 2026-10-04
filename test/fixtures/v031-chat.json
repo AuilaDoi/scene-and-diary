@@ -1,0 +1,1351 @@
+{
+  "origin": {
+    "version": "0.3.1",
+    "commit": "e8177392125ca7b099ac09f8521203ba2e2e7e32",
+    "note": "Synthetic data created with the tagged v0.3.1 core.js and backup.js; no user chat data."
+  },
+  "metadata": {
+    "scene_diary": {
+      "version": 4,
+      "currentActId": 2,
+      "status": "active",
+      "acts": [
+        {
+          "id": 1,
+          "status": "closed",
+          "messageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "msg_3ae75458-1627-43cf-a81f-fd5d1465c6f1"
+          ],
+          "startMessageIndex": null,
+          "endMessageIndex": null,
+          "startSceneTime": null,
+          "endSceneTime": null,
+          "title": "旅行约定",
+          "diary": "用户手改的日记。",
+          "createdAt": 1700000000000,
+          "closedAt": 1700000000001,
+          "edited": true,
+          "dirty": true,
+          "revision": 8,
+          "sourceFingerprint": "7b3571dc"
+        },
+        {
+          "id": 2,
+          "status": "active",
+          "messageIds": [
+            "msg_322ce9d9-ef80-44e0-822b-6c5953b008cb",
+            "msg_997ec9e5-843b-4b72-82b7-f7edd23ee2d6"
+          ],
+          "startMessageIndex": 2,
+          "endMessageIndex": null,
+          "startSceneTime": null,
+          "endSceneTime": null,
+          "title": "",
+          "diary": "",
+          "createdAt": 1791102518055,
+          "closedAt": null,
+          "edited": false,
+          "dirty": false,
+          "revision": 0,
+          "sourceFingerprint": ""
+        }
+      ],
+      "memories": [
+        {
+          "id": "active",
+          "category": "preference",
+          "title": "手改 active",
+          "content": "用户编辑保留的事实 active",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 1,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [
+            "superseded"
+          ],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "disabled",
+          "category": "habit",
+          "title": "手改 disabled",
+          "content": "用户编辑保留的事实 disabled",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 2,
+          "storyTime": null,
+          "locked": false,
+          "permanent": false,
+          "disabled": true,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "locked",
+          "category": "promise",
+          "title": "手改 locked",
+          "content": "用户编辑保留的事实 locked",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 3,
+          "storyTime": "2026-09-29 夜",
+          "locked": true,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "permanent",
+          "category": "relationship",
+          "title": "手改 permanent",
+          "content": "用户编辑保留的事实 permanent",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 4,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": true,
+          "disabled": false,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "completed",
+          "category": "event",
+          "title": "手改 completed",
+          "content": "用户编辑保留的事实 completed",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 5,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "completed",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "cancelled",
+          "category": "item_place",
+          "title": "手改 cancelled",
+          "content": "用户编辑保留的事实 cancelled",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 1,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "cancelled",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "historical",
+          "category": "preference",
+          "title": "手改 historical",
+          "content": "用户编辑保留的事实 historical",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 2,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "historical",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "archived",
+          "category": "habit",
+          "title": "手改 archived",
+          "content": "用户编辑保留的事实 archived",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 3,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "archived",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "superseded",
+          "category": "promise",
+          "title": "手改 superseded",
+          "content": "用户编辑保留的事实 superseded",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 4,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "superseded",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": "active",
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "deleted",
+          "category": "relationship",
+          "title": "手改 deleted",
+          "content": "用户编辑保留的事实 deleted",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 5,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "current",
+          "deletedAt": 1700000000002,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        },
+        {
+          "id": "long-manual",
+          "category": "event",
+          "title": "手改 long-manual",
+          "content": "旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。",
+          "people": [
+            "林",
+            "玩家"
+          ],
+          "aliases": [
+            "旧别名"
+          ],
+          "importance": 1,
+          "storyTime": "2026-09-29 夜",
+          "locked": false,
+          "permanent": false,
+          "disabled": false,
+          "edited": true,
+          "status": "active",
+          "lifecycle": "current",
+          "deletedAt": null,
+          "createdAt": 1700000000000,
+          "updatedAt": 1700000000001,
+          "timezoneOffset": -480,
+          "revision": 6,
+          "sourceActId": 1,
+          "sourceMessageIds": [
+            "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+          ],
+          "sources": [
+            {
+              "actId": 1,
+              "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+              "excerpt": "未核对引用",
+              "fingerprint": "legacy",
+              "unverifiedLegacy": false
+            }
+          ],
+          "supersedes": [],
+          "mergedInto": null,
+          "customNote": "保留扩展字段",
+          "dirty": false
+        }
+      ],
+      "memoryRevision": 17,
+      "memorySpaceId": "space-v031",
+      "maintenanceHistory": [
+        {
+          "transactionId": "old-maintenance",
+          "before": [
+            {
+              "id": "archived",
+              "category": "habit",
+              "title": "手改 archived",
+              "content": "用户编辑保留的事实 archived",
+              "people": [
+                "林",
+                "玩家"
+              ],
+              "aliases": [
+                "旧别名"
+              ],
+              "importance": 3,
+              "storyTime": "2026-09-29 夜",
+              "locked": false,
+              "permanent": false,
+              "disabled": false,
+              "edited": true,
+              "status": "active",
+              "lifecycle": "archived",
+              "deletedAt": null,
+              "createdAt": 1700000000000,
+              "updatedAt": 1700000000001,
+              "timezoneOffset": -480,
+              "revision": 6,
+              "sourceActId": 1,
+              "sourceMessageIds": [
+                "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+              ],
+              "sources": [
+                {
+                  "actId": 1,
+                  "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+                  "excerpt": "未核对引用",
+                  "fingerprint": "legacy",
+                  "unverifiedLegacy": false
+                }
+              ],
+              "supersedes": [],
+              "mergedInto": null,
+              "customNote": "保留扩展字段",
+              "dirty": false
+            }
+          ],
+          "after": [
+            {
+              "id": "active",
+              "category": "preference",
+              "title": "手改 active",
+              "content": "用户编辑保留的事实 active",
+              "people": [
+                "林",
+                "玩家"
+              ],
+              "aliases": [
+                "旧别名"
+              ],
+              "importance": 1,
+              "storyTime": "2026-09-29 夜",
+              "locked": false,
+              "permanent": false,
+              "disabled": false,
+              "edited": true,
+              "status": "active",
+              "lifecycle": "current",
+              "deletedAt": null,
+              "createdAt": 1700000000000,
+              "updatedAt": 1700000000001,
+              "timezoneOffset": -480,
+              "revision": 6,
+              "sourceActId": 1,
+              "sourceMessageIds": [
+                "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+              ],
+              "sources": [
+                {
+                  "actId": 1,
+                  "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+                  "excerpt": "未核对引用",
+                  "fingerprint": "legacy",
+                  "unverifiedLegacy": false
+                }
+              ],
+              "supersedes": [
+                "superseded"
+              ],
+              "mergedInto": null,
+              "customNote": "保留扩展字段",
+              "dirty": false
+            }
+          ]
+        }
+      ],
+      "characterGrowth": {
+        "content": "用户手改的成长记录。",
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 9,
+        "lastIncludedActId": 1,
+        "edited": true,
+        "reviewRecommended": true
+      },
+      "pendingTransaction": null,
+      "drafts": [],
+      "settings": {
+        "recentDiaryCount": 2,
+        "diaryTokenBudget": 1800,
+        "recallMessageCount": 3,
+        "recallLimit": 8,
+        "memoryTokenBudget": 1200,
+        "diaryTargetLength": "400–800 Chinese characters",
+        "maxDiaryChars": 9000,
+        "maxGrowthChars": 4000,
+        "diaryConnectionProfile": "legacy-diary-profile",
+        "memoryConnectionProfile": "legacy-memory-profile",
+        "semantic": {
+          "enabled": true,
+          "endpoint": "https://example.test/embeddings",
+          "model": "legacy-e",
+          "dimensions": 3,
+          "rerank": true,
+          "rerankEndpoint": "https://example.test/rerank",
+          "rerankModel": "legacy-r"
+        },
+        "extraction": {
+          "user": {
+            "bodyTagPairs": [],
+            "storyTimeTagPairs": [],
+            "requiredStoryTime": false
+          },
+          "character": {
+            "bodyTagPairs": [],
+            "storyTimeTagPairs": [],
+            "requiredStoryTime": false
+          }
+        },
+        "prompts": {
+          "diary": "你是 {{char}} 的恋爱陪伴日记整理器。只依据角色设定与 [本幕对话]，以第一人称写日记；不要补写事实。",
+          "memory": "用户的自定义记忆提示词",
+          "growth": "你是 {{char}} 的角色成长与恋爱关系发展整理器。根据 [当前角色成长] 和 [本幕对话]，重写截至本幕结束的完整角色成长记录。重点维护 {{char}} 的性格成长、情感变化、生活状态变化，以及 {{char}} 与 {{user}} 从相识至今的关系发展路径。说明重要经历如何影响角色及双方关系，但不要逐条复述剧情，不要补写未发生或未确认的变化，也不要假定下一幕与本幕在时间、地点或事件上连续。"
+        }
+      },
+      "lastUpdatedAt": 1700000000000
+    },
+    "other_extension": {
+      "preserved": "untouched"
+    }
+  },
+  "messages": [
+    {
+      "mes": "周末想去北海道。",
+      "is_user": true,
+      "name": "玩家",
+      "extra": {
+        "scene_diary": {
+          "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+          "actId": 1,
+          "messageIndex": 0
+        }
+      }
+    },
+    {
+      "mes": "我们约好周末一起去。",
+      "is_user": false,
+      "name": "林",
+      "extra": {
+        "scene_diary": {
+          "messageId": "msg_3ae75458-1627-43cf-a81f-fd5d1465c6f1",
+          "actId": 1,
+          "messageIndex": 1
+        }
+      }
+    },
+    {
+      "mes": "这次旅行很开心。",
+      "is_user": true,
+      "name": "玩家",
+      "extra": {
+        "scene_diary": {
+          "messageId": "msg_322ce9d9-ef80-44e0-822b-6c5953b008cb",
+          "actId": 2,
+          "messageIndex": 2
+        }
+      }
+    },
+    {
+      "mes": "我们确实一起去了。",
+      "is_user": false,
+      "name": "林",
+      "extra": {
+        "scene_diary": {
+          "messageId": "msg_997ec9e5-843b-4b72-82b7-f7edd23ee2d6",
+          "actId": 2,
+          "messageIndex": 3
+        }
+      }
+    }
+  ],
+  "contentBackup": {
+    "format": "scene-diary-content",
+    "version": 1,
+    "chatId": "test-chat",
+    "createdAt": "2026-10-04T08:28:38.164Z",
+    "diaries": [
+      {
+        "actId": 1,
+        "title": "旅行约定",
+        "diary": "用户手改的日记。",
+        "edited": true,
+        "dirty": true
+      }
+    ],
+    "characterGrowth": {
+      "content": "用户手改的成长记录。",
+      "createdAt": 1700000000000,
+      "updatedAt": 1700000000001,
+      "timezoneOffset": -480,
+      "revision": 9,
+      "lastIncludedActId": 1,
+      "edited": true,
+      "reviewRecommended": true
+    },
+    "memories": [
+      {
+        "id": "active",
+        "category": "preference",
+        "title": "手改 active",
+        "content": "用户编辑保留的事实 active",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 1,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [
+          "superseded"
+        ],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "disabled",
+        "category": "habit",
+        "title": "手改 disabled",
+        "content": "用户编辑保留的事实 disabled",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 2,
+        "storyTime": null,
+        "locked": false,
+        "permanent": false,
+        "disabled": true,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "locked",
+        "category": "promise",
+        "title": "手改 locked",
+        "content": "用户编辑保留的事实 locked",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 3,
+        "storyTime": "2026-09-29 夜",
+        "locked": true,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "permanent",
+        "category": "relationship",
+        "title": "手改 permanent",
+        "content": "用户编辑保留的事实 permanent",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 4,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": true,
+        "disabled": false,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "completed",
+        "category": "event",
+        "title": "手改 completed",
+        "content": "用户编辑保留的事实 completed",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 5,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "completed",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "cancelled",
+        "category": "item_place",
+        "title": "手改 cancelled",
+        "content": "用户编辑保留的事实 cancelled",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 1,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "cancelled",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "historical",
+        "category": "preference",
+        "title": "手改 historical",
+        "content": "用户编辑保留的事实 historical",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 2,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "historical",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "archived",
+        "category": "habit",
+        "title": "手改 archived",
+        "content": "用户编辑保留的事实 archived",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 3,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "archived",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "superseded",
+        "category": "promise",
+        "title": "手改 superseded",
+        "content": "用户编辑保留的事实 superseded",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 4,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "superseded",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": "active",
+        "customNote": "保留扩展字段",
+        "dirty": false
+      },
+      {
+        "id": "long-manual",
+        "category": "event",
+        "title": "手改 long-manual",
+        "content": "旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。旧版手写长记忆。",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 1,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      }
+    ]
+  },
+  "previewTransaction": {
+    "id": "legacy-preview",
+    "chatKey": "test-chat",
+    "actId": 2,
+    "createdAt": 1700000000001,
+    "sourceFingerprint": "d45790f9",
+    "settingsFingerprint": "971beb3e",
+    "memoryRevision": 17,
+    "growthRevision": 9,
+    "baseGrowth": "用户手改的成长记录。",
+    "character": {
+      "char": "林",
+      "user": "玩家",
+      "context": "旧人物背景"
+    },
+    "dialogue": {
+      "rows": [
+        {
+          "id": "msg_322ce9d9-ef80-44e0-822b-6c5953b008cb",
+          "speaker": "玩家",
+          "body": "这次旅行很开心。",
+          "storyTime": null,
+          "errors": []
+        },
+        {
+          "id": "msg_997ec9e5-843b-4b72-82b7-f7edd23ee2d6",
+          "speaker": "林",
+          "body": "我们确实一起去了。",
+          "storyTime": null,
+          "errors": []
+        }
+      ],
+      "errors": [],
+      "text": "玩家: 这次旅行很开心。\n\n林: 我们确实一起去了。"
+    },
+    "memoryCandidates": [
+      {
+        "id": "active",
+        "category": "preference",
+        "title": "手改 active",
+        "content": "用户编辑保留的事实 active",
+        "people": [
+          "林",
+          "玩家"
+        ],
+        "aliases": [
+          "旧别名"
+        ],
+        "importance": 1,
+        "storyTime": "2026-09-29 夜",
+        "locked": false,
+        "permanent": false,
+        "disabled": false,
+        "edited": true,
+        "status": "active",
+        "lifecycle": "current",
+        "deletedAt": null,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000001,
+        "timezoneOffset": -480,
+        "revision": 6,
+        "sourceActId": 1,
+        "sourceMessageIds": [
+          "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+        ],
+        "sources": [
+          {
+            "actId": 1,
+            "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+            "excerpt": "未核对引用",
+            "fingerprint": "legacy",
+            "unverifiedLegacy": false
+          }
+        ],
+        "supersedes": [
+          "superseded"
+        ],
+        "mergedInto": null,
+        "customNote": "保留扩展字段",
+        "dirty": false
+      }
+    ],
+    "memoryRejected": [],
+    "results": {
+      "diary": {
+        "status": "success",
+        "value": {
+          "title": "旧预览标题",
+          "diary": "旧预览手改日记"
+        }
+      },
+      "growth": {
+        "status": "success",
+        "value": "旧预览手改成长"
+      },
+      "memory": {
+        "status": "success",
+        "value": {
+          "candidates": [
+            {
+              "id": "active",
+              "category": "preference",
+              "title": "手改 active",
+              "content": "用户编辑保留的事实 active",
+              "people": [
+                "林",
+                "玩家"
+              ],
+              "aliases": [
+                "旧别名"
+              ],
+              "importance": 1,
+              "storyTime": "2026-09-29 夜",
+              "locked": false,
+              "permanent": false,
+              "disabled": false,
+              "edited": true,
+              "status": "active",
+              "lifecycle": "current",
+              "deletedAt": null,
+              "createdAt": 1700000000000,
+              "updatedAt": 1700000000001,
+              "timezoneOffset": -480,
+              "revision": 6,
+              "sourceActId": 1,
+              "sourceMessageIds": [
+                "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679"
+              ],
+              "sources": [
+                {
+                  "actId": 1,
+                  "messageId": "msg_84764cc3-1258-41b9-94c3-bbd5d5ab7679",
+                  "excerpt": "未核对引用",
+                  "fingerprint": "legacy",
+                  "unverifiedLegacy": false
+                }
+              ],
+              "supersedes": [
+                "superseded"
+              ],
+              "mergedInto": null,
+              "customNote": "保留扩展字段",
+              "dirty": false
+            }
+          ],
+          "operations": [
+            {
+              "action": "archive",
+              "targetId": "active",
+              "accepted": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}

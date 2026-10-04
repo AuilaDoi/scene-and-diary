@@ -33,7 +33,9 @@ export async function embed(inputs, config, key, timeoutMs = 3000) {
     try {
         const response = await fetch(endpoint, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', ...(key ? { Authorization: `Bearer ${key}` } : {}) }, body: JSON.stringify({ model: config.model, input: inputs, ...(config.dimensions ? { dimensions: config.dimensions } : {}) }), signal: controller.signal });
         if (!response.ok) throw new Error(`向量服务返回 ${response.status}`);
-        const data = await response.json(), vectors = data?.data?.sort((a, b) => a.index - b.index).map(item => item.embedding);
+        const data = await response.json();
+        if (!Array.isArray(data?.data) || data.data.length !== inputs.length || data.data.some(item => !Number.isInteger(item.index) || item.index < 0 || item.index >= inputs.length) || new Set(data.data.map(item => item.index)).size !== inputs.length) throw new Error('向量结果索引无效');
+        const vectors = data.data.slice().sort((a, b) => a.index - b.index).map(item => item.embedding);
         if (!Array.isArray(vectors) || vectors.length !== inputs.length || vectors.some(vector => !Array.isArray(vector) || !vector.length || vector.some(number => !Number.isFinite(number)))) throw new Error('向量服务返回的数据无效');
         const width = vectors[0].length;
         if (vectors.some(vector => vector.length !== width) || config.dimensions && width !== config.dimensions) throw new Error('向量维度不匹配');
