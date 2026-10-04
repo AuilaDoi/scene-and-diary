@@ -22,6 +22,8 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 
 The extension asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Extraction validates only output format, not factual correctness. It receives only the current act dialogue, proposes new entries, and never compares or modifies existing memories. Review and select each proposed fact before confirming it.
 
+For the official DeepSeek API, prefer SillyTavern's native DeepSeek connection: it supports JSON object mode, while `json_schema` is not supported by the official API. A Custom OpenAI-compatible connection may send that unsupported format; the extension recognizes its `unavaliable` error and retries in normal output mode with the JSON requirements preserved. See [DeepSeek compatibility details](COMPATIBILITY.md#deepseek-official-api-output-format).
+
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
 
 ## Character growth

@@ -16,7 +16,7 @@ export const OUTPUT_SCHEMAS = Object.freeze({
 });
 
 function errorChain(error) { const messages = []; for (let current = error, depth = 0; current && depth < 4; current = current.cause, depth++) messages.push(String(current.message || current)); return messages.join(' '); }
-const unsupportedFormat = error => /(?:json_schema|response_format|json object|structured output).*(?:unsupported|not supported|invalid|unknown)|(?:unsupported|not supported|invalid|unknown).*(?:json_schema|response_format|json object|structured output)/i.test(errorChain(error));
+const unsupportedFormat = error => /(?:json_schema|response_format|json object|structured output).*(?:unsupported|not supported|invalid|unknown)|(?:unsupported|not supported|invalid|unknown).*(?:json_schema|response_format|json object|structured output)|response_format\s+type\s+is\s+(?:unavailable|unavaliable|not available)/i.test(errorChain(error));
 const invalidJson = error => error instanceof SyntaxError || /JSON.*(?:无法解析|invalid|parse|syntax)|(?:control character|property value|unexpected end)/i.test(errorChain(error));
 export function requireArrayField(value, field, label) {
     if (!value || typeof value !== 'object' || !Array.isArray(value[field])) {
@@ -31,12 +31,14 @@ const retryInstruction = '上一轮响应缺少必需字段，或不是可解析
 
 export async function requestStructured(send, prompt, outputSchema, parse, maxTokens, label) {
     let useSchema = true;
+    const fallbackInstruction = `请只输出符合以下 JSON Schema 的完整 JSON 对象，不要输出 Markdown 或说明。字符串中的换行和双引号必须正确转义。\n${JSON.stringify(outputSchema.value)}`;
+    const fallbackPrompt = messages => Array.isArray(messages) ? [...messages, { role: 'user', content: fallbackInstruction }] : `${messages}\n${fallbackInstruction}`;
     const run = async (messages, tokens) => {
-        try { return await send(messages, tokens, useSchema ? outputSchema : null); }
+        try { return await send(useSchema ? messages : fallbackPrompt(messages), tokens, useSchema ? outputSchema : null); }
         catch (error) {
             if (!useSchema || !unsupportedFormat(error)) throw error;
             useSchema = false;
-            return send(messages, tokens, null);
+            return send(fallbackPrompt(messages), tokens, null);
         }
     };
     try { return parse(await run(prompt, maxTokens)); }

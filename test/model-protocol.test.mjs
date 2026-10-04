@@ -40,6 +40,50 @@ test('network and quota failures do not trigger duplicate model calls', async ()
     await assert.rejects(requestStructured(async () => { calls++; throw new Error('429 rate limit'); }, '记忆', OUTPUT_SCHEMAS.memory, JSON.parse, 8192, '记忆'), /429/);
     assert.equal(calls, 1);
 });
+
+test('DeepSeek unavailable response format errors fall back through wrapped connection errors', async () => {
+    for (const spelling of ['unavaliable', 'unavailable', 'not available']) {
+        const prompt = [{ role: 'system', content: '只输出 JSON' }, { role: 'user', content: '整理独立事实' }], calls = [];
+        const send = async (messages, tokens, schema) => {
+            calls.push({ messages, tokens, schema });
+            if (schema) throw new Error('API request failed', { cause: new Error(`Failed to generate chat completion:Validation error:This response_format type is ${spelling} now.`) });
+            return '{"operations":[]}';
+        };
+        const result = await requestStructured(send, prompt, OUTPUT_SCHEMAS.maintenance, JSON.parse, 8192, '记忆整理');
+        assert.deepEqual(result, { operations: [] });
+        assert.equal(calls.length, 2);
+        assert.equal(calls[1].schema, null);
+        assert.equal(calls[1].tokens, 8192);
+        assert.deepEqual(JSON.parse(calls[1].messages.at(-1).content.split('\n').at(-1)), OUTPUT_SCHEMAS.maintenance.value);
+        assert.equal(prompt.length, 2);
+    }
+});
+
+test('fallback keeps the JSON contract on a malformed-result retry and supports string prompts', async () => {
+    const calls = [];
+    const send = async (prompt, tokens, schema) => {
+        calls.push({ prompt, tokens, schema });
+        if (schema) throw new Error('This response_format type is unavaliable now.');
+        return calls.length === 2 ? 'broken JSON' : '{"memories":[]}';
+    };
+    const result = await requestStructured(send, '提取 JSON 记忆', OUTPUT_SCHEMAS.memory, JSON.parse, 4096, '记忆');
+    assert.deepEqual(result, { memories: [] });
+    assert.equal(calls.length, 3);
+    for (const call of calls.slice(1)) {
+        assert.equal(call.schema, null);
+        assert.ok(call.prompt.includes(JSON.stringify(OUTPUT_SCHEMAS.memory.value)));
+    }
+    assert.equal(calls[2].tokens, 8192);
+    assert.match(calls[2].prompt, /上一轮响应/);
+});
+
+test('unrelated availability errors do not trigger format fallback', async () => {
+    for (const message of ['503 service unavailable', 'response_format service temporarily unavailable', '401 invalid API key']) {
+        let calls = 0;
+        await assert.rejects(requestStructured(async () => { calls++; throw new Error(message); }, 'JSON', OUTPUT_SCHEMAS.memory, JSON.parse, 8192, '记忆'));
+        assert.equal(calls, 1);
+    }
+});
 test('a valid JSON object missing memories is retried, but an empty memories array succeeds', async () => {
     let calls = 0;
     const result = await requestStructured(async () => ++calls === 1 ? '{"message":"none"}' : '{"memories":[]}', '提取记忆', OUTPUT_SCHEMAS.memory, value => requireArrayField(JSON.parse(value), 'memories', '记忆模型'), 8192, '记忆');

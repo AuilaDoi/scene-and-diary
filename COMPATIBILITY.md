@@ -23,3 +23,11 @@ The check cannot reliably identify renamed, forked, or manually embedded copies 
 ## SillyTavern
 
 Requires SillyTavern 1.18.0 or newer and a solo character chat. Auxiliary diary and memory generation needs Chat Completion through the active connection or a Connection Manager profile. The extension has no server-side component. Optional embeddings and reranking use browser fetch and require CORS-enabled compatible endpoints. Each key is stored only when the user selects its account-local remember option; same-origin scripts can read it.
+
+### DeepSeek official API output format
+
+Checked against the [Chat Completion reference](https://api-docs.deepseek.com/zh-cn/api/create-chat-completion) and [JSON Output guide](https://api-docs.deepseek.com/zh-cn/guides/json_mode) on 2026-10-04: `response_format.type` supports `text` and `json_object`, not OpenAI's `json_schema`. JSON mode also requires a JSON instruction in the prompt.
+
+The local SillyTavern 1.18.0 native DeepSeek adapter converts the extension's `json_schema` payload to `response_format: {type: 'json_object'}` and adds the schema to the prompt. Its Custom OpenAI-compatible adapter sends `json_schema` instead. Prefer the native DeepSeek connection for the official API. The quoted `This response_format type is unavaliable now` error alone does not prove which adapter, endpoint or model was used; confirm those from the final request if a native connection also fails.
+
+If the provider rejects the response format (including DeepSeek's `unavaliable` spelling), the extension retries without the schema parameter, preserving the JSON field contract in the prompt. Output parsing and validation still apply, and no organization operation is saved before approval. This fallback supports both independent profiles and the active connection's raw Chat Completion response. Authentication, quota and unrelated service failures are not format-fallback triggers. These paths have automated simulated-host coverage; no live authenticated DeepSeek request was performed for this fix.

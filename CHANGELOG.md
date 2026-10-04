@@ -2,6 +2,7 @@
 
 ## 0.3.2 — 2026-10-04 (RC candidate)
 
+- Recognize DeepSeek's `response_format type is unavaliable` rejection and retry without unsupported structured-output parameters. Preserve the JSON contract in fallback prompts and decode raw active-connection Chat Completion envelopes. Document native DeepSeek JSON-object support versus Custom OpenAI-compatible JSON-schema requests.
 - Add full initialization and incremental organization modes. Full approval rebuilds associations from current independent entries; incremental analysis covers only new/changed-to-existing and new/changed pairs, preserving the existing graph and skipping clean libraries.
 - Persist approved organization fingerprints in chat metadata and v2 backups; old chats/backups require initialization. Cancellation, failures and stale previews cannot advance the baseline.
 - Separate act-close extraction from user-triggered semantic organization. Close only proposes new facts; organization merges duplicate facts and links their development after approval.

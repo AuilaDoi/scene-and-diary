@@ -4,6 +4,46 @@ import { normalizeMemory, assignMessageToAct, beginNextAct } from '../core.js';
 import { hostFixture } from './helpers/host.mjs';
 const memory = (id, content = '事实') => normalizeMemory({ id, title: id, content });
 
+test('active-connection maintenance format fallback reads the raw chat completion envelope', async () => {
+    const host = await hostFixture([], input => {
+        if (input.jsonSchema) throw new Error('Failed to generate chat completion:Validation error:This response_format type is unavaliable now.');
+        assert.match(input.prompt.at(-1).content, /JSON Schema.*|operations/s);
+        return { choices: [{ message: { content: '{"operations":[{"action":"link","a":"a","b":"b","reason":"承诺与履行"}]}' } }] };
+    });
+    try {
+        host.context.chatMetadata.scene_diary.memories = [memory('a', '约好去北海道'), memory('b', '去了北海道')];
+        await host.api.startMaintenance('full');
+        assert.equal(host.requests.length, 2);
+        assert.equal(host.requests[1].jsonSchema, null);
+        assert.equal(host.api.getState().maintenanceTransaction.status, 'preview');
+        assert.equal(host.api.getState().maintenanceTransaction.operations.length, 1);
+        assert.deepEqual(host.api.getState().memoryLinks, []);
+        await host.api.confirmMaintenance();
+        assert.equal(host.api.getState().memoryLinks.length, 1);
+    } finally { host.cleanup(); }
+});
+
+test('independent-profile maintenance format fallback omits json_schema and preserves the output contract', async () => {
+    const host = await hostFixture([]), calls = [];
+    try {
+        host.context.ConnectionManagerRequestService = { async sendRequest(profile, prompt, tokens, options, payload) {
+            calls.push({ profile, prompt, tokens, options, payload });
+            if (payload.json_schema) throw new Error('API request failed', { cause: new Error('This response_format type is unavaliable now.') });
+            return { content: '{"operations":[]}' };
+        } };
+        const state = host.context.chatMetadata.scene_diary;
+        state.settings.memoryConnectionProfile = 'deepseek-custom';
+        state.memories = [memory('a'), memory('b')];
+        await host.api.startMaintenance('full');
+        assert.equal(calls.length, 2);
+        assert.equal(calls[1].profile, 'deepseek-custom');
+        assert.deepEqual(calls[1].payload, {});
+        assert.match(calls[1].prompt.at(-1).content, /"required":\["operations"\]/);
+        assert.equal(host.api.getState().maintenanceTransaction.status, 'preview');
+        assert.equal(host.api.getState().memoryOrganization, null);
+    } finally { host.cleanup(); }
+});
+
 test('host close performs only three independent requests; extraction omits library and character card', async () => {
     const host = await hostFixture(['约好旅行']);
     try {

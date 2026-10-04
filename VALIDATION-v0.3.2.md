@@ -5,7 +5,7 @@
 ## 已执行
 
 - Node.js v24.20.0，npm run build：通过全部运行模块语法检查。
-- npm test / Node test runner：93 项通过，0 失败（新增两种整理模式后）。
+- npm test / Node test runner：98 项通过，0 失败（含两种整理模式与 DeepSeek 格式回退修复）。
 - git diff --check：通过。Windows 换行转换提示不属于差异错误。
 - 核心回归：schema 1–4 到 5 的迁移、幂等与未来版本保护；来源和生命周期清除；候选仅格式校验；用户取舍追加；合并字段、完整人物/别名并集、故事时间选择、锁定和互斥；全批次组合覆盖与拆批；一跳、环、重叠组、预算、常驻、重要度；备份 v1/v2。
 - 模拟宿主：提取只使用本幕，结幕三个独立请求；记忆库变化后追加候选；整理只使用库；批准前不修改；失效预览、取消、跨聊天迟到响应、批次重试、保存失败恢复；统一跨幕查询，单次 rerank，embedding/rerank 单独和同时失败的提醒与回退。
@@ -57,5 +57,13 @@
 效率示例：100 条已审核条目加 3 条新条目，增量覆盖 100×3+3×2/2=303 个组合，全量覆盖 103×102/2=5,253 个组合。请求数按实际分块和拆批计算，不将组合数等同于模型调用次数。
 
 ## 发布前仍需验收
+
+### DeepSeek response_format 兼容修复
+
+2026-10-04，实时核对官方 [Chat Completion 参数](https://api-docs.deepseek.com/zh-cn/api/create-chat-completion)和 [JSON Output 指南](https://api-docs.deepseek.com/zh-cn/guides/json_mode)：仅声明 text/json_object，不支持 json_schema。本机 SillyTavern 1.18.0 原生 DeepSeek 路径将插件 json_schema 转为 json_object 并附加格式提示；Custom OpenAI 兼容路径发送 json_schema。仅凭报错不能确认实际连接路径，未读取用户密钥或调用真实 DeepSeek API。
+
+- 新增 5 项回归：unavaliable/unavailable/not available 及连接错误 cause 包装；回退保留完整 schema 提示，非法 JSON 再试仍保留；不对无关服务不可用、认证或限流错误额外请求；独立连接回退移除 json_schema；沿用当前连接回退解析标准 choices[].message.content，并进入需批准的整理预览。
+- npm run build、npm test（98 项，0 失败）、git diff --check 均通过。修复不改变 schema 5、备份格式或已有记忆数据。
+- 实际 endpoint、连接来源和模型的请求验收仍需在真实宿主确认。推荐官方 API 使用原生 DeepSeek 连接；不宣称模拟接口验证等同真实模型测试。
 
 真实 SillyTavern 的保存/读回、事件与生成拦截、最终模型请求、真实模型语义质量、CORS/限流/超时、实际主题和移动端。浏览器合成预览的 localStorage 刷新验证不能替代真实聊天文件持久化。升级前保留完整聊天备份；降级必须配套恢复迁移前数据。
