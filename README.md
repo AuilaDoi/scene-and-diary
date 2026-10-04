@@ -4,6 +4,8 @@ This is the v0.3.2 RC candidate on `release/v0.3.2-rc`, based on v0.3.1. Stable 
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
+JSON 请求已实现 `json_schema` → `json_object` 自动协商，须先按 [JSON 格式请求兼容策略与宿主安装说明](JSON-REQUEST-COMPATIBILITY.md) 安装配套补丁，再重启酒馆并刷新页面。扩展管理器只更新扩展，不安装宿主补丁。
+
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act in normal chat context and carries earlier development through a cumulative character-growth document, recent first-person diaries, and a searchable per-chat long-term memory library.
 
 ## Important compatibility rule
@@ -20,7 +22,7 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 4. Review all three results. Edit, keep or reject each new memory candidate. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
 
-The extension asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Extraction validates only output format, not factual correctness. It receives only the current act dialogue, proposes new entries, and never compares or modifies existing memories. Review and select each proposed fact before confirming it.
+The extension first requests explicit `json_schema`, then tries `json_object` only when the provider clearly rejects the first format. If both are rejected, it reports both reasons; it never falls back to ordinary generation. Authentication, quota and network errors stop the request. A malformed JSON result or missing required `memories` array triggers one content-repair retry using the selected format; a task makes at most three model calls. Failed parts remain available for manual retry while successful previews are retained. Auxiliary JSON generation requires the bundled host adapter; missing adapters fail before sending model requests. Extraction validates only output format, not factual correctness. It receives only the current act dialogue, proposes new entries, and never compares or modifies existing memories. Review and select each proposed fact before confirming it.
 
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
 

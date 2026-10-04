@@ -2,6 +2,9 @@
 
 ## 0.3.2 — 2026-10-04 (RC candidate)
 
+- Negotiate explicit JSON Schema then JSON Object on format rejection, including DeepSeek's `unavailable now` error. Report both rejections instead of ordinary-output fallback; stop on auth/quota/network errors, retain one content repair and bound a task to three model calls. Diary, extraction, growth and organization share the protocol.
+- Bundle a preflighted, idempotent host adapter installer with hashed backups and guarded rollback. Missing or unsupported adapters fail explicitly. Real isolated-host tests verify outgoing formats and terminal errors; the configured DeepSeek profile confirms Schema 400 → Object 200. Host installation/restart/page reload are separate from extension updates.
+
 - Validate organization proposals individually instead of aborting a batch on one bad proposal. Accept useful within-side proposals in cross-block requests, repair resolvable ID whitespace, display excluded suggestions, and require explicit partial approval. Retry excluded batches with concrete validation feedback while retaining other successful batches.
 
 - Add full initialization and incremental organization modes. Full approval rebuilds associations from current independent entries; incremental analysis covers only new/changed-to-existing and new/changed pairs, preserving the existing graph and skipping clean libraries.
