@@ -27,7 +27,7 @@ export function localTime() { return { timestamp: now(), timezoneOffset: new Dat
 export function createCharacterGrowth() { return { content: '', createdAt: null, updatedAt: null, timezoneOffset: null, revision: 0, lastIncludedActId: null, edited: false, reviewRecommended: false }; }
 export function normalizeCharacterGrowth(value = {}) { const source = value && typeof value === 'object' ? value : {}; return { ...createCharacterGrowth(), content: str(source.content ?? source.text), createdAt: Number.isFinite(+source.createdAt) && +source.createdAt > 0 ? +source.createdAt : null, updatedAt: Number.isFinite(+source.updatedAt) && +source.updatedAt > 0 ? +source.updatedAt : null, timezoneOffset: source.timezoneOffset != null && Number.isFinite(+source.timezoneOffset) ? +source.timezoneOffset : null, revision: +source.revision || 0, lastIncludedActId: +source.lastIncludedActId || null, edited: !!source.edited, reviewRecommended: !!source.reviewRecommended }; }
 export function createAct(id = 1, createdAt = now()) { return { id, status: 'active', messageIds: [], startMessageIndex: null, endMessageIndex: null, startSceneTime: null, endSceneTime: null, title: '', diary: '', createdAt, closedAt: null, edited: false, dirty: false, revision: 0, sourceFingerprint: '' }; }
-export function createState(createdAt = now()) { return { version: SCHEMA_VERSION, currentActId: 1, status: 'active', acts: [createAct(1, createdAt)], memories: [], memoryRevision: 0, memorySpaceId: newId('space'), memoryLinks: [], maintenanceTransaction: null, characterGrowth: createCharacterGrowth(), pendingTransaction: null, drafts: [], settings: structuredClone(DEFAULT_SETTINGS), lastUpdatedAt: createdAt }; }
+export function createState(createdAt = now()) { return { version: SCHEMA_VERSION, currentActId: 1, status: 'active', acts: [createAct(1, createdAt)], memories: [], memoryRevision: 0, memorySpaceId: newId('space'), memoryLinks: [], memoryOrganization: null, maintenanceTransaction: null, characterGrowth: createCharacterGrowth(), pendingTransaction: null, drafts: [], settings: structuredClone(DEFAULT_SETTINGS), lastUpdatedAt: createdAt }; }
 
 export function validateTagPair(pair) { const open = str(pair?.open), close = str(pair?.close), openMatch = open.match(/^<([A-Za-z][A-Za-z0-9:_-]*)>$/), closeMatch = close.match(/^<\/([A-Za-z][A-Za-z0-9:_-]*)>$/); return openMatch && closeMatch && openMatch[1] === closeMatch[1] ? { open, close } : null; }
 const legacyPairs = tags => list(tags).map(name => ({ open: `<${str(name).replace(/^<|>$/g, '')}>`, close: `</${str(name).replace(/^<|>$/g, '')}>` }));
@@ -47,6 +47,11 @@ export function normalizeMemoryLinks(links, memories) {
         seen.add(key); return [{ a, b, reason: str(link.reason).slice(0, 300) }];
     });
 }
+export function normalizeMemoryOrganization(value, memories) {
+    if (value?.version !== 1 || !Number.isFinite(value.initializedAt) || value.initializedAt <= 0 || !value.reviewed || typeof value.reviewed !== 'object' || Array.isArray(value.reviewed)) return null;
+    const reviewed = Object.fromEntries(memories.filter(memory => Object.hasOwn(value.reviewed, memory.id) && typeof value.reviewed[memory.id] === 'string').map(memory => [memory.id, value.reviewed[memory.id]]));
+    return { version: 1, initializedAt: value.initializedAt, lastOrganizedAt: Number.isFinite(value.lastOrganizedAt) && value.lastOrganizedAt > 0 ? value.lastOrganizedAt : value.initializedAt, reviewed };
+}
 export function normalizeState(raw) {
     const start = createState(), value = raw && typeof raw === 'object' ? raw : {}, schema = Number.isFinite(+value.version) ? +value.version : 0;
     if (schema > SCHEMA_VERSION) throw new Error(`聊天数据版本 ${value.version} 高于支持版本 ${SCHEMA_VERSION}`);
@@ -59,7 +64,7 @@ export function normalizeState(raw) {
         delete pendingTransaction.memoryCandidates; delete pendingTransaction.memoryRejected;
         pendingTransaction.results ||= {}; pendingTransaction.results.memory = { status: 'error', error: '记忆协议已升级，请重新提取本幕记忆。' };
     }
-    return { ...start, ...rest, version: SCHEMA_VERSION, acts: all, currentActId: current, status: ['active', 'closing', 'preview', 'pending_next_act'].includes(value.status) ? value.status : 'active', memories, memoryLinks: normalizeMemoryLinks(value.memoryLinks, memories), memoryRevision: +value.memoryRevision || 0, memorySpaceId: str(value.memorySpaceId) || start.memorySpaceId, pendingTransaction, maintenanceTransaction: schema < 5 ? null : value.maintenanceTransaction || null, characterGrowth: normalizeCharacterGrowth(value.characterGrowth && typeof value.characterGrowth === 'object' ? value.characterGrowth : value.summary), settings: normalizeSettings(value.settings), drafts: list(value.drafts) };
+    return { ...start, ...rest, version: SCHEMA_VERSION, acts: all, currentActId: current, status: ['active', 'closing', 'preview', 'pending_next_act'].includes(value.status) ? value.status : 'active', memories, memoryLinks: normalizeMemoryLinks(value.memoryLinks, memories), memoryOrganization: schema < 5 ? null : normalizeMemoryOrganization(value.memoryOrganization, memories), memoryRevision: +value.memoryRevision || 0, memorySpaceId: str(value.memorySpaceId) || start.memorySpaceId, pendingTransaction, maintenanceTransaction: schema < 5 ? null : value.maintenanceTransaction || null, characterGrowth: normalizeCharacterGrowth(value.characterGrowth && typeof value.characterGrowth === 'object' ? value.characterGrowth : value.summary), settings: normalizeSettings(value.settings), drafts: list(value.drafts) };
 }
 
 export const currentAct = state => list(state?.acts).find(act => act.id === state.currentActId) || list(state?.acts).at(-1) || null;

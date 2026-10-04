@@ -1,4 +1,4 @@
-import { MEMORY_CATEGORIES, normalizeCharacterGrowth, normalizeMemory, normalizeMemoryLinks } from './core.js';
+import { MEMORY_CATEGORIES, normalizeCharacterGrowth, normalizeMemory, normalizeMemoryLinks, normalizeMemoryOrganization } from './core.js';
 import { validateMemoryFormat } from './memory-system.js';
 
 const BACKUP_FORMAT = 'scene-diary-content';
@@ -14,6 +14,7 @@ export function createContentBackup(state, chatId) {
         characterGrowth: structuredClone(state.characterGrowth),
         memories: structuredClone(state.memories.filter(memory => !memory.deletedAt)),
         memoryLinks: normalizeMemoryLinks(state.memoryLinks, state.memories),
+        memoryOrganization: normalizeMemoryOrganization(state.memoryOrganization, state.memories),
     };
 }
 
@@ -48,6 +49,7 @@ export function restoreContentBackup(state, backup, chatId) {
     restored.memories = visibleMemories.map(normalizeMemory);
     if (backup.version === 2 && (!Array.isArray(backup.memoryLinks) || backup.memoryLinks.some(link => !link || typeof link.a !== 'string' || typeof link.b !== 'string' || link.a === link.b || !memoryIds.has(link.a) || !memoryIds.has(link.b) || typeof link.reason !== 'string'))) throw new Error('备份中的记忆关联无效');
     restored.memoryLinks = normalizeMemoryLinks(backup.version === 2 ? backup.memoryLinks : [], restored.memories);
+    restored.memoryOrganization = backup.version === 2 ? normalizeMemoryOrganization(backup.memoryOrganization, restored.memories) : null;
     restored.maintenanceTransaction = null;
     restored.memoryRevision++;
     return restored;

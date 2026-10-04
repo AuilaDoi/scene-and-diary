@@ -3,6 +3,20 @@ const arr = value => Array.isArray(value) ? value : [];
 const clean = value => String(value ?? '').trim();
 export const memoryEligible = memory => memory && !memory.deletedAt && !memory.disabled;
 export const memoryText = memory => `${memory.title} ${memory.content} ${arr(memory.people).join(' ')} ${arr(memory.aliases).join(' ')}`;
+export const maintenanceMaterial = memory => Object.fromEntries(['id', 'category', 'title', 'content', 'people', 'aliases', 'importance', 'storyTime', 'locked', 'permanent', 'disabled'].map(field => [field, memory[field]]));
+export const organizationFingerprint = memory => fingerprint(JSON.stringify(maintenanceMaterial(memory)));
+export function pendingOrganizationIds(state) {
+    const reviewed = state.memoryOrganization?.reviewed;
+    return state.memories.filter(memory => !reviewed || !Object.hasOwn(reviewed, memory.id) || reviewed[memory.id] !== organizationFingerprint(memory)).map(memory => memory.id);
+}
+export function validateMaintenanceScope(operations, pendingIds = null, task = null) {
+    const pending = pendingIds === null ? null : new Set(pendingIds);
+    for (const op of operations) {
+        const ids = op.action === 'merge' ? arr(op.memberIds) : [op.a, op.b];
+        if (pending && !ids.some(id => pending.has(id))) throw new Error('增量整理不能合并或关联未变更的旧条目组合');
+        if (task?.right.length && (!ids.some(id => task.left.includes(id)) || !ids.some(id => task.right.includes(id)))) throw new Error('跨块建议必须涉及本批左右两块');
+    }
+}
 export function validateMemoryFormat(item, { extendedArrays = false, extendedContent = false } = {}) {
     if (!item || typeof item !== 'object' || Array.isArray(item) || !MEMORY_CATEGORIES.includes(item.category)) throw new Error('记忆类别无效');
     if (typeof item.title !== 'string' || typeof item.content !== 'string' || !item.title.trim() || !item.content.trim() || item.title.length > 120 || (!extendedContent && item.content.length > 500)) throw new Error('记忆标题或内容为空、超长或类型错误');
@@ -64,8 +78,13 @@ export function planMaintenance(memories, links, raw) {
     for (const op of planned) if (op.action === 'merge') { op.conflicts = planned.filter(other => other !== op && other.action === 'merge' && other.memberIds.some(id => op.memberIds.includes(id))).map(other => other.id); if (op.conflicts.length) op.accepted = false; }
     return planned;
 }
-export function applyMaintenance(state, operations) {
+export function applyMaintenance(state, operations, options = {}) {
     if (!Array.isArray(operations) || operations.some(op => !['merge', 'link'].includes(op?.action))) throw new Error('维护操作格式无效');
+    if (options.mode && !['full', 'incremental'].includes(options.mode)) throw new Error('记忆整理模式无效');
+    if (options.mode === 'incremental') {
+        if (!state.memoryOrganization || !Array.isArray(options.pendingIds)) throw new Error('增量整理需要先完成全量初始化');
+        validateMaintenanceScope(operations, options.pendingIds);
+    }
     const next = structuredClone(state), accepted = operations.filter(op => op.accepted), map = new Map(next.memories.map(memory => [memory.id, memory])), remap = new Map();
     for (const op of accepted.filter(op => op.action === 'merge')) {
         if (!op.timeResolved) throw new Error('请先选择无法排序的故事时间');
@@ -80,17 +99,27 @@ export function applyMaintenance(state, operations) {
         op.memberIds.forEach(id => remap.set(id, op.targetId)); map.set(op.targetId, { ...checked, edited: true, updatedAt: Date.now() });
     }
     next.memories = [...map.values()].filter(memory => !remap.has(memory.id) || remap.get(memory.id) === memory.id);
-    const links = [...next.memoryLinks];
+    const links = options.mode === 'full' ? [] : [...next.memoryLinks];
     for (const op of accepted.filter(op => op.action === 'link')) { if (!map.has(op.a) || !map.has(op.b) || op.a === op.b) throw new Error('关联目标失效'); links.push({ a: op.a, b: op.b, reason: clean(op.reason).slice(0, 300) }); }
     next.memoryLinks = normalizeMemoryLinks(links.map(link => ({ ...link, a: remap.get(link.a) || link.a, b: remap.get(link.b) || link.b })), next.memories);
-    if (accepted.length) next.memoryRevision++;
+    if (options.mode) {
+        const time = Date.now();
+        next.memoryOrganization = { version: 1, initializedAt: options.mode === 'full' ? time : state.memoryOrganization.initializedAt, lastOrganizedAt: time, reviewed: Object.fromEntries(next.memories.map(memory => [memory.id, organizationFingerprint(memory)])) };
+    }
+    if (accepted.length || options.mode) next.memoryRevision++;
     next.maintenanceTransaction = null; return next;
 }
-export function maintenanceTasks(memories, maxChars = 12000) {
-    const blocks = []; let block = [], size = 0;
-    for (const memory of memories) { const cost = JSON.stringify(memory).length; if (block.length && size + cost > maxChars / 2) { blocks.push(block); block = []; size = 0; } block.push(memory); size += cost; }
-    if (block.length) blocks.push(block);
-    const tasks = []; for (let i = 0; i < blocks.length; i++) for (let j = i; j < blocks.length; j++) if (blocks[i].length + (i === j ? 0 : blocks[j].length) > 1) tasks.push({ id: newId('batch'), left: blocks[i].map(memory => memory.id), right: i === j ? [] : blocks[j].map(memory => memory.id), status: 'pending' });
+export function maintenanceTasks(memories, maxChars = 12000, pendingIds = null) {
+    const partition = items => {
+        const blocks = []; let block = [], size = 0;
+        for (const memory of items) { const cost = JSON.stringify(maintenanceMaterial(memory)).length; if (block.length && size + cost > maxChars / 2) { blocks.push(block); block = []; size = 0; } block.push(memory); size += cost; }
+        if (block.length) blocks.push(block); return blocks;
+    };
+    const pending = pendingIds === null ? null : new Set(pendingIds);
+    const blocks = partition(pending ? memories.filter(memory => pending.has(memory.id)) : memories), existing = pending ? partition(memories.filter(memory => !pending.has(memory.id))) : [];
+    const tasks = [], add = (left, right = []) => { if (left.length + right.length > 1) tasks.push({ id: newId('batch'), left: left.map(memory => memory.id), right: right.map(memory => memory.id), status: 'pending' }); };
+    for (let i = 0; i < blocks.length; i++) for (let j = i; j < blocks.length; j++) add(blocks[i], i === j ? [] : blocks[j]);
+    for (const fresh of blocks) for (const old of existing) add(fresh, old);
     return tasks;
 }
 export function splitMaintenanceTask(task) {

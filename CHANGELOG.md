@@ -2,6 +2,8 @@
 
 ## 0.3.2 — 2026-10-04 (RC candidate)
 
+- Add full initialization and incremental organization modes. Full approval rebuilds associations from current independent entries; incremental analysis covers only new/changed-to-existing and new/changed pairs, preserving the existing graph and skipping clean libraries.
+- Persist approved organization fingerprints in chat metadata and v2 backups; old chats/backups require initialization. Cancellation, failures and stale previews cannot advance the baseline.
 - Separate act-close extraction from user-triggered semantic organization. Close only proposes new facts; organization merges duplicate facts and links their development after approval.
 - Add undirected associations, one-hop grouped recall, shared recall-slot counting and complete-group token budgets, including permanent memories.
 - Merge the latest three effective chat messages into one query across act boundaries. Apply importance to eligible relevance ranking; remove historical-intent retrieval and word-overlap diversity penalties.

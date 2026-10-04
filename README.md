@@ -90,11 +90,18 @@ Each independently matching memory expands only its direct neighbors. A—B—C 
 
 ### Independent memory organization
 
-Click **记忆整理** whenever needed. It analyzes all saved entries, including disabled and locked ones, with the extraction connection and a dedicated internal prompt. Duplicate facts may merge; promises and their fulfillment remain independent facts connected by a relationship. Each entry displays its neighbors and allows opening or unlinking them.
+Choose a mode and click **记忆整理** whenever needed. It uses the extraction connection and a dedicated internal prompt, including disabled and locked entries in its scope. Duplicate facts may merge; promises and their fulfillment remain independent facts connected by a relationship. Each entry displays its neighbors and allows opening or unlinking them.
 
-Analysis runs sequentially across every within-block and cross-block comparison. Progress reports the estimated request count; large libraries can require many model calls. Context-limit failures split the batch; other failures retain successful batches and permit retry. Cancelling makes no library changes. After all batches finish, review each merge/link and approve selected operations together. Locked entries cannot merge, but their links may be approved. Overlapping merge proposals are mutually exclusive.
+- **全量整理／初始化** treats the currently saved entries as independent facts and checks all pairs. Its preview lists the old links to be replaced; only approval rebuilds the graph from approved results. Existing merged facts remain the current saved entries. Cancelling or failing leaves the old graph intact.
+- **增量整理** becomes available after an approved full initialization and is the default afterward. It retains the existing graph and compares only new/changed entries with existing entries, and new/changed entries with each other. Unchanged old-old pairs are not analyzed. With no pending entries, it makes no model requests.
+
+The approved baseline records IDs and fingerprints in chat-level `memoryOrganization`. New extraction and manual additions become pending automatically; editing an entry or its comparison fields also enrolls it for review. Rejected proposals remain rejected after approval, and checked entries are not repeatedly submitted. Cancelling, failed analysis and stale previews do not advance the baseline. Successful merges redirect existing links and record the fingerprints of the surviving entries.
+
+Analysis runs sequentially across every required within-block and cross-block comparison for the selected scope. Progress reports entry/pair counts and estimated requests; large libraries can require many model calls. Context-limit failures split the batch; other failures retain successful batches and permit retry. After all batches finish, review each merge/link and approve selected operations together. Locked entries cannot merge, but their links may be approved. Overlapping merge proposals are mutually exclusive.
 
 Merges keep a chosen existing ID, maximum importance, combined aliases/people, permanent status if any member is permanent, and enabled status if any member is enabled. Existing links redirect and deduplicate. Story time keeps the latest comparable nonempty value; ambiguous relative times require selecting an original value. Changing the memory library during analysis or preview requires a fresh organization run. Normal dialogue and scene closing remain independent, with serialized verified saves.
+
+Schema remains 5; content backup v2 additionally includes the organization baseline. Earlier RC data and older v1/v2 backups without that baseline retain their facts and associations but require one approved full initialization before incremental organization. Reload and new v2 backup round trips preserve the baseline and pending scope.
 
 Current automated checks do not prove live SillyTavern save, model accuracy, CORS support, or visual behavior. Validate those flows with a backed-up chat before relying on a migrated library.
 

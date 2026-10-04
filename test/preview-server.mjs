@@ -12,7 +12,13 @@ export const context = { chatId:'synthetic-preview',chat,chatMetadata:{scene_dia
 context.saveMetadata = async()=>localStorage.setItem('scene_diary_v032_synthetic_preview',JSON.stringify(context.chatMetadata.scene_diary));
 context.generateRawData = async input => {
 const name=input.jsonSchema?.name;
-if(name?.endsWith('_maintenance')) return {operations:[{action:'merge',memberIds:['b','c'],targetId:'b',title:'北海道旅行',content:'周末两人一起去了北海道。',category:'event',a:null,b:null,reason:'同一次已发生的旅行'},{action:'link',memberIds:[],targetId:null,title:null,content:null,category:null,a:'a',b:'b',reason:'约定得以兑现'}]};
+if(name?.endsWith('_maintenance')) {
+const material=JSON.parse(input.prompt[1].content.split('\\n').at(-1)), ids=[...material.left,...material.right].map(item=>item.id), operations=[];
+const allowed=members=>members.every(id=>ids.includes(id))&&(!material.pendingIds||members.some(id=>material.pendingIds.includes(id)));
+if(allowed(['b','c'])) operations.push({action:'merge',memberIds:['b','c'],targetId:'b',title:'北海道旅行',content:'周末两人一起去了北海道。',category:'event',a:null,b:null,reason:'同一次已发生的旅行'});
+if(allowed(['a','b'])&&!material.links.some(link=>[link.a,link.b].includes('a')&&[link.a,link.b].includes('b'))) operations.push({action:'link',memberIds:[],targetId:null,title:null,content:null,category:null,a:'a',b:'b',reason:'约定得以兑现'});
+for(const id of material.pendingIds||[]) if(!['a','b','c'].includes(id)&&ids.includes('b')) operations.push({action:'link',memberIds:[],targetId:null,title:null,content:null,category:null,a:'b',b:id,reason:'合成测试：旅行后续事实'});
+return {operations}; }
 if(name?.endsWith('_diary')) return {title:'旅行回忆',diary:'今天我们聊起了共同旅行的记忆。'};
 if(name?.endsWith('_growth')) return {characterGrowth:'两人愿意一起安排周末活动。'};
 return {memories:[{category:'preference',title:'周末出游意向',content:'玩家表达了周末想一起出门的意愿。',people:['玩家'],aliases:[],importance:3,storyTime:null}]}; };
