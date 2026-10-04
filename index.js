@@ -1,6 +1,6 @@
 import { extension_prompt_roles, extension_prompt_types, setExtensionPrompt } from '../../../../script.js';
 import { getContext } from '../../../st-context.js';
-import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, selectRecallGroups, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
+import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, selectRecallGroups, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
 import { OUTPUT_SCHEMAS, requestStructured, requireArrayField } from './model-protocol.js';
 import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint } from './semantic.js';
 import { createContentBackup, restoreContentBackup } from './backup.js';
@@ -154,7 +154,7 @@ function changed(index) { const state = getState(), message = chat()[+index], ac
 function deleted() { const state = getState(); if (!state || disabledReason) return; let didChange = false; for (const act of state.acts) didChange = reviewSourceAct(state, act.id) || didChange; if (didChange) { setState(state); void saveState(state); render(state); } }
 
 function profileOptions(value) { try { return ['<option value="">沿用当前聊天连接</option>', ...(ctx().ConnectionManagerRequestService?.getSupportedProfiles?.() || []).map(profile => `<option value="${escape(profile.id)}" ${profile.id === value ? 'selected' : ''}>独立：${escape(profile.name)}</option>`)].join(''); } catch { return '<option value="">沿用当前聊天连接</option>'; } }
-async function request(profile, prompt, responseLength = 1600, jsonSchema = null) { if (profile) { const service = ctx().ConnectionManagerRequestService; if (!service?.sendRequest) throw new Error('连接管理器不可用。'); const output = await service.sendRequest(profile, prompt, responseLength, { stream: false, extractData: true, includePreset: false, includeInstruct: false }, jsonSchema ? { json_schema: jsonSchema } : {}); return output?.content ?? output; } if (String(ctx().mainApi || '').toLowerCase() !== 'openai') throw new Error('辅助整理需要 Chat Completion，或选择独立连接。'); const output = await ctx().generateRawData({ prompt, api: 'openai', quietToLoud: true, responseLength, jsonSchema }); return output?.choices?.[0]?.message?.content ?? output?.content ?? output; }
+async function request(profile, prompt, responseLength = 1600, jsonSchema = null) { if (profile) { const service = ctx().ConnectionManagerRequestService; if (!service?.sendRequest) throw new Error('连接管理器不可用。'); const output = await service.sendRequest(profile, prompt, responseLength, { stream: false, extractData: true, includePreset: false, includeInstruct: false }, jsonSchema ? { json_schema: jsonSchema } : {}); return output?.content ?? output; } if (String(ctx().mainApi || '').toLowerCase() !== 'openai') throw new Error('辅助整理需要 Chat Completion，或选择独立连接。'); const output = await ctx().generateRawData({ prompt, api: 'openai', quietToLoud: true, responseLength, jsonSchema }); return output?.content ?? output; }
 const requestJson = (profile, prompt, schema, parse, maxTokens, label) => requestStructured((messages, tokens, outputSchema) => request(profile, messages, tokens, outputSchema), prompt, schema, parse, maxTokens, label);
 function characterData() { const fields = ctx().getCharacterCardFields?.() || {}; return { char: ctx().name2 || fields.name || '角色', user: ctx().name1 || '玩家', context: buildCharacterContext({ description: fields.description, personality: fields.personality, scenario: fields.scenario }) }; }
 const modelMessages = content => [{ role: 'system', content: '你只输出机器可解析 JSON。' }, { role: 'user', content }];
@@ -291,7 +291,7 @@ globalThis.sceneDiaryRearrangeChat = sceneDiaryRearrangeChat;
 
 const maintenanceRuns = new Set();
 const maintenanceInstruction = `你是记忆库语义整理器。素材只有下列已保存记忆及关联，不读取或补写外部事实。寻找同一事实的重复表达并建议 merge；不同时间分别成立、发展、兑现、取消的事实保持独立并建议 link。仅人物或地点相同不足以关联。锁定条目不能合并，但允许关联。所有结果只是供用户批准的建议。
-返回严格 JSON {"operations":[]}。merge 项：action, memberIds（至少两个输入ID）, targetId（成员之一）, title, content, category, a:null,b:null,reason。link 项：action, memberIds:[],targetId:null,title:null,content:null,category:null,a,b,reason。理由最多300字符，合并标题最多120字符、正文最多500字符，category 必须是 preference/habit/promise/relationship/event/item_place。不要在同一批中生成重复操作。既有关系无需重复建议。`;
+返回严格 JSON {"operations":[]}。merge 项：action, memberIds（至少两个输入ID）, targetId（成员之一）, title, content, category, a:null,b:null,reason。link 项：action, memberIds:[],targetId:null,title:null,content:null,category:null,a,b,reason。所有 ID 原样复制本批输入的 id 字段；link 的 a、b 必须为两个不同的输入 ID，不能为 null、标题、序号或新建的合并 ID。理由最多300字符，合并标题最多120字符、正文最多500字符，category 必须是 preference/habit/promise/relationship/event/item_place。不要在同一批中生成重复操作。既有关系无需重复建议。`;
 function editCandidate(field) {
     if (pendingSave || disabledReason) return;
     const state = getState(), memory = state?.pendingTransaction?.results?.memory?.value?.candidates?.[+field.dataset.candidateIndex]; if (!memory) return;
@@ -339,7 +339,8 @@ async function runMaintenance(id) {
             if (!task) {
                 validateMaintenanceScope(tx.tasks.flatMap(item => item.operations || []), tx.mode === 'incremental' ? tx.pendingIds : null);
                 tx.operations = planMaintenance(tx.snapshot, tx.links, tx.tasks.flatMap(item => item.operations || [])); tx.status = 'preview';
-                setState(state); await saveState(state, key, true); render(state); notify('success', `记忆整理完成：${tx.operations.length} 项建议，等待批准。`); return;
+                const rejectedCount = tx.tasks.reduce((sum, item) => sum + (item.rejected?.length || 0), 0);
+                setState(state); await saveState(state, key, true); render(state); notify(rejectedCount ? 'warning' : 'success', `记忆整理完成：${tx.operations.length} 项有效建议，${rejectedCount} 项建议未通过校验，等待批准。`); return;
             }
             task.status = 'running'; task.error = ''; setState(state); await saveState(state, key); if (!maintenanceCurrent(id, key)) return; render(state);
             try {
@@ -347,13 +348,13 @@ async function runMaintenance(id) {
                 const material = id => maintenanceMaterial(byId.get(id));
                 const scope = tx.mode === 'incremental' ? '这是增量整理。已有结构保留，只检查涉及待整理条目的组合；禁止仅对未变更的旧条目提出合并或关联。' : tx.mode === 'full' ? '这是全量整理／初始化。所有现有条目视为独立事实，从空关联重建结构。' : '这是旧版整理任务。';
                 const prompt = `${maintenanceInstruction}\n${scope}\n本批${task.right.length ? '为跨块比较，只检查左块与右块之间的语义重复和发展关联；不提出单侧内部操作' : '为块内比较'}。\n${JSON.stringify({ left: task.left.map(material), right: task.right.map(material), pendingIds: tx.mode === 'incremental' ? tx.pendingIds.filter(id => ids.has(id)) : undefined, links: tx.links.filter(link => ids.has(link.a) && ids.has(link.b)) })}`;
-                const output = await requestJson(tx.profile, modelMessages(prompt), OUTPUT_SCHEMAS.maintenance, value => requireArrayField(modelJson(value, '记忆整理'), 'operations', '记忆整理'), 8192, '记忆整理');
+                const feedback = task.rejected?.length ? `\n上一轮下列建议未通过校验，请修正这些错误并重新返回本批完整建议：${JSON.stringify(task.rejected)}` : '';
+                const output = await requestJson(tx.profile, modelMessages(prompt + feedback), OUTPUT_SCHEMAS.maintenance, value => requireArrayField(modelJson(value, '记忆整理'), 'operations', '记忆整理'), 8192, '记忆整理');
                 // Validate only IDs, fields and locks. No factual/source verification.
-                planMaintenance(input, tx.links, output.operations);
-                validateMaintenanceScope(output.operations, tx.mode === 'incremental' ? tx.pendingIds : null, task);
+                const batch = validateMaintenanceBatch(input, tx.links, output.operations, tx.mode === 'incremental' ? tx.pendingIds : null);
                 state = maintenanceCurrent(id, key); if (!state) return;
                 const current = state.maintenanceTransaction.tasks.find(item => item.id === task.id); if (!current) return;
-                current.operations = output.operations; current.status = 'success';
+                current.operations = batch.operations; current.rejected = batch.rejected; current.status = 'success';
             } catch (error) {
                 state = maintenanceCurrent(id, key); if (!state) return;
                 const current = state.maintenanceTransaction.tasks.find(item => item.id === task.id); if (!current) return;
@@ -368,10 +369,11 @@ async function runMaintenance(id) {
         if (state) { state.maintenanceTransaction.status = 'error'; state.maintenanceTransaction.error = error.message; setState(state); render(state); notify('error', `整理未完成：${error.message}`); }
     } finally { maintenanceRuns.delete(id); }
 }
-async function confirmMaintenance() {
+async function confirmMaintenance(acceptRejected = false) {
     if (pendingSave || disabledReason) return;
     const state = getState(), tx = state?.maintenanceTransaction, key = activeChatKey;
     if (!tx || tx.status !== 'preview') return;
+    if (tx.tasks.some(task => task.rejected?.length) && acceptRejected !== true) { notify('warning', '部分模型建议未通过校验。请查看原因，并使用“忽略未通过的建议并批准”按钮明确确认。'); return; }
     if (state.memoryRevision !== tx.memoryRevision) { notify('error', '记忆库已变化，请重新整理。'); return; }
     let next;
     try { next = applyMaintenance(state, tx.operations, { mode: tx.mode, pendingIds: tx.pendingIds }); } catch (error) { notify('error', `整理未保存：${error.message}`); return; }
@@ -407,7 +409,9 @@ function renderMaintenance(state) {
         const members = op.action === 'merge' ? tx.snapshot.filter(memory => op.memberIds.includes(memory.id)) : tx.snapshot.filter(memory => [op.a, op.b].includes(memory.id));
         return `<div class="scene-diary-candidate"><label><input ${attrs('accepted')} type="checkbox" ${op.accepted ? 'checked' : ''}> ${op.action === 'merge' ? '合并重复记忆' : '关联独立记忆'}</label>${members.map(memory => `<p><strong>${escape(memory.title)}</strong>：${escape(memory.content)}<br><small>故事时间：${escape(memory.storyTime || '未记录')}；重要度 ${memory.importance}；${memory.permanent ? '常驻' : '普通'}；${memory.disabled ? '停用' : '启用'}</small></p>`).join('')}${op.action === 'merge' ? `<p>保留 ID：${escape(op.targetId)}；重要度 ${op.merged.importance}；${op.merged.permanent ? '常驻' : '普通'}；${op.merged.disabled ? '停用' : '启用'}</p><label>合并标题<input ${attrs('title')} maxlength="120" value="${escape(op.merged.title)}"></label><label>合并正文<textarea ${attrs('content')} maxlength="500">${escape(op.merged.content)}</textarea></label><label>类别<select ${attrs('category')}>${MEMORY_CATEGORIES.map(category => `<option ${category === op.merged.category ? 'selected' : ''}>${category}</option>`).join('')}</select></label><label>故事时间<select ${attrs('storyTime')}>${!op.timeResolved ? '<option value="__choose__" selected>请选择最新故事时间</option>' : ''}${op.timeChoices.length ? op.timeChoices.map(time => `<option value="${escape(time)}" ${op.merged.storyTime === time ? 'selected' : ''}>${escape(time)}</option>`).join('') : '<option value="">未记录</option>'}</select></label>${op.conflicts?.length ? '<p class="scene-diary-warning">存在共享成员的互斥合并建议，只能批准其中一项。</p>' : ''}` : ''}<label>关联／合并理由<textarea ${attrs('reason')} maxlength="300">${escape(op.reason)}</textarea></label></div>`;
     }).join('') : '';
-    root.innerHTML = `${header}${operations}${tx.status === 'preview' && !tx.operations.length ? '<p>没有合并或新增关联建议。确认后仍会记录本次检查；全量模式会清除旧关联。</p>' : ''}<div class="scene-diary-actions">${!stale && tx.status === 'preview' ? `<button data-action="confirm-maintenance">${tx.mode === 'full' ? '批准并重建记忆结构' : '保存批准的操作'}</button>` : ''}${!stale && tx.status === 'error' ? `<button data-action="retry-maintenance" data-transaction-id="${escape(tx.id)}">重试未完成批次</button>` : ''}<button data-action="cancel-maintenance">取消整理</button></div>`;
+    const rejected = tx.tasks.flatMap((task, batch) => (task.rejected || []).map(item => ({ ...item, batch: batch + 1 })));
+    const warnings = rejected.length ? `<p class="scene-diary-warning">${rejected.length} 项模型建议未通过校验，未纳入可批准操作。请检查下列原因；忽略后批准会记录整理基线${tx.mode === 'full' ? '并替换全部旧关联' : ''}。</p>${rejected.map(item => `<p class="scene-diary-warning">批次 ${item.batch}，建议 ${item.index}（${escape(item.action)}；${escape(item.targets.join(' ↔ '))}）：${escape(item.reason)}</p>`).join('')}` : '';
+    root.innerHTML = `${header}${warnings}${operations}${tx.status === 'preview' && !tx.operations.length ? `<p>${rejected.length ? '没有可批准的有效建议，不能据此认定无需整理。' : '没有合并或新增关联建议。'}确认后仍会记录本次检查；全量模式会清除旧关联。</p>` : ''}<div class="scene-diary-actions">${!stale && tx.status === 'preview' ? `<button data-action="${rejected.length ? 'confirm-maintenance-partial' : 'confirm-maintenance'}">${rejected.length ? '忽略未通过的建议并批准' : tx.mode === 'full' ? '批准并重建记忆结构' : '保存批准的操作'}</button>${rejected.length ? '<button data-action="retry-rejected-maintenance">重试含未通过建议的批次</button>' : ''}` : ''}${!stale && tx.status === 'error' ? `<button data-action="retry-maintenance" data-transaction-id="${escape(tx.id)}">重试未完成批次</button>` : ''}<button data-action="cancel-maintenance">取消整理</button></div>`;
 }
 
 function renderMemories(state) {
@@ -504,6 +508,14 @@ function handlePanelClick(event) {
     if (action === 'retry-maintenance') void runMaintenance(target.dataset.transactionId).catch(error => notify('error', error.message));
     if (action === 'cancel-maintenance') { const state = getState(); if (state) { state.maintenanceTransaction = null; setState(state); void saveState(state).catch(showSaveError); render(state); } }
     if (action === 'confirm-maintenance') { panel.querySelectorAll('[data-maintenance-field]').forEach(editMaintenance); void confirmMaintenance(); }
+    if (action === 'confirm-maintenance-partial') { panel.querySelectorAll('[data-maintenance-field]').forEach(editMaintenance); void confirmMaintenance(true); }
+    if (action === 'retry-rejected-maintenance') {
+        const state = getState(), tx = state?.maintenanceTransaction;
+        if (tx?.status === 'preview' && !pendingSave && !disabledReason) {
+            tx.tasks.filter(task => task.rejected?.length).forEach(task => { task.status = 'pending'; });
+            tx.status = 'ready'; setState(state); void runMaintenance(tx.id);
+        }
+    }
     if (action === 'open-related') { const state = getState(); panel.querySelector('[data-memory-search]').value = ''; panel.querySelector('[data-memory-category]').value = ''; renderMemories(state); const entry = [...panel.querySelectorAll('[data-memory-id]')].find(item => item.dataset.memoryId === target.dataset.relatedId); if (entry) { entry.open = true; entry.scrollIntoView({ block: 'nearest' }); } }
     if (action === 'unlink-memory') void commitMemoryMutation(draft => { draft.memoryLinks = draft.memoryLinks.filter(link => !(link.a === target.dataset.linkA && link.b === target.dataset.linkB)); });
     if (action === 'save-growth') saveGrowth(panel);

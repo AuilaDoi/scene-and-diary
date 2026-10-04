@@ -78,6 +78,27 @@ export function planMaintenance(memories, links, raw) {
     for (const op of planned) if (op.action === 'merge') { op.conflicts = planned.filter(other => other !== op && other.action === 'merge' && other.memberIds.some(id => op.memberIds.includes(id))).map(other => other.id); if (op.conflicts.length) op.accepted = false; }
     return planned;
 }
+// Model proposals are independent suggestions, not an all-or-nothing write transaction.
+export function validateMaintenanceBatch(memories, links, raw, pendingIds = null) {
+    if (!Array.isArray(raw)) throw new Error('维护结果必须为 operations 数组');
+    const operations = [], rejected = [];
+    const ids = new Set(memories.map(memory => memory.id));
+    const resolve = id => typeof id === 'string' && !ids.has(id) && ids.has(id.trim()) ? id.trim() : id;
+    raw.forEach((proposal, index) => {
+        const op = proposal && typeof proposal === 'object' ? { ...proposal } : proposal;
+        try {
+            if (op?.action === 'link') { op.a = resolve(op.a); op.b = resolve(op.b); }
+            if (op?.action === 'merge') { op.targetId = resolve(op.targetId); if (Array.isArray(op.memberIds)) op.memberIds = op.memberIds.map(resolve); }
+            planMaintenance(memories, links, [op]);
+            // Cross-block scope guides requests; valid within-block proposals are useful too.
+            validateMaintenanceScope([op], pendingIds);
+            operations.push(op);
+        } catch (error) {
+            rejected.push({ index: index + 1, action: clean(op?.action), targets: op?.action === 'merge' ? arr(op.memberIds).map(clean) : [clean(op?.a), clean(op?.b)], reason: error.message });
+        }
+    });
+    return { operations, rejected };
+}
 export function applyMaintenance(state, operations, options = {}) {
     if (!Array.isArray(operations) || operations.some(op => !['merge', 'link'].includes(op?.action))) throw new Error('维护操作格式无效');
     if (options.mode && !['full', 'incremental'].includes(options.mode)) throw new Error('记忆整理模式无效');
