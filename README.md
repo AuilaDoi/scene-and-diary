@@ -4,6 +4,8 @@ This is the v0.3.2 RC candidate on `release/v0.3.2-rc`, based on v0.3.1. Stable 
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
+TauriTavern structured JSON compatibility is being redesigned after reverting the host adapter. See [the extension-only design](JSON-REQUEST-COMPATIBILITY.md); it is a proposal, not an implemented feature.
+
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act in normal chat context and carries earlier development through a cumulative character-growth document, recent first-person diaries, and a searchable per-chat long-term memory library.
 
 ## Important compatibility rule
