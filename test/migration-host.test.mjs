@@ -11,8 +11,8 @@ const fixture = JSON.parse(await readFile(new URL('./fixtures/v031-chat.json', i
 const previewMetadata = structuredClone(fixture.metadata);
 previewMetadata.scene_diary.status = 'preview'; previewMetadata.scene_diary.acts[1].status = 'closing';
 previewMetadata.scene_diary.pendingTransaction = fixture.previewTransaction;
-const removedFields = ['sources', 'sourceActId', 'sourceMessageIds', 'lifecycle', 'supersedes', 'mergedInto', 'revision', 'status', 'dirty', 'reviewRecommended', 'sourceFingerprint'];
-const keptFields = ['id', 'title', 'content', 'category', 'people', 'aliases', 'importance', 'storyTime', 'createdAt', 'updatedAt', 'timezoneOffset', 'edited', 'locked', 'permanent', 'disabled', 'customNote'];
+const removedFields = ['sources', 'sourceActId', 'sourceMessageIds', 'lifecycle', 'supersedes', 'mergedInto', 'revision', 'status', 'dirty', 'reviewRecommended', 'sourceFingerprint', 'disabled'];
+const keptFields = ['id', 'title', 'content', 'category', 'people', 'aliases', 'importance', 'storyTime', 'createdAt', 'updatedAt', 'timezoneOffset', 'edited', 'locked', 'permanent', 'customNote'];
 const retained = fixture.metadata.scene_diary.memories.filter(memory => !memory.deletedAt && !['archived', 'superseded'].includes(memory.lifecycle));
 const migrationCopies = host => [...host.local.entries()].filter(([key]) => key.startsWith('scene_diary_migration_backup_'));
 const recoveryCopies = host => [...host.local.entries()].filter(([key]) => key.startsWith('scene_diary_recovery_'));

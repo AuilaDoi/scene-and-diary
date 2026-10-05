@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeMemory, assignMessageToAct, beginNextAct } from '../core.js';
 import { hostFixture } from './helpers/host.mjs';
-const memory = (id, content = '事实') => normalizeMemory({ id, title: id, content });
+const memory = (id, content = `事实 ${id}`) => normalizeMemory({ id, title: id, content });
 
 test('host close performs only three independent requests; extraction omits library and character card', async () => {
     const host = await hostFixture(['约好旅行']);
@@ -59,7 +59,7 @@ test('host rerank sees one combined query and keeps grouped recalls', async () =
     try {
         const state = host.api.getState(); state.memories = [memory('北海道'), memory('邻居')]; state.memoryLinks = [{ a: '北海道', b: '邻居', reason: '发展' }]; state.settings.semantic = { enabled: false, rerank: true, rerankEndpoint: 'https://example.test/rerank', rerankModel: 'r' }; host.context.chatMetadata.scene_diary = state;
         globalThis.fetch = async (_url, options) => { calls.push(JSON.parse(options.body)); return { ok: true, json: async () => ({ results: [{ index: 0, relevance_score: .9 }] }) }; };
-        const result = await host.api.prepareContinuity(state, host.api.recallInput(state), 'test-chat'); assert.equal(calls.length, 1); assert.equal(calls[0].query, '玩家: 北海道\n\n林: 旅游\n\n玩家: 周末'); assert.equal(result.groups.length, 1); assert.equal(result.selected.length, 2);
+        const result = await host.api.prepareContinuity(state, host.api.recallInput(state), 'test-chat'); assert.equal(calls.length, 1); assert.equal(calls[0].query, '玩家: 北海道\n\n林: 旅游\n\n玩家: 周末'); assert.deepEqual(calls[0].documents, [state.memories[0].content]); assert.equal(result.groups.length, 1); assert.equal(result.selected.length, 2);
     } finally { host.cleanup(); }
 });
 

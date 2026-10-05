@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-05 memory fields
+
+- Inject recalled memory content and story time only; keep titles and association reasons for maintenance and user search.
+- Search and rerank content only; rebuild embeddings under a content-only cache namespace.
+- Remove disabled controls and legacy disabled fields; formerly disabled entries participate in recall.
+- Verify manual deletion removes incident links while retaining unrelated links.
+
 ## 0.3.2 — 2026-10-04 (RC candidate)
 
 - Validate organization proposals individually instead of aborting a batch on one bad proposal. Accept useful within-side proposals in cross-block requests, repair resolvable ID whitespace, display excluded suggestions, and require explicit partial approval. Retry excluded batches with concrete validation feedback while retaining other successful batches.

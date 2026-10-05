@@ -11,7 +11,7 @@ const openDb = () => new Promise((resolve, reject) => {
 });
 async function read(key) { const db = await openDb(); try { return await new Promise((resolve, reject) => { const request = db.transaction(STORE).objectStore(STORE).get(key); request.onsuccess = () => resolve(request.result || null); request.onerror = () => reject(request.error); }); } finally { db.close(); } }
 async function write(key, value) { const db = await openDb(); try { await new Promise((resolve, reject) => { const tx = db.transaction(STORE, 'readwrite'); tx.objectStore(STORE).put(value, key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); }); } finally { db.close(); } }
-export const cacheKey = (identity, config, memory) => [identity.account, identity.chat, identity.space, config.endpoint, config.model, config.dimensions || '', memory.id, fingerprint(memoryText(memory))].join('|');
+export const cacheKey = (identity, config, memory) => ['content-only-v1', identity.account, identity.chat, identity.space, config.endpoint, config.model, config.dimensions || '', memory.id, fingerprint(memoryText(memory))].join('|');
 export function validateSemanticEndpoint(value, label = '向量') { let url; try { url = new URL(value); } catch { throw new Error(`${label}接口地址无效`); } if (!['http:', 'https:'].includes(url.protocol)) throw new Error(`${label}接口须为 HTTP(S) 地址`); if (url.username || url.password || [...url.searchParams.keys()].some(key => /key|secret|token|password|auth/i.test(key))) throw new Error(`请不要把密钥放在${label}接口地址中`); return url.href; }
 export async function rerank(query, documents, config, key, timeoutMs = 5000) {
     const endpoint = validateSemanticEndpoint(config.rerankEndpoint, '重排');

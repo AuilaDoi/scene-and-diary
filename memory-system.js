@@ -1,9 +1,9 @@
 import { MEMORY_CATEGORIES, estimateTokens, fingerprint, newId, normalizeMemory, normalizeMemoryLinks, tokenize, recallGroupText } from './core.js';
 const arr = value => Array.isArray(value) ? value : [];
 const clean = value => String(value ?? '').trim();
-export const memoryEligible = memory => memory && !memory.deletedAt && !memory.disabled;
-export const memoryText = memory => `${memory.title} ${memory.content} ${arr(memory.people).join(' ')} ${arr(memory.aliases).join(' ')}`;
-export const maintenanceMaterial = memory => Object.fromEntries(['id', 'category', 'title', 'content', 'people', 'aliases', 'importance', 'storyTime', 'locked', 'permanent', 'disabled'].map(field => [field, memory[field]]));
+export const memoryEligible = memory => memory && !memory.deletedAt;
+export const memoryText = memory => clean(memory.content);
+export const maintenanceMaterial = memory => Object.fromEntries(['id', 'category', 'title', 'content', 'people', 'aliases', 'importance', 'storyTime', 'locked', 'permanent'].map(field => [field, memory[field]]));
 export const organizationFingerprint = memory => fingerprint(JSON.stringify(maintenanceMaterial(memory)));
 export function pendingOrganizationIds(state) {
     const reviewed = state.memoryOrganization?.reviewed;
@@ -69,7 +69,7 @@ export function planMaintenance(memories, links, raw) {
             if (members.some(memory => !memory || memory.locked)) throw new Error('合并成员不存在或已锁定');
             const target = byId.get(proposal.targetId), time = latestStoryTime(members);
             const merged = validateMemoryFormat({ ...target, title: proposal.title, content: proposal.content, category: proposal.category, people: [...new Set(members.flatMap(memory => memory.people))], aliases: [...new Set(members.flatMap(memory => memory.aliases))], importance: Math.max(...members.map(memory => memory.importance)), storyTime: time.value }, { extendedArrays: true });
-            merged.permanent = members.some(memory => memory.permanent); merged.disabled = members.every(memory => memory.disabled);
+            merged.permanent = members.some(memory => memory.permanent);
             const key = JSON.stringify(['merge', [...proposal.memberIds].sort(), proposal.targetId, merged.title, merged.content, merged.category]);
             if (seen.has(key)) continue;
             seen.add(key); planned.push({ id: newId('op'), action: 'merge', targetId: proposal.targetId, memberIds: proposal.memberIds, merged, reason: proposal.reason, timeChoices: time.choices, timeResolved: !time.ambiguous, accepted: true });
@@ -114,7 +114,7 @@ export function applyMaintenance(state, operations, options = {}) {
         const checked = validateMemoryFormat(op.merged, { extendedArrays: true });
         if (checked.id !== op.targetId || !op.memberIds.includes(op.targetId)) throw new Error('合并目标 ID 无效');
         const members = op.memberIds.map(id => map.get(id));
-        checked.importance = Math.max(...members.map(memory => memory.importance)); checked.permanent = members.some(memory => memory.permanent); checked.disabled = members.every(memory => memory.disabled);
+        checked.importance = Math.max(...members.map(memory => memory.importance)); checked.permanent = members.some(memory => memory.permanent);
         checked.people = [...new Set(members.flatMap(memory => memory.people))]; checked.aliases = [...new Set(members.flatMap(memory => memory.aliases))];
         const time = latestStoryTime(members); if (checked.storyTime !== time.value && (!time.ambiguous || !time.choices.includes(checked.storyTime))) throw new Error('合并故事时间必须是成员最新时间或用户选择的原值');
         op.memberIds.forEach(id => remap.set(id, op.targetId)); map.set(op.targetId, { ...checked, edited: true, updatedAt: Date.now() });
@@ -195,7 +195,7 @@ const cosine = (a, b) => { if (!a || !b || a.length !== b.length) return 0; let 
 export function retrieveMemories(memories, query, settings, { vectors = new Map(), queryVector = null, revision = null, links = [] } = {}) {
     const eligible = memories.filter(memoryEligible), permanent = eligible.filter(memory => memory.permanent).map(memory => ({ memory, score: .95 + .05 * ((memory.importance || 3) - 1) / 4, relevance: 1, importanceWeight: ((memory.importance || 3) - 1) / 4, hits: [], permanent: true, source: 'permanent' })), ordinary = eligible.filter(memory => !memory.permanent), index = lexicalIndex(ordinary, revision), terms = tokenize(query);
     const lexical = index.docs.map(doc => {
-        const hits = terms.filter(term => doc.tf.has(term)), direct = [doc.memory.title, ...arr(doc.memory.aliases)].some(label => clean(label) && query.toLowerCase().includes(clean(label).toLowerCase()));
+        const hits = terms.filter(term => doc.tf.has(term)), direct = clean(doc.memory.content) && query.toLowerCase().includes(clean(doc.memory.content).toLowerCase());
         const score = hits.reduce((sum, term) => { const tf = doc.tf.get(term), df = index.df.get(term); return sum + Math.log(1 + (ordinary.length - df + .5) / (df + .5)) * tf * 2.2 / (tf + 1.2 * (.25 + .75 * doc.length / Math.max(1, index.average))); }, 0) + (direct ? 2 : 0);
         return { memory: doc.memory, score, hits, source: direct ? 'exact' : 'lexical' };
     }).filter(item => item.score > 0).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30);

@@ -14,7 +14,7 @@ test('schema 5 migration removes legacy fields and hidden entries, preserves use
         const state = normalizeState({ version, custom: 'keep', memories: [memory('keep', { locked: true, permanent: true, disabled: true, custom: 'keep' }), { ...memory('archived'), lifecycle: 'archived' }, { ...memory('old'), lifecycle: 'superseded' }, memory('deleted', { deletedAt: 5 })].map(item => ({ ...item, sources: [{ messageId: 'x' }], sourceActId: 1, sourceMessageIds: ['x'], status: 'active', supersedes: [], mergedInto: null, revision: 4, dirty: true })), maintenanceHistory: [{ before: ['legacy'] }] });
         assert.equal(state.version, 5); assert.deepEqual(state.memories.map(item => item.id), ['keep']);
         assert.equal(state.custom, 'keep'); assert.equal(state.memories[0].custom, 'keep');
-        assert.equal(state.memories[0].locked && state.memories[0].permanent && state.memories[0].disabled, true);
+        assert.equal(state.memories[0].locked && state.memories[0].permanent, true);
         for (const field of ['sources', 'sourceActId', 'sourceMessageIds', 'lifecycle', 'supersedes', 'mergedInto', 'revision', 'status', 'dirty']) assert.equal(field in state.memories[0], false);
         assert.equal('maintenanceHistory' in state, false); assert.deepEqual(normalizeState(state), state);
     }
@@ -44,7 +44,7 @@ test('merge controls, story time and redirected relationships preserve user data
     const state = createState(); state.memories = [memory('a', { storyTime: '2026-09-01', disabled: true, aliases: ['甲'], people: ['小林'] }), memory('b', { storyTime: '2026-10-01', importance: 5, permanent: true, aliases: ['乙'] }), memory('c')]; state.memoryLinks = [link('a', 'c'), link('b', 'c'), link('a', 'b')];
     const ops = planMaintenance(state.memories, state.memoryLinks, [merge(['a', 'b'])]); const next = applyMaintenance(state, ops);
     assert.deepEqual(next.memories.map(item => item.id), ['a', 'c']); const merged = next.memories[0];
-    assert.equal(merged.storyTime, '2026-10-01'); assert.equal(merged.importance, 5); assert.equal(merged.permanent, true); assert.equal(merged.disabled, false); assert.deepEqual(merged.aliases, ['甲', '乙']); assert.deepEqual(merged.people, ['小林']);
+    assert.equal(merged.storyTime, '2026-10-01'); assert.equal(merged.importance, 5); assert.equal(merged.permanent, true); assert.equal('disabled' in merged, false); assert.deepEqual(merged.aliases, ['甲', '乙']); assert.deepEqual(merged.people, ['小林']);
     assert.deepEqual(next.memoryLinks, [link('a', 'c')]); assert.equal(state.memories.length, 3);
 });
 test('relative story times require an explicit original-value choice', () => {
@@ -79,8 +79,8 @@ test('batched maintenance and context-limit splitting cover every pair across al
     const cross = tasks.find(task => task.right.length && task.left.length > 1); assert.deepEqual(comparedPairs(splitMaintenanceTask(cross)), comparedPairs([cross]));
 });
 test('one-hop expansion recalls A/B for seed A, adds C only when B independently matches', () => {
-    const memories = [memory('a', { title: '北海道承诺', content: '答应旅游' }), memory('b', { title: '实际旅行', content: '一起出行' }), memory('c', { title: '旅行照片', content: '整理相册' })], links = [link('a', 'b'), link('b', 'c')];
-    const recall = retrieveMemories(memories, '北海道承诺', settings, { links }); assert.deepEqual(recall.selected.map(item => item.memory.id).sort(), ['a', 'b']); assert.equal(recall.groups.length, 1);
+    const memories = [memory('a', { title: '北海道承诺', content: '答应北海道旅游' }), memory('b', { title: '实际旅行', content: '一起出行' }), memory('c', { title: '旅行照片', content: '整理相册' })], links = [link('a', 'b'), link('b', 'c')];
+    const recall = retrieveMemories(memories, '北海道', settings, { links }); assert.deepEqual(recall.selected.map(item => item.memory.id).sort(), ['a', 'b']); assert.equal(recall.groups.length, 1);
     const both = selectRecallGroups(memories, memories.slice(0, 2).map(memory => ({ memory, score: 1 })), settings, links); assert.deepEqual(both.selected.map(item => item.memory.id).sort(), ['a', 'b', 'c']); assert.equal(both.groups.length, 1);
     assert.match(buildMemoryBlock(recall), /关联记忆组/);
 });
@@ -89,9 +89,9 @@ test('overlap, cycles and multiple neighbors form one counted group without dupl
     const recall = selectRecallGroups(memories, [0, 2].map(i => ({ memory: memories[i], score: 1 })), { ...settings, recallLimit: 1 }, links);
     assert.equal(recall.groups.length, 1); assert.equal(recall.selected.length, 4); assert.equal(new Set(recall.selected.map(item => item.memory.id)).size, 4);
 });
-test('disabled and deleted memories never appear even as linked neighbors', () => {
+test('legacy disabled memories participate while deleted neighbors are excluded', () => {
     const memories = [memory('a'), memory('b', { disabled: true }), memory('c', { deletedAt: 1 })];
-    const recall = retrieveMemories(memories, '事实a', settings, { links: [link('a', 'b'), link('a', 'c')] }); assert.deepEqual(recall.selected.map(item => item.memory.id), ['a']);
+    const recall = retrieveMemories(memories, '内容a', settings, { links: [link('a', 'b'), link('a', 'c')] }); assert.deepEqual(recall.selected.map(item => item.memory.id).sort(), ['a', 'b']);
 });
 test('oversized groups including permanent groups are skipped whole, smaller groups can still fit', () => {
     const memories = [memory('a', { content: '长'.repeat(500), permanent: true }), memory('b', { content: '长'.repeat(500) }), memory('c')];
@@ -103,7 +103,7 @@ test('importance breaks similar relevance ties but does not promote unrelated fa
     const low = memory('a', { importance: 1 }), high = memory('b', { importance: 5 });
     assert.deepEqual(rankRecallCandidates([{ memory: low, score: .9 }, { memory: high, score: .89 }]).map(item => item.memory.id), ['b', 'a']);
     assert.deepEqual(rankRecallCandidates([{ memory: low, score: .9 }, { memory: high, score: .1 }]).map(item => item.memory.id), ['a', 'b']);
-    assert.deepEqual(retrieveMemories([memory('match', { title: '北海道' }), memory('other', { importance: 5 })], '北海道', settings).selected.map(item => item.memory.id), ['match']);
+    assert.deepEqual(retrieveMemories([memory('match', { title: '辅助标题', content: '北海道旅行' }), memory('other', { importance: 5 })], '北海道', settings).selected.map(item => item.memory.id), ['match']);
 });
 test('lexical cache isolates equal revisions and IDs with different content; historical wording has no special mode', () => {
     const first = memory('same', { title: '薄荷茶', content: '喜欢薄荷茶' }), second = memory('same', { title: '海边', content: '去了海边' });
@@ -140,5 +140,5 @@ test('merged aliases and people preserve the complete union instead of silently 
 });
 test('model candidates cannot supply IDs or user approval/control fields', () => {
     const [candidate] = validateCandidates([{ ...memory('injected', { locked:true,permanent:true,disabled:true }), accepted:false }]);
-    assert.notEqual(candidate.id,'injected'); assert.equal(candidate.locked,false); assert.equal(candidate.permanent,false); assert.equal(candidate.disabled,false); assert.equal('accepted' in candidate,false);
+    assert.notEqual(candidate.id,'injected'); assert.equal(candidate.locked,false); assert.equal(candidate.permanent,false); assert.equal('disabled' in candidate,false); assert.equal('accepted' in candidate,false);
 });
