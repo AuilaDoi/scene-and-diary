@@ -4,7 +4,7 @@ This is the v0.3.2 RC candidate on `release/v0.3.2-rc`, based on v0.3.1. Stable 
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
-TauriTavern structured JSON compatibility is being redesigned after reverting the host adapter. See [the extension-only design](JSON-REQUEST-COMPATIBILITY.md); it is a proposal, not an implemented feature.
+TauriTavern structured JSON compatibility is included in `release/v0.3.2-rc`, pending real-client acceptance. See [the extension-only implementation and verification plan](JSON-REQUEST-COMPATIBILITY.md). No host patch, Node installer, or APK rebuild is required; switch to the RC branch, update and reload to obtain the adapter.
 
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act in normal chat context and carries earlier development through a cumulative character-growth document, recent first-person diaries, and a searchable per-chat long-term memory library.
 
@@ -22,7 +22,9 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 4. Review all three results. Edit, keep or reject each new memory candidate. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
 
-The extension asks compatible Chat Completion providers for JSON object output when generating these three previews. If a provider does not support that option, the extension uses its normal output mode. A malformed JSON result or missing required `memories` array triggers one retry of only the affected preview with a larger output allowance; failed results remain in the preview for manual retry. Extraction validates only output format, not factual correctness. It receives only the current act dialogue, proposes new entries, and never compares or modifies existing memories. Review and select each proposed fact before confirming it.
+On TauriTavern, supported DeepSeek, OpenAI Chat and Custom / OpenAI compatible connections request `json_schema` first, then `json_object` only after explicit format rejection. Both rejected formats produce a combined error; this path never switches to ordinary output. Malformed JSON or missing required fields receive one repair using the accepted format, with at most three calls per preview or organization batch. Authentication, quota and network failures stop immediately. Other native wire protocols currently report a support error. Ordinary SillyTavern retains its existing host schema path and ordinary-output fallback. Failed parts remain available for manual retry while successful previews are preserved.
+
+Extraction validates output structure, not factual correctness. It receives only the current act dialogue, proposes new entries, and never compares or modifies existing memories. Valid candidates remain available when other candidates fail validation. Review and select each proposed fact before confirming it.
 
 Configured body tags are also used when building the recall query. A missing required body tag stops closing or generation and reports the affected message floor.
 
@@ -84,9 +86,9 @@ The RC is separate from stable `main`. Schema 4 facts, IDs, importance, story ti
 
 The memory page exports a version 2 JSON content backup containing diaries, character growth, saved memories and associations. Version 1 imports remain supported through the schema 5 migration rules. Legacy manually saved bodies over 500 characters survive migration and backup round trips; new extraction candidates retain the 500-character limit. Importing a backup restores all three content types together after confirmation. Backups are bound to their originating chat and require the corresponding acts to exist. They do not contain chat messages or API keys, so keep a separate full SillyTavern chat backup for migration rollback. If a save cannot be verified, the local recovery button appears so the pending state can be saved again.
 
-Memory retrieval merges the entire chat's latest three effective player/character messages, in chronological speaker order, into one query, including across act boundaries. Lexical retrieval, one query embedding and one rerank request share that query. Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Optional reranking uses a separate URL, model and key, returning `results` with `index` and `relevance_score`. Both endpoints require browser CORS support. Failures retain the available local/pre-rerank result and produce one combined warning per generation; failed results are retried on the next generation.
-
 Only memory content and story time enter recalled memory context. Titles, categories, people, aliases and association reasons remain available for user search and maintenance, but are not injected. Lexical, vector and rerank documents use content only; story time is not searched. Vector caches use a new namespace so old vectors are rebuilt. Manual deletion removes all links involving the deleted entry without linking its former neighbors.
+
+Memory retrieval merges the entire chat's latest three effective player/character messages, in chronological speaker order, into one query, including across act boundaries. Lexical retrieval, one query embedding and one rerank request share that query. Local lexical retrieval works without network services. Optional semantic retrieval accepts an OpenAI-compatible embeddings URL, model, optional dimension, and API key. Optional reranking uses a separate URL, model and key, returning `results` with `index` and `relevance_score`. Both endpoints require browser CORS support. Failures retain the available local/pre-rerank result and produce one combined warning per generation; failed results are retried on the next generation.
 
 Eligible candidates are sorted with `0.95 × normalized relevance + 0.05 × ((importance − 1) / 4)`. Importance never admits an unrelated entry. Nonnegative relevance is normalized by the largest candidate score; negative score ranges are shifted and scaled. Equal scores use stable IDs.
 

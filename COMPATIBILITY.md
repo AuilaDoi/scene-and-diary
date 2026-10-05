@@ -25,3 +25,11 @@ The check cannot reliably identify renamed, forked, or manually embedded copies 
 ## SillyTavern
 
 Requires SillyTavern 1.18.0 or newer and a solo character chat. Auxiliary diary and memory generation needs Chat Completion through the active connection or a Connection Manager profile. The extension has no server-side component. Optional embeddings and reranking use browser fetch and require CORS-enabled compatible endpoints. Each key is stored only when the user selects its account-local remember option; same-origin scripts can read it.
+
+## TauriTavern JSON requests — RC implementation
+
+The Tauri adapter uses the existing `/api/backends/chat-completions/generate` fetch bridge with `type: quiet`, non-streaming text and explicit `response_format`. Supported routes are native DeepSeek, OpenAI Chat, and Custom `openai_compat`. Responses, Claude, Gemini, text-completion models, and other unverified sources do not enter this negotiation. OpenAI's `gpt-6-astra` Responses route is excluded according to the inspected upstream source.
+
+The adapter requires the context settings/headers/Connection Manager APIs and the documented `openai.js` exports. Missing interfaces fail before generation. Additional body settings cannot change routing, messages or request constraints; format overrides are normalized only for this auxiliary request, with a visible notice. API keys remain managed by the native host; request diagnostics are redacted and not stored in chat backups. Storage schema stays 5.
+
+Mechanisms were checked against TauriTavern source commit `a1855be4a4f8b6ee7cd0374a84dbb3709c3e5375`. Automated tests simulate the bridge and host; no installed desktop/Android client version has been certified yet. This is not a claim of compatibility with every published APK. Ordinary SillyTavern keeps its previous request path. See [implementation and acceptance plan](JSON-REQUEST-COMPATIBILITY.md).

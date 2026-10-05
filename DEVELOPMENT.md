@@ -62,6 +62,8 @@
 | `backup.js` | 当前聊天可见日记、角色成长和记忆的整体备份及恢复校验 |
 | `semantic.js` | 浏览器直连 embeddings 与 rerank 服务、向量缓存 |
 | `index.js` | SillyTavern 接口、事件、消息归属、关幕事务、保存、连接调用与面板交互 |
+| `model-protocol.js` | 结构化输出协议、本地 envelope 校验、格式拒绝分类及有限重试；普通 SillyTavern 保留旧调用路径 |
+| `json-host-adapter.js` | TauriTavern 连接快照、附加参数归一化、既有 fetch 桥接及错误保真；宿主内部导出依赖与支持边界见 JSON-REQUEST-COMPATIBILITY.md |
 | `style.css` | 扩展面板样式与移动端布局；选择器限定在扩展自身范围 |
 | `manifest.json` | 扩展入口、加载信息、最低宿主版本和发行版本 |
 | `package.json` | 项目版本及本地检查命令 |
@@ -141,6 +143,8 @@ active → closing → preview → pending_next_act
 5. 交付说明包含：改了什么、为何修改、验证结果、未验证项、迁移/回滚要求。不得将计划执行的检查写成已通过。
 
 ## 7. 验证与发布门槛
+
+结构化 JSON 适配的开发测试使用锁定的 `yaml` 开发依赖，首次运行前执行 `npm ci`。客户端运行复用宿主 YAML 模块，扩展用户无需执行 npm。Tauri 适配的模拟测试不能证明已安装 APK 的后端转发行为；发布前记录真实桌面/Android 版本及提供商验收结果。
 
 ### 7.1 自动检查
 

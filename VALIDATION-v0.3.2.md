@@ -1,5 +1,15 @@
 # v0.3.2 实现与验证记录
 
+## 2026-10-05 Tauri JSON 适配 RC 补丁
+
+- 工作分支 `fix/tauri-json-compatibility`，基于回退后的 RC 及设计文档提交 `d405326`，并包含记忆字段提交 `f09689c`；本轮提交并推送 `release/v0.3.2-rc`，不改变发行版本或 schema 5，不创建标签或 GitHub Release。
+- `npm ci --ignore-scripts` 与 `npm run build` 通过；`npm test` 131 项通过、0 失败（含记忆字段回归）；`git diff --check` 通过。
+- 新测试验证实际扩展代码与模拟宿主/桥接的集成：显式格式切换、最多三次调用、同格式修复、quiet 错误返回、附加参数最终覆盖、连接冻结、错误脱敏、AbortSignal、取消/切聊天/输入变化后不重试、部分成功和逐条容错。普通 SillyTavern 回归也通过。
+- `yaml` 是开发测试依赖，运行时使用 TauriTavern 自带库。未重新修改 SillyTavern 或 TauriTavern 宿主文件。
+- 未执行真实 TauriTavern 桌面/Android、真实 DeepSeek API、更新重载或移动端视觉验收；源码核对和模拟请求不替代这些验收。详见 [JSON 适配实施记录](JSON-REQUEST-COMPATIBILITY.md)。
+
+以下是先前 RC 验证记录，保留其原始日期和范围。
+
 日期：2026-10-04（Asia/Shanghai）。稳定基线：main / v0.3.1 / e817739。RC 交付分支：release/v0.3.2-rc；auto_update=false。本次不创建稳定标签/Release、不更新 main。
 
 ## 已执行

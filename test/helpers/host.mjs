@@ -1,11 +1,17 @@
 import { readFile } from 'node:fs/promises';
 import { createState, assignMessageToAct } from '../../core.js';
 export async function hostFixture(messages = ['你好'], handler = null, options = {}) {
-    const original = { document: globalThis.document, fetch: globalThis.fetch, SillyTavern: globalThis.SillyTavern, toastr: globalThis.toastr, indexedDB: globalThis.indexedDB };
+    const original = { document: globalThis.document, fetch: globalThis.fetch, SillyTavern: globalThis.SillyTavern, toastr: globalThis.toastr, indexedDB: globalThis.indexedDB, __TAURI_RUNNING__: globalThis.__TAURI_RUNNING__ };
     const saved = options.saved || new Map(), notices = [], requests = [], events = [], state = createState(), chat = options.chat ? structuredClone(options.chat) : messages.map((mes, index) => ({ mes, is_user: index % 2 === 0, name: index % 2 === 0 ? '玩家' : '林', extra: {} }));
     if (!options.metadata) chat.forEach((message, index) => assignMessageToAct(state, message, 1, index));
     const context = { chatId: 'test-chat', chat, chatMetadata: options.metadata ? structuredClone(options.metadata) : { scene_diary: state }, mainApi: 'openai', name1: '玩家', name2: '林', characterId: 0, characters: [{ name: '林', chat: 'test-chat', avatar: 'a.png' }], getCharacterCardFields: () => ({ description: '角色卡不能成为提取素材' }), accountStorage: { getItem: key => saved.get(key), setItem: (key, value) => saved.set(key, value), removeItem: key => saved.delete(key) } };
     context.saveMetadata = async () => { events.push({ type: 'save', schema: context.chatMetadata.scene_diary?.version }); saved.set('persisted', structuredClone(context.chatMetadata)); };
+    if (options.tauri) {
+        globalThis.__TAURI_RUNNING__ = true;
+        context.chatCompletionSettings = { chat_completion_source: 'deepseek', model: 'deepseek-flash' };
+        context.getRequestHeaders = () => ({ 'Content-Type': 'application/json' });
+        context.jsonDependencies = options.jsonDependencies;
+    } else globalThis.__TAURI_RUNNING__ = false;
     context.generateRawData = async input => {
         requests.push(input);
         if (handler) return handler(input, requests.length);
@@ -19,7 +25,13 @@ export async function hostFixture(messages = ['你好'], handler = null, options
     globalThis.SillyTavern = { libs: { localforage: { getItem: async key => local.get(key), setItem: async (key, value) => { events.push({ type: 'local-copy', key, schema: context.chatMetadata.scene_diary?.version }); local.set(key, structuredClone(value)); }, removeItem: async key => local.delete(key) } } };
     globalThis.document = { readyState: 'loading', addEventListener() {}, querySelector: () => null };
     globalThis.toastr = Object.fromEntries(['info', 'warning', 'error', 'success'].map(type => [type, text => notices.push({ type, text })]));
-    globalThis.fetch = async url => {
+    globalThis.fetch = async (url, init) => {
+        if (options.tauri && url === '/api/backends/chat-completions/generate') {
+            const input = JSON.parse(init.body); requests.push(input);
+            const output = await handler(input, requests.length, init);
+            if (output instanceof Response) return output;
+            return new Response(JSON.stringify({ choices: [{ message: { content: typeof output === 'string' ? output : JSON.stringify(output) } }] }));
+        }
         if (url !== '/api/chats/get') throw new Error('network unavailable');
         return { ok: true, json: async () => [{ chat_metadata: saved.get('persisted') }, ...chat] };
     };
@@ -30,7 +42,8 @@ export async function hostFixture(messages = ['你好'], handler = null, options
     code = code.replace(/^import .* from '\.\.\/\.\.\/\.\.\/\.\.\/script.js';/m, 'const extension_prompt_roles = { SYSTEM: 0 }, extension_prompt_types = { NONE: 0, IN_CHAT: 1 }; const setExtensionPrompt = () => {};');
     code = code.replace(/^import .* from '\.\.\/\.\.\/\.\.\/st-context.js';/m, `const getContext = () => globalThis.__sceneDiaryHosts[${JSON.stringify(id)}];`);
     code = code.replace(/from '(\.\/[^']+)'/g, (_, path) => `from '${new URL('../../' + path.slice(2), import.meta.url).href}'`);
-    code += '\nexport { initializeChat, getState, closeAct, confirmClose, cancelClose, runCloseParts, startMaintenance, runMaintenance, confirmMaintenance, recoverSave, prepareContinuity, recallInput, sceneDiaryRearrangeChat, commitMemoryMutation }; export const hostStatus = () => ({ disabledReason, saveUnverified, migrationPending, migrating: migrationPreparing.size + migrationSaving.size });';
+    if (options.tauri) code = code.replace('await loadTauriJsonDependencies()', `await globalThis.__sceneDiaryHosts[${JSON.stringify(id)}].jsonDependencies()`);
+    code += '\nexport { initializeChat, getState, closeAct, confirmClose, cancelClose, runCloseParts, startMaintenance, runMaintenance, confirmMaintenance, cancelMaintenance, recoverSave, prepareContinuity, recallInput, sceneDiaryRearrangeChat, commitMemoryMutation }; export const hostStatus = () => ({ disabledReason, saveUnverified, migrationPending, migrating: migrationPreparing.size + migrationSaving.size });';
     const api = await import('data:text/javascript;base64,' + Buffer.from(code).toString('base64')); if (options.initialize !== false) api.initializeChat();
     return { api, context, saved, local, notices, requests, events, async settle() { for (let i = 0; i < 200; i++) { await new Promise(resolve => setTimeout(resolve, 1)); if (!api.hostStatus().migrating) return; } throw new Error('host initialization did not settle'); }, cleanup() { Object.assign(globalThis, original); delete globalThis.__sceneDiaryHosts[id]; } };
 }

@@ -1,7 +1,8 @@
 import { extension_prompt_roles, extension_prompt_types, setExtensionPrompt } from '../../../../script.js';
 import { getContext } from '../../../st-context.js';
 import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, selectRecallGroups, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
-import { OUTPUT_SCHEMAS, requestStructured, requireArrayField } from './model-protocol.js';
+import { OUTPUT_SCHEMAS, requestStructured, requestLegacyStructured, requireArrayField } from './model-protocol.js';
+import { createTauriJsonSession, loadTauriJsonDependencies } from './json-host-adapter.js';
 import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint } from './semantic.js';
 import { createContentBackup, restoreContentBackup } from './backup.js';
 import {
@@ -23,6 +24,7 @@ let activeChatKey = '', disabledReason = '', initialized = false, closingPromise
 let recallContent = '', recallCache = new Map(), semanticKey = '', rerankKey = '', sessionAccount = '', pendingSave = false, saveUnverified = false;
 let recallGeneration = 0, draftMemory = null, memoryRenderKey = '';
 const migrationReady = new Map(), migrationPreparing = new Set(), migrationSaving = new Set(), migrationRecoveries = new Map();
+const activeJsonRequests = new Map(), jsonProgress = new Map(), jsonWarnings = new Map();
 
 const ctx = () => getContext();
 const chat = () => ctx().chat || [];
@@ -70,10 +72,12 @@ function compatible() { if (hasSp()) { disabledReason = '检测到 SP·数据库
 function messagesFor(actId) { return chat().filter(message => +message.extra?.scene_diary?.actId === +actId && isNormalRpMessage(message)); }
 
 function initializeChat() {
+    abortInvalidJsonRequests();
     if (!ctx().chatId || ctx().groupId) { disabledReason = 'scene&diary v0.3 只支持单角色聊天。'; clearPrompts(); render(); return null; }
     if (!compatible()) { render(); return null; }
     const key = String(ctx().chatId);
-    if (key !== activeChatKey) { draftMemory = null; memoryRenderKey = ''; activeChatKey = key; closingPromise = null; lastRecall = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
+    if (key !== activeChatKey) jsonWarnings.clear();
+    if (key !== activeChatKey) { jsonProgress.clear(); draftMemory = null; memoryRenderKey = ''; activeChatKey = key; closingPromise = null; lastRecall = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
     const original = meta()[STORAGE_KEY];
     if (original && schemaVersion(original) < SCHEMA_VERSION && migrationReady.get(key) !== original) {
         if (!migrationPreparing.has(key)) {
@@ -155,21 +159,60 @@ function deleted() { const state = getState(); if (!state || disabledReason) ret
 
 function profileOptions(value) { try { return ['<option value="">沿用当前聊天连接</option>', ...(ctx().ConnectionManagerRequestService?.getSupportedProfiles?.() || []).map(profile => `<option value="${escape(profile.id)}" ${profile.id === value ? 'selected' : ''}>独立：${escape(profile.name)}</option>`)].join(''); } catch { return '<option value="">沿用当前聊天连接</option>'; } }
 async function request(profile, prompt, responseLength = 1600, jsonSchema = null) { if (profile) { const service = ctx().ConnectionManagerRequestService; if (!service?.sendRequest) throw new Error('连接管理器不可用。'); const output = await service.sendRequest(profile, prompt, responseLength, { stream: false, extractData: true, includePreset: false, includeInstruct: false }, jsonSchema ? { json_schema: jsonSchema } : {}); return output?.content ?? output; } if (String(ctx().mainApi || '').toLowerCase() !== 'openai') throw new Error('辅助整理需要 Chat Completion，或选择独立连接。'); const output = await ctx().generateRawData({ prompt, api: 'openai', quietToLoud: true, responseLength, jsonSchema }); return output?.content ?? output; }
-const requestJson = (profile, prompt, schema, parse, maxTokens, label) => requestStructured((messages, tokens, outputSchema) => request(profile, messages, tokens, outputSchema), prompt, schema, parse, maxTokens, label);
+function staleJsonRequest() { return Object.assign(new Error('聊天、任务输入或连接已改变，本次请求已停止，请重新整理。'), { code: 'SCENE_DIARY_STALE' }); }
+function abortInvalidJsonRequests(prefix = '') {
+    for (const [owner, entry] of activeJsonRequests) {
+        try { if (prefix && owner.startsWith(prefix)) throw new DOMException('请求已取消', 'AbortError'); entry.check(); }
+        catch (error) { entry.controller.abort(error); }
+    }
+    if (prefix) for (const owner of jsonWarnings.keys()) if (owner.startsWith(prefix)) jsonWarnings.delete(owner);
+}
+function jsonWarningHtml(prefix) { return [...new Set([...jsonWarnings].filter(([owner]) => owner.startsWith(prefix)).map(([, message]) => message))].map(message => `<p class="scene-diary-warning">${escape(message)}</p>`).join(''); }
+async function requestJson(profile, prompt, schema, parse, maxTokens, label, { assertCurrent = () => {}, owner = '' } = {}) {
+    if (globalThis.__TAURI_RUNNING__ !== true) {
+        return requestLegacyStructured((messages, tokens, outputSchema) => request(profile, messages, tokens, outputSchema), prompt, schema, parse, maxTokens, label);
+    }
+    assertCurrent();
+    const controller = new AbortController(), entry = { controller, check: assertCurrent };
+    activeJsonRequests.set(owner, entry); jsonProgress.delete(owner); jsonWarnings.delete(owner);
+    const monitor = setInterval(() => { if (controller.signal.aborted) { clearInterval(monitor); return; } try { entry.check(); } catch (error) { controller.abort(error); clearInterval(monitor); } }, 250);
+    const report = message => { assertCurrent(); if (message.includes('覆盖附加参数')) jsonWarnings.set(owner, message); else jsonProgress.set(owner, message); render(getState()); };
+    try {
+        const dependencies = await loadTauriJsonDependencies();
+        const session = await createTauriJsonSession({ ...dependencies, getContext: ctx, profileId: profile, signal: controller.signal, assertCurrent, onProgress: report });
+        entry.check = session.assertCurrent;
+        return await requestStructured(session.send, prompt, schema, parse, maxTokens, label, { assertCurrent: session.assertCurrent, onProgress: report, connectionLabel: session.connectionLabel });
+    } finally {
+        clearInterval(monitor);
+        if (activeJsonRequests.get(owner) === entry) activeJsonRequests.delete(owner);
+    }
+}
+function closeJsonOptions(transaction, kind) {
+    const dialogue = JSON.stringify(transaction.dialogue);
+    return { owner: `close:${transaction.id}:${kind}`, assertCurrent() {
+        const state = meta()[STORAGE_KEY], current = state?.pendingTransaction;
+        if (String(ctx().chatId) !== transaction.chatKey || activeChatKey !== transaction.chatKey || ctx().groupId || disabledReason
+            || current?.id !== transaction.id || JSON.stringify(current.dialogue) !== dialogue
+            || fingerprint(JSON.stringify(state.settings)) !== transaction.settingsFingerprint
+            || sourceFingerprint(messagesFor(transaction.actId)) !== transaction.sourceFingerprint
+            || state.characterGrowth.revision !== transaction.growthRevision) throw staleJsonRequest();
+    } };
+}
 function characterData() { const fields = ctx().getCharacterCardFields?.() || {}; return { char: ctx().name2 || fields.name || '角色', user: ctx().name1 || '玩家', context: buildCharacterContext({ description: fields.description, personality: fields.personality, scenario: fields.scenario }) }; }
 const modelMessages = content => [{ role: 'system', content: '你只输出机器可解析 JSON。' }, { role: 'user', content }];
 function modelJson(value, label) { try { return typeof value === 'object' ? value : JSON.parse(String(value).trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')); } catch { throw new Error(`${label}返回的 JSON 无法解析`); } }
 
 async function generateClosePart(transaction, kind, settings) {
+    const options = closeJsonOptions(transaction, kind);
     const common = { characterName: transaction.character.char, userName: transaction.character.user, characterContext: transaction.character.context, dialogue: transaction.dialogue.text };
-    if (kind === 'diary') { const prompt = modelMessages(buildDiaryPrompt({ ...common, targetLength: settings.diaryTargetLength, prompt: settings.prompts.diary })); return requestJson(settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.diary, parseDiaryResponse, 4096, '日记'); }
+    if (kind === 'diary') { const prompt = modelMessages(buildDiaryPrompt({ ...common, targetLength: settings.diaryTargetLength, prompt: settings.prompts.diary })); return requestJson(settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.diary, parseDiaryResponse, 4096, '日记', options); }
     if (kind === 'memory') {
         const prompt = modelMessages(buildMemoryPrompt({ ...common, prompt: settings.prompts.memory }));
-        const parsed = await requestJson(settings.memoryConnectionProfile || settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.memory, value => requireArrayField(modelJson(value, '记忆提取'), 'memories', '记忆提取'), 8192, '记忆提取');
+        const parsed = await requestJson(settings.memoryConnectionProfile || settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.memory, value => requireArrayField(modelJson(value, '记忆提取'), 'memories', '记忆提取'), 8192, '记忆提取', options);
         return validateCandidateBatch(parsed.memories);
     }
     const prompt = modelMessages(buildGrowthPrompt({ ...common, currentGrowth: transaction.baseGrowth, prompt: settings.prompts.growth }));
-    return requestJson(settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.growth, value => parseGrowthResponse(value, settings.maxGrowthChars), 6144, '角色成长');
+    return requestJson(settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.growth, value => parseGrowthResponse(value, settings.maxGrowthChars), 6144, '角色成长', options);
 }
 
 async function runCloseParts(transactionId, kinds) {
@@ -253,7 +296,7 @@ async function confirmClose() {
     } finally { pendingSave = false; }
 }
 
-function cancelClose() { const state = getState(), act = currentAct(state); if (!state || !act) return; state.status = 'active'; act.status = 'active'; state.pendingTransaction = null; setState(state); void saveState(state); render(state); }
+function cancelClose() { const state = getState(), act = currentAct(state); if (!state || !act) return; abortInvalidJsonRequests(`close:${state.pendingTransaction?.id}:`); state.status = 'active'; act.status = 'active'; state.pendingTransaction = null; setState(state); void saveState(state); render(state); }
 function skipExtraction(id) { const state = getState(), transaction = state?.pendingTransaction; if (!transaction?.dialogue) return; transaction.dialogue.errors = transaction.dialogue.errors.filter(item => item.id !== id); transaction.dialogue.rows = transaction.dialogue.rows.filter(item => item.id !== id); transaction.dialogue.text = transaction.dialogue.rows.map(row => `${row.speaker}: ${row.body}`).join('\n\n'); setState(state); void saveState(state); render(state); }
 
 function recallInput(state) { const current = chat().filter(message => isNormalRpMessage(message) && String(message.mes || '').trim()).slice(-3); const built = buildRecallQuery(current, state.settings.extraction); return { ...built, query: built.text }; }
@@ -349,7 +392,12 @@ async function runMaintenance(id) {
                 const scope = tx.mode === 'incremental' ? '这是增量整理。已有结构保留，只检查涉及待整理条目的组合；禁止仅对未变更的旧条目提出合并或关联。' : tx.mode === 'full' ? '这是全量整理／初始化。所有现有条目视为独立事实，从空关联重建结构。' : '这是旧版整理任务。';
                 const prompt = `${maintenanceInstruction}\n${scope}\n本批${task.right.length ? '为跨块比较，只检查左块与右块之间的语义重复和发展关联；不提出单侧内部操作' : '为块内比较'}。\n${JSON.stringify({ left: task.left.map(material), right: task.right.map(material), pendingIds: tx.mode === 'incremental' ? tx.pendingIds.filter(id => ids.has(id)) : undefined, links: tx.links.filter(link => ids.has(link.a) && ids.has(link.b)) })}`;
                 const feedback = task.rejected?.length ? `\n上一轮下列建议未通过校验，请修正这些错误并重新返回本批完整建议：${JSON.stringify(task.rejected)}` : '';
-                const output = await requestJson(tx.profile, modelMessages(prompt + feedback), OUTPUT_SCHEMAS.maintenance, value => requireArrayField(modelJson(value, '记忆整理'), 'operations', '记忆整理'), 8192, '记忆整理');
+                const output = await requestJson(tx.profile, modelMessages(prompt + feedback), OUTPUT_SCHEMAS.maintenance, value => requireArrayField(modelJson(value, '记忆整理'), 'operations', '记忆整理'), 8192, '记忆整理', { owner: `maintenance:${id}`, assertCurrent() {
+                    const latest = meta()[STORAGE_KEY];
+                    if (!latest || String(ctx().chatId) !== key || activeChatKey !== key || latest.maintenanceTransaction?.id !== id
+                        || ctx().groupId || disabledReason || latest.memoryRevision !== tx.memoryRevision
+                        || (latest.settings.memoryConnectionProfile || latest.settings.diaryConnectionProfile) !== tx.profile) throw staleJsonRequest();
+                } });
                 // Validate only IDs, fields and locks. No factual/source verification.
                 const batch = validateMaintenanceBatch(input, tx.links, output.operations, tx.mode === 'incremental' ? tx.pendingIds : null);
                 state = maintenanceCurrent(id, key); if (!state) return;
@@ -390,6 +438,11 @@ async function confirmMaintenance(acceptRejected = false) {
     } catch (error) { if (key === activeChatKey) { if (applied) { disabledReason = '整理保存尚未核验，请恢复未完成的保存。'; showSaveError(error); } else { await clearRecovery(next, key).catch(() => {}); notify('error', `整理未提交，预览仍保留：${error.message}`); } render(getState()); } }
     finally { pendingSave = false; }
 }
+function cancelMaintenance() {
+    const state = getState(); if (!state) return;
+    abortInvalidJsonRequests(`maintenance:${state.maintenanceTransaction?.id}`);
+    state.maintenanceTransaction = null; setState(state); void saveState(state).catch(showSaveError); render(state);
+}
 function renderMaintenance(state) {
     const root = document.querySelector('#scene_diary_maintenance'); if (!root) return;
     const initialized = !!state?.memoryOrganization, pending = state ? pendingOrganizationIds(state).length : 0;
@@ -398,8 +451,10 @@ function renderMaintenance(state) {
         selector.querySelector('[value="incremental"]').disabled = !initialized;
         if (selector.dataset.initialized !== String(initialized)) { selector.value = initialized ? 'incremental' : 'full'; selector.dataset.initialized = String(initialized); }
     }
-    const status = `<p class="scene-diary-muted">${initialized ? `已初始化；${pending} 条新增或变更记忆待整理。增量模式保留已有结构。` : '尚未初始化，请先批准一次全量整理。'} 全量模式基于现有条目重建全部关联，仅确认保存后生效。</p>`;
+    let status = `<p class="scene-diary-muted">${initialized ? `已初始化；${pending} 条新增或变更记忆待整理。增量模式保留已有结构。` : '尚未初始化，请先批准一次全量整理。'} 全量模式基于现有条目重建全部关联，仅确认保存后生效。</p>`;
     const tx = state?.maintenanceTransaction; if (!tx) { root.innerHTML = status; return; }
+    status += jsonWarningHtml(`maintenance:${tx.id}`);
+    if (tx.status === 'running' && jsonProgress.has(`maintenance:${tx.id}`)) status += `<p>${escape(jsonProgress.get(`maintenance:${tx.id}`))}</p>`;
     const stale = state.memoryRevision !== tx.memoryRevision, completed = tx.tasks.filter(task => task.status === 'success').length;
     const count = tx.pendingIds?.length || 0, total = tx.snapshot.length;
     const pairs = tx.mode === 'incremental' ? count * (total - count) + count * (count - 1) / 2 : total * (total - 1) / 2;
@@ -428,7 +483,7 @@ function renderMemories(state) {
 }
 
 function renderPart(kind, result, transaction) {
-    if (result?.status === 'pending') return `<section class="scene-diary-result"><h5>${kindLabel(kind)}</h5><p>正在生成…</p></section>`;
+    if (result?.status === 'pending') return `<section class="scene-diary-result"><h5>${kindLabel(kind)}</h5><p>${escape(jsonProgress.get(`close:${transaction.id}:${kind}`) || '正在生成…')}</p></section>`;
     if (result?.status === 'error') return `<section class="scene-diary-result scene-diary-error"><h5>${kindLabel(kind)}</h5><p>${escape(result.error)}</p><button data-action="retry-part" data-kind="${kind}">仅重试${kindLabel(kind)}</button></section>`;
     if (kind === 'diary') return `<section class="scene-diary-result"><h5>日记</h5><label>标题<input data-preview="title" value="${escape(result.value.title)}"></label><label>日记<textarea data-preview="diary" rows="7">${escape(result.value.diary)}</textarea></label><button data-action="retry-part" data-kind="diary">重新生成日记</button></section>`;
     if (kind === 'growth') return `<section class="scene-diary-result"><h5>角色成长</h5><p class="scene-diary-muted">角色成长记录关系与状态演变，不规定下一幕的时间、地点或开场事件。</p><label>当前角色成长<textarea rows="5" readonly>${escape(transaction.baseGrowth || '尚未建立')}</textarea></label><label>更新后角色成长<textarea data-preview="growth" rows="9" maxlength="4000">${escape(result.value)}</textarea></label><button data-action="retry-part" data-kind="growth">重新生成角色成长</button></section>`;
@@ -455,7 +510,7 @@ function render(state = getState()) {
     const size = panel.querySelector('[data-maintenance-size]'); if (size && state) { const backup = createContentBackup(state, activeChatKey); size.textContent = `备份包含 ${backup.diaries.length} 篇日记、角色成长及 ${backup.memories.length} 条记忆。`; }
     const recovery = panel.querySelector('[data-action=recover-save]'); if (recovery) recovery.hidden = !saveUnverified;
     const transaction = state?.pendingTransaction, preview = panel.querySelector('#scene_diary_preview'); preview.hidden = !transaction || !['closing', 'preview'].includes(state.status);
-    if (!preview.hidden) { const ready = allPartsReady(transaction); preview.innerHTML = `<h4>关幕预览</h4>${renderPart('diary', transaction.results.diary, transaction)}${renderPart('growth', transaction.results.growth, transaction)}${renderPart('memory', transaction.results.memory, transaction)}<div class="scene-diary-actions"><button data-action="confirm" ${ready && !pendingSave ? '' : 'disabled'}>确认保存并结束</button><button data-action="cancel-close">取消</button></div>`; }
+    if (!preview.hidden) { const ready = allPartsReady(transaction); preview.innerHTML = `<h4>关幕预览</h4>${jsonWarningHtml(`close:${transaction.id}:`)}${renderPart('diary', transaction.results.diary, transaction)}${renderPart('growth', transaction.results.growth, transaction)}${renderPart('memory', transaction.results.memory, transaction)}<div class="scene-diary-actions"><button data-action="confirm" ${ready && !pendingSave ? '' : 'disabled'}>确认保存并结束</button><button data-action="cancel-close">取消</button></div>`; }
     const errors = state?.drafts?.at(-1), extraction = panel.querySelector('#scene_diary_extraction'); extraction.innerHTML = errors?.kind === 'extraction-errors' ? `<h4>正文提取错误</h4>${errors.errors.map(error => `<p>楼层 ${error.index ?? '?'}：${escape(error.errors.join('；'))} <button data-action="skip" data-id="${escape(error.id)}">跳过此条</button></p>`).join('')}` : '';
     const diaryProfile = panel.querySelector('[data-setting=diaryConnectionProfile]'), memoryProfile = panel.querySelector('[data-setting=memoryConnectionProfile]'); if (diaryProfile) diaryProfile.innerHTML = profileOptions(state?.settings.diaryConnectionProfile); if (memoryProfile) memoryProfile.innerHTML = profileOptions(state?.settings.memoryConnectionProfile);
 }
@@ -506,7 +561,7 @@ function handlePanelClick(event) {
     if (action === 'skip') skipExtraction(target.dataset.id);
     if (action === 'organize-memory') void startMaintenance(panel.querySelector('[data-organization-mode]').value).catch(error => notify('error', error.message));
     if (action === 'retry-maintenance') void runMaintenance(target.dataset.transactionId).catch(error => notify('error', error.message));
-    if (action === 'cancel-maintenance') { const state = getState(); if (state) { state.maintenanceTransaction = null; setState(state); void saveState(state).catch(showSaveError); render(state); } }
+    if (action === 'cancel-maintenance') cancelMaintenance();
     if (action === 'confirm-maintenance') { panel.querySelectorAll('[data-maintenance-field]').forEach(editMaintenance); void confirmMaintenance(); }
     if (action === 'confirm-maintenance-partial') { panel.querySelectorAll('[data-maintenance-field]').forEach(editMaintenance); void confirmMaintenance(true); }
     if (action === 'retry-rejected-maintenance') {

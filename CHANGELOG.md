@@ -7,6 +7,13 @@
 - Remove disabled controls and legacy disabled fields; formerly disabled entries participate in recall.
 - Verify manual deletion removes incident links while retaining unrelated links.
 
+## Tauri JSON compatibility — 2026-10-05 (RC)
+
+- Add an extension-only TauriTavern JSON adapter using the existing fetch/Rust bridge, with explicit `json_schema` then `json_object` negotiation and one bounded content repair. Both rejected formats report errors; no ordinary-output fallback on this path.
+- Freeze connection/input identity, preserve additional headers, normalize format overrides, redact errors, forward cancellation, and retain successful previews and individually valid candidates/proposals. No host patch or data migration.
+- Support native DeepSeek, OpenAI Chat and Custom OpenAI-compatible wire routes initially. Ordinary SillyTavern keeps its earlier provider path; other Tauri protocols and real Android/provider acceptance remain outside the verified matrix.
+- Include this implementation in `release/v0.3.2-rc`; keep version 0.3.2 and schema 5 without a new tag or GitHub Release. Real-client acceptance is still pending.
+
 ## 0.3.2 — 2026-10-04 (RC candidate)
 
 - Validate organization proposals individually instead of aborting a batch on one bad proposal. Accept useful within-side proposals in cross-block requests, repair resolvable ID whitespace, display excluded suggestions, and require explicit partial approval. Retry excluded batches with concrete validation feedback while retaining other successful batches.
