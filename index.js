@@ -1,6 +1,6 @@
 import { extension_prompt_roles, extension_prompt_types, setExtensionPrompt } from '../../../../script.js';
 import { getContext } from '../../../st-context.js';
-import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, selectRecallGroups, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
+import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, finalizeRecallCandidates, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
 import { OUTPUT_SCHEMAS, requestStructured, requestLegacyStructured, requireArrayField } from './model-protocol.js';
 import { createTauriJsonSession, loadTauriJsonDependencies } from './json-host-adapter.js';
 import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint } from './semantic.js';
@@ -315,12 +315,12 @@ async function prepareContinuity(state, input, chatKey) {
         } catch (error) { vectors = new Map(); queryVector = null; warnings.push(`embedding 失败，已回退关键词召回：${error.message}`); }
     }
     const recall = retrieveMemories(state.memories, input.query, state.settings, { vectors, queryVector, links: state.memoryLinks, revision: state.memoryRevision });
-    const pool = recall.candidates.filter(item => !item.permanent);
+    const pool = recall.retrievalCandidates.filter(item => !item.permanent);
     if (state.settings.semantic?.rerank && pool.length && input.query) {
         try {
             const scores = await rerank(input.query, pool.map(item => memoryText(item.memory)), state.settings.semantic, rerankKey || ctx().accountStorage?.getItem('scene_diary_rerank_key') || '');
-            recall.candidates = [...recall.candidates.filter(item => item.permanent), ...rankRecallCandidates(pool, scores).map(item => ({ ...item, source: 'rerank' }))];
-            Object.assign(recall, selectRecallGroups(state.memories, recall.candidates, state.settings, state.memoryLinks));
+            const scored = [...recall.retrievalCandidates.filter(item => item.permanent), ...rankRecallCandidates(pool, scores, { absolute: true }).map(item => ({ ...item, source: 'rerank' }))];
+            Object.assign(recall, finalizeRecallCandidates(state.memories, scored, state.settings, state.memoryLinks));
         } catch (error) { warnings.push(`rerank 失败，已保留重排前排序：${error.message}`); }
     }
     if (chatKey !== activeChatKey || state.memoryRevision !== getState()?.memoryRevision) return null;
@@ -537,6 +537,7 @@ function createUi() {
         <label><input type="checkbox" data-rerank-remember>在此账户的浏览器设置中记住重排密钥</label>
         <button data-action="clear-rerank-key">清除已保存重排密钥</button><p>本地保存的密钥可被同源脚本读取。</p>`);
     panel.querySelector('[data-setting=recallMessageCount]').closest('label').remove();
+    panel.querySelector('[data-setting=memoryTokenBudget]').closest('label').insertAdjacentHTML('beforebegin', '<label>最低召回分数<input data-setting="recallScoreThreshold" type="number" min="0" max="1" step="0.01" required></label><p class="scene-diary-muted">默认 0.30，低于此分数的普通记忆不作为召回种子；设为 0 可关闭截断。最多召回组数是容量上限。合并组超过两个种子时只保留种子。常驻记忆不受分数阈值限制。</p>');
     panel.querySelector('[data-setting=recallLimit]').closest('label').insertAdjacentHTML('beforebegin', '<p class="scene-diary-muted">记忆召回读取整个聊天最近三条有效消息：按时间顺序合并为同一个查询，允许跨幕。关联组占一个名额，整组遵守 token 预算。</p>');
     document.body.append(panel);
     bar.addEventListener('click', event => { const action = event.target.closest('[data-action]')?.dataset.action; if (action === 'open') { panel.hidden = false; render(); fillSettings(); } if (action === 'end') void closeAct(); });
@@ -662,6 +663,9 @@ function saveChatSettings(panel) {
         settings.diaryConnectionProfile = panel.querySelector('[data-setting=diaryConnectionProfile]').value;
         settings.memoryConnectionProfile = panel.querySelector('[data-setting=memoryConnectionProfile]').value;
         for (const key of ['recallLimit', 'memoryTokenBudget', 'recentDiaryCount']) settings[key] = +panel.querySelector(`[data-setting="${key}"]`).value;
+        const threshold = panel.querySelector('[data-setting=recallScoreThreshold]').value.trim();
+        if (!threshold || !Number.isFinite(+threshold) || +threshold < 0 || +threshold > 1) throw new Error('最低召回分数须为 0–1 之间的数值。');
+        settings.recallScoreThreshold = +threshold;
         settings.extraction ||= {};
         for (const key of ['character.bodyTagPairs', 'user.bodyTagPairs', 'character.storyTimeTagPairs', 'user.storyTimeTagPairs']) { const [who, field] = key.split('.'); settings.extraction[who] ||= {}; settings.extraction[who][field] = readPairEditor(panel, key); }
         settings.prompts = { diary: panel.querySelector('[data-setting=promptDiary]').value.trim() || DEFAULT_DIARY_PROMPT, memory: panel.querySelector('[data-setting=promptMemory]').value.trim() || DEFAULT_MEMORY_PROMPT, growth: panel.querySelector('[data-setting=promptGrowth]').value.trim() || DEFAULT_GROWTH_PROMPT };
@@ -680,11 +684,11 @@ function renderDebug(panel) {
     const state = getState(), output = panel.querySelector('[data-debug-list]');
     panel.querySelector('[data-debug]').textContent = disabledReason || `当前幕 ${state?.currentActId || '-'}；记忆 ${state?.memories.length || 0} 条；召回本轮 ${lastRecall?.groups?.length || 0} 组 / ${lastRecall?.selected.length || 0} 条。`;
     const growth = state?.characterGrowth;
-    output.textContent = JSON.stringify({ continuity: lastContinuity, characterGrowth: growth ? { included: !!growth.content, revision: growth.revision, lastIncludedActId: growth.lastIncludedActId, reviewRecommended: growth.reviewRecommended, characters: growth.content.length, estimatedTokens: estimateTokens(growth.content) } : null, recall: lastRecall ? { query: lastRecall.query, budgetUsed: lastRecall.budgetUsed, degradedReason: lastRecall.degradedReason, skippedGroups: lastRecall.skippedGroups, groups: lastRecall.groups.map(group => ({ seeds: group.seedIds, members: group.ids, permanent: group.permanent })), candidates: lastRecall.candidates.map(item => ({ id: item.memory.id, title: item.memory.title, score: item.score, relevance: item.relevance, importanceWeight: item.importanceWeight, source: item.source, channels: item.channels, selected: lastRecall.selected.some(selected => selected.memory.id === item.memory.id) })) } : null }, null, 2);
+    output.textContent = JSON.stringify({ continuity: lastContinuity, characterGrowth: growth ? { included: !!growth.content, revision: growth.revision, lastIncludedActId: growth.lastIncludedActId, reviewRecommended: growth.reviewRecommended, characters: growth.content.length, estimatedTokens: estimateTokens(growth.content) } : null, recall: lastRecall ? { query: lastRecall.query, scoreThreshold: lastRecall.scoreThreshold, rejectedCandidates: lastRecall.rejectedCandidates.map(item => ({ id: item.memory.id, score: item.score, relevance: item.relevance, source: item.source })), budgetUsed: lastRecall.budgetUsed, degradedReason: lastRecall.degradedReason, skippedGroups: lastRecall.skippedGroups, groups: lastRecall.groups.map(group => ({ seeds: group.seedIds, members: group.ids, permanent: group.permanent, seedOnly: group.seedOnly, prunedNeighborIds: group.prunedNeighborIds })), candidates: lastRecall.candidates.map(item => ({ id: item.memory.id, title: item.memory.title, score: item.score, relevance: item.relevance, importanceWeight: item.importanceWeight, source: item.source, channels: item.channels, selected: lastRecall.selected.some(selected => selected.memory.id === item.memory.id) })) } : null }, null, 2);
 }
 function fillSettings() {
     const panel = document.querySelector(`#${PANEL}`), state = getState(); if (!panel || !state) return;
-    for (const key of ['recallLimit', 'memoryTokenBudget', 'recentDiaryCount']) panel.querySelector(`[data-setting="${key}"]`).value = state.settings[key];
+    for (const key of ['recallLimit', 'recallScoreThreshold', 'memoryTokenBudget', 'recentDiaryCount']) panel.querySelector(`[data-setting="${key}"]`).value = state.settings[key];
     for (const key of ['character.bodyTagPairs', 'user.bodyTagPairs', 'character.storyTimeTagPairs', 'user.storyTimeTagPairs']) { const [who, field] = key.split('.'), pairs = state.settings.extraction[who][field] || [], open = panel.querySelector(`[data-pair-open="${key}"]`), close = panel.querySelector(`[data-pair-close="${key}"]`); if (open) open.value = pairs.map(item => item.open).join('\n'); if (close) close.value = pairs.map(item => item.close).join('\n'); }
     panel.querySelector('[data-setting=promptDiary]').value = state.settings.prompts.diary || DEFAULT_DIARY_PROMPT;
     panel.querySelector('[data-setting=promptMemory]').value = state.settings.prompts.memory || DEFAULT_MEMORY_PROMPT;
@@ -697,5 +701,5 @@ function fillSettings() {
     panel.querySelector('[data-rerank-remember]').checked = !!storedRerank;
 }
 function bind() { const eventSource = source(), eventTypes = types(); if (!eventSource?.on) return; eventSource.on(eventTypes.MESSAGE_SENT || 'message_sent', sent); eventSource.on(eventTypes.MESSAGE_RECEIVED || 'message_received', received); eventSource.on(eventTypes.MESSAGE_EDITED || 'message_edited', changed); eventSource.on(eventTypes.MESSAGE_UPDATED || 'message_updated', changed); eventSource.on(eventTypes.MESSAGE_DELETED || 'message_deleted', deleted); eventSource.on(eventTypes.MESSAGE_SWIPED || 'message_swiped', changed); eventSource.on(eventTypes.CHAT_CHANGED || 'chat_id_changed', initializeChat); eventSource.on(eventTypes.CHAT_LOADED || 'chatLoaded', initializeChat); eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY || 'chat_completion_prompt_ready', promptReady); }
-function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.2', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
+function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.3', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();

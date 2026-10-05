@@ -6,7 +6,7 @@ export const DEFAULT_MEMORY_PROMPT = '你是恋爱陪伴记忆提取器。只依
 export const DEFAULT_GROWTH_PROMPT = '你是 {{char}} 的角色成长与恋爱关系发展整理器。根据 [当前角色成长] 和 [本幕对话]，重写截至本幕结束的完整角色成长记录。重点维护 {{char}} 的性格成长、情感变化、生活状态变化，以及 {{char}} 与 {{user}} 从相识至今的关系发展路径。说明重要经历如何影响角色及双方关系，但不要逐条复述剧情，不要补写未发生或未确认的变化，也不要假定下一幕与本幕在时间、地点或事件上连续。';
 
 export const DEFAULT_SETTINGS = Object.freeze({
-    recentDiaryCount: 2, diaryTokenBudget: 1800, recallMessageCount: 3, recallLimit: 8, memoryTokenBudget: 1200,
+    recentDiaryCount: 2, diaryTokenBudget: 1800, recallMessageCount: 3, recallLimit: 8, recallScoreThreshold: 0.3, memoryTokenBudget: 1200,
     diaryTargetLength: '400–800 Chinese characters',
     maxDiaryChars: 9000, maxGrowthChars: 4000, diaryConnectionProfile: '', memoryConnectionProfile: '',
     semantic: { enabled: false, endpoint: '', model: '', dimensions: null, rerank: false, rerankEndpoint: '', rerankModel: '' },
@@ -20,6 +20,7 @@ const GROWTH_FORMAT_INSTRUCTION = '只返回严格 JSON，不要使用 Markdown 
 const list = value => Array.isArray(value) ? value : [];
 const str = value => value == null ? '' : String(value).trim();
 const clamp = (value, min, max, fallback) => Math.min(max, Math.max(min, Number.isFinite(+value) ? +value : fallback));
+export function normalizeRecallScoreThreshold(value) { return (typeof value === 'number' || typeof value === 'string' && value.trim()) && Number.isFinite(+value) ? clamp(value, 0, 1, DEFAULT_SETTINGS.recallScoreThreshold) : DEFAULT_SETTINGS.recallScoreThreshold; }
 
 export const now = () => Date.now();
 export function newId(prefix = 'sd') { return `${prefix}_${crypto?.randomUUID?.() || `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`}`; }
@@ -33,7 +34,7 @@ export function validateTagPair(pair) { const open = str(pair?.open), close = st
 const legacyPairs = tags => list(tags).map(name => ({ open: `<${str(name).replace(/^<|>$/g, '')}>`, close: `</${str(name).replace(/^<|>$/g, '')}>` }));
 const pairs = (value, legacy) => list(value).length ? list(value).map(validateTagPair).filter(Boolean) : legacyPairs(legacy).map(validateTagPair).filter(Boolean);
 const side = value => ({ bodyTagPairs: pairs(value?.bodyTagPairs, value?.bodyTags), storyTimeTagPairs: pairs(value?.storyTimeTagPairs, value?.storyTimeTags), requiredStoryTime: !!value?.requiredStoryTime });
-export function normalizeSettings(value = {}) { const { growthTargetLength: _unusedGrowthTargetLength, ...settings } = value; return { ...DEFAULT_SETTINGS, ...settings, recentDiaryCount: clamp(value.recentDiaryCount, 0, 20, 2), recallMessageCount: clamp(value.recallMessageCount, 1, 20, 3), recallLimit: clamp(value.recallLimit, 0, 30, 8), maxGrowthChars: DEFAULT_SETTINGS.maxGrowthChars, semantic: { enabled: !!value.semantic?.enabled, endpoint: str(value.semantic?.endpoint), model: str(value.semantic?.model), dimensions: Number.isInteger(+value.semantic?.dimensions) && +value.semantic.dimensions > 0 ? +value.semantic.dimensions : null, rerank: !!value.semantic?.rerank, rerankEndpoint: str(value.semantic?.rerankEndpoint), rerankModel: str(value.semantic?.rerankModel) }, extraction: { user: side(value.extraction?.user || DEFAULT_SETTINGS.extraction.user), character: side(value.extraction?.character || DEFAULT_SETTINGS.extraction.character) }, prompts: { diary: str(value.prompts?.diary) || DEFAULT_DIARY_PROMPT, memory: str(value.prompts?.memory) || DEFAULT_MEMORY_PROMPT, growth: str(value.prompts?.growth) || DEFAULT_GROWTH_PROMPT } }; }
+export function normalizeSettings(value = {}) { const { growthTargetLength: _unusedGrowthTargetLength, ...settings } = value; return { ...DEFAULT_SETTINGS, ...settings, recentDiaryCount: clamp(value.recentDiaryCount, 0, 20, 2), recallMessageCount: clamp(value.recallMessageCount, 1, 20, 3), recallLimit: clamp(value.recallLimit, 0, 30, 8), recallScoreThreshold: normalizeRecallScoreThreshold(value.recallScoreThreshold), maxGrowthChars: DEFAULT_SETTINGS.maxGrowthChars, semantic: { enabled: !!value.semantic?.enabled, endpoint: str(value.semantic?.endpoint), model: str(value.semantic?.model), dimensions: Number.isInteger(+value.semantic?.dimensions) && +value.semantic.dimensions > 0 ? +value.semantic.dimensions : null, rerank: !!value.semantic?.rerank, rerankEndpoint: str(value.semantic?.rerankEndpoint), rerankModel: str(value.semantic?.rerankModel) }, extraction: { user: side(value.extraction?.user || DEFAULT_SETTINGS.extraction.user), character: side(value.extraction?.character || DEFAULT_SETTINGS.extraction.character) }, prompts: { diary: str(value.prompts?.diary) || DEFAULT_DIARY_PROMPT, memory: str(value.prompts?.memory) || DEFAULT_MEMORY_PROMPT, growth: str(value.prompts?.growth) || DEFAULT_GROWTH_PROMPT } }; }
 export function normalizeMemory(value = {}) {
     const { sources, sourceActId, sourceMessageIds, lifecycle, supersedes, mergedInto, revision, status, dirty, reviewRecommended, sourceFingerprint, accepted, disabled, ...rest } = value;
     const time = localTime();

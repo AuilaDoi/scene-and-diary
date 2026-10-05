@@ -29,7 +29,7 @@ function assertRetained(state) {
     assert.equal(state.memoryRevision, 17);
     assert.equal(state.memorySpaceId, 'space-v031');
     assert.deepEqual(state.characterGrowth, fixture.metadata.scene_diary.characterGrowth);
-    assert.deepEqual(state.settings, fixture.metadata.scene_diary.settings);
+    assert.deepEqual(state.settings, { ...fixture.metadata.scene_diary.settings, recallScoreThreshold: 0.3 });
 }
 const legacyHost = options => hostFixture([], null, { metadata: fixture.metadata, chat: fixture.messages, initialize: false, ...options });
 

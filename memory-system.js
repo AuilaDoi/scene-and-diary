@@ -1,4 +1,4 @@
-import { MEMORY_CATEGORIES, estimateTokens, fingerprint, newId, normalizeMemory, normalizeMemoryLinks, tokenize, recallGroupText } from './core.js';
+import { MEMORY_CATEGORIES, estimateTokens, fingerprint, newId, normalizeMemory, normalizeMemoryLinks, normalizeRecallScoreThreshold, tokenize, recallGroupText } from './core.js';
 const arr = value => Array.isArray(value) ? value : [];
 const clean = value => String(value ?? '').trim();
 export const memoryEligible = memory => memory && !memory.deletedAt;
@@ -163,9 +163,20 @@ function lexicalIndex(memories, revision) {
     const result = { docs, df, average: docs.reduce((sum, doc) => sum + doc.length, 0) / Math.max(1, docs.length) };
     indexCache.set(key, result); if (indexCache.size > 3) indexCache.delete(indexCache.keys().next().value); return result;
 }
-export function rankRecallCandidates(candidates, rawScores = candidates.map(item => item.relevanceScore ?? item.score)) {
+export function rankRecallCandidates(candidates, rawScores = candidates.map(item => item.relevanceScore ?? item.score), { absolute = false } = {}) {
     const min = Math.min(...rawScores), max = Math.max(...rawScores);
-    return candidates.map((item, i) => { const relevance = max === min ? (max > 0 ? 1 : 0) : min >= 0 ? rawScores[i] / Math.max(max, Number.EPSILON) : (rawScores[i] - min) / (max - min), importance = ((item.memory.importance || 3) - 1) / 4; return { ...item, relevanceScore: rawScores[i], relevance, importanceWeight: importance, score: .95 * relevance + .05 * importance }; }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id));
+    return candidates.map((item, i) => {
+        const normalized = max === min ? (max > 0 ? 1 : 0) : min >= 0 ? rawScores[i] / Math.max(max, Number.EPSILON) : (rawScores[i] - min) / (max - min);
+        // Ranking alone must not turn a weak top result into strong relevance.
+        const relevance = absolute ? Math.max(0, Math.min(1, rawScores[i])) : Math.min(normalized, item.evidenceRelevance ?? 1), importance = ((item.memory.importance || 3) - 1) / 4;
+        return { ...item, relevanceScore: rawScores[i], relevance, importanceWeight: importance, score: .95 * relevance + .05 * importance };
+    }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id));
+}
+export function finalizeRecallCandidates(memories, scoredCandidates, settings, links = []) {
+    const scoreThreshold = normalizeRecallScoreThreshold(settings.recallScoreThreshold);
+    const candidates = scoredCandidates.filter(item => item.permanent || item.score >= scoreThreshold);
+    const rejectedCandidates = scoredCandidates.filter(item => !item.permanent && item.score < scoreThreshold);
+    return { candidates, rejectedCandidates, scoreThreshold, ...selectRecallGroups(memories, candidates, settings, links) };
 }
 export function selectRecallGroups(memories, candidates, settings, links = []) {
     const eligible = new Map(memories.filter(memoryEligible).map(memory => [memory.id, memory])), adjacent = new Map(), validLinks = normalizeMemoryLinks(links, memories);
@@ -177,6 +188,12 @@ export function selectRecallGroups(memories, candidates, settings, links = []) {
         const group = { ids, seeds: [seed], score: seed.score, permanent: !!seed.permanent };
         for (const old of overlapping) { old.ids.forEach(id => ids.add(id)); group.seeds.push(...old.seeds); group.score = Math.max(group.score, old.score); group.permanent ||= old.permanent; groups.splice(groups.indexOf(old), 1); }
         groups.push(group);
+    }
+    for (const group of groups) {
+        const seedIds = new Set(group.seeds.map(item => item.memory.id));
+        group.seedOnly = seedIds.size > 2;
+        group.prunedNeighborIds = group.seedOnly ? [...group.ids].filter(id => !seedIds.has(id)) : [];
+        if (group.seedOnly) group.ids = seedIds;
     }
     groups.sort((a, b) => Number(b.permanent) - Number(a.permanent) || b.score - a.score || [...a.ids].sort()[0].localeCompare([...b.ids].sort()[0]));
     const selectedGroups = [], skippedGroups = []; let budgetUsed = 0;
@@ -197,11 +214,11 @@ export function retrieveMemories(memories, query, settings, { vectors = new Map(
     const lexical = index.docs.map(doc => {
         const hits = terms.filter(term => doc.tf.has(term)), direct = clean(doc.memory.content) && query.toLowerCase().includes(clean(doc.memory.content).toLowerCase());
         const score = hits.reduce((sum, term) => { const tf = doc.tf.get(term), df = index.df.get(term); return sum + Math.log(1 + (ordinary.length - df + .5) / (df + .5)) * tf * 2.2 / (tf + 1.2 * (.25 + .75 * doc.length / Math.max(1, index.average))); }, 0) + (direct ? 2 : 0);
-        return { memory: doc.memory, score, hits, source: direct ? 'exact' : 'lexical' };
-    }).filter(item => item.score > 0).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30);
-    const semantic = queryVector ? ordinary.map(memory => ({ memory, score: cosine(queryVector, vectors.get(memory.id)), hits: [], source: 'vector' })).filter(item => item.score > .15).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30) : [];
+        return { memory: doc.memory, score, evidenceRelevance: score / (score + .5), hits, source: direct ? 'exact' : 'lexical' };
+    }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30);
+    const semantic = queryVector ? ordinary.filter(memory => vectors.has(memory.id)).map(memory => { const score = cosine(queryVector, vectors.get(memory.id)); return { memory, score, evidenceRelevance: Math.max(0, Math.min(1, score)), hits: [], source: 'vector' }; }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30) : [];
     const scores = new Map();
-    for (const [channel, items] of [['lexical', lexical], ['vector', semantic]]) items.forEach((item, rank) => { const previous = scores.get(item.memory.id) || { ...item, score: 0, channels: [] }; previous.score += 1 / (60 + rank + 1); previous.channels.push(channel); scores.set(item.memory.id, previous); });
-    const ranked = rankRecallCandidates([...scores.values()]), candidates = [...permanent, ...ranked];
-    return { query, candidates, ...selectRecallGroups(memories, candidates, settings, links) };
+    for (const [channel, items] of [['lexical', lexical], ['vector', semantic]]) items.forEach((item, rank) => { const previous = scores.get(item.memory.id) || { ...item, score: 0, evidenceRelevance: 0, channels: [] }; previous.score += 1 / (60 + rank + 1); previous.evidenceRelevance = Math.max(previous.evidenceRelevance, item.evidenceRelevance); previous.channels.push(channel); scores.set(item.memory.id, previous); });
+    const ranked = rankRecallCandidates([...scores.values()]), retrievalCandidates = [...permanent, ...ranked];
+    return { query, retrievalCandidates, ...finalizeRecallCandidates(memories, retrievalCandidates, settings, links) };
 }

@@ -1,5 +1,9 @@
 # Compatibility
 
+v0.3.3 retains schema 5 and content backup v2. Existing settings acquire `recallScoreThreshold=0.30`; custom values are preserved, invalid values use the default, and numeric values are bounded to 0–1. No facts, links, diaries or growth are migrated or rewritten for this update. Final scoring now retains actual match strength (see README), so recall can be empty or shorter than before. A merged group with more than two distinct seeds drops attached non-seed neighbors. Rerank services should supply 0–1 relevance scores; values outside that range are clamped.
+
+The user requested delivery to main; auto_update remains false. v0.3.3 automated and synthetic-browser evidence does not extend v0.3.2 manual acceptance to this update. See [validation and rollback](VALIDATION-v0.3.3.md).
+
 Organization validation tolerates individual model errors without changing schema 5: usable same-side proposals from cross-block requests are accepted; invalid proposals are excluded visibly and need explicit partial-result approval. Missing targets, self-links, locked merges, incremental old-only changes and stale saves remain protected. Existing transactions without exclusion metadata retain ordinary approval behavior.
 
 `v0.3.2` uses schema 5. Migration removes archived, superseded and deleted memories and all reference, lifecycle and individual status/revision fields. Remaining facts and locking/permanent controls survive; legacy disabled fields are removed and formerly disabled entries participate in recall. Undirected associations are stored separately. Old maintenance histories do not enter active data; old close previews retain diary/growth and require re-extraction of memory.

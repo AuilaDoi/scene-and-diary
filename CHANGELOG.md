@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.3 — 2026-10-05
+
+- Add per-chat **最低召回分数** (default 0.30, range 0–1; 0 disables the cutoff). Filter ordinary final scores after local fusion or successful rerank, retain equality, and never fill spare group slots with rejected seeds. Permanent seeds bypass the cutoff but keep group/budget limits.
+- Remove early lexical/vector score cutoffs while keeping the 30-document limit per channel. Preserve channel match strength as a ceiling on normalized RRF relevance; successful rerank uses bounded service relevance directly. Weak best/equal results are no longer automatically normalized to 1. Rerank receives the unfiltered pool and can rescue local rejects; failure uses filtered local results.
+- After overlap merging, groups with more than two distinct seeds retain only seeds before budget estimation. One/two-seed groups keep one-hop neighbors. Add threshold rejection and pruned-neighbor diagnostics.
+- Keep schema 5, content backup v2 and auto_update=false; existing chats get the new setting without rewriting content. Update version declarations to 0.3.3 and deliver to main as requested, without a new tag or GitHub Release.
+- Validation and real-host acceptance boundaries: [VALIDATION-v0.3.3.md](VALIDATION-v0.3.3.md).
+
 ## 2026-10-05 accepted main baseline
 
 - User confirmed manual acceptance of memory-field and Tauri JSON changes; fast-forward the accepted RC code into main as the 0.3.2 development baseline.

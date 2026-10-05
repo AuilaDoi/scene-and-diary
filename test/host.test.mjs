@@ -58,8 +58,8 @@ test('host rerank sees one combined query and keeps grouped recalls', async () =
     const host = await hostFixture(['北海道', '旅游', '周末']); const calls = [];
     try {
         const state = host.api.getState(); state.memories = [memory('北海道'), memory('邻居')]; state.memoryLinks = [{ a: '北海道', b: '邻居', reason: '发展' }]; state.settings.semantic = { enabled: false, rerank: true, rerankEndpoint: 'https://example.test/rerank', rerankModel: 'r' }; host.context.chatMetadata.scene_diary = state;
-        globalThis.fetch = async (_url, options) => { calls.push(JSON.parse(options.body)); return { ok: true, json: async () => ({ results: [{ index: 0, relevance_score: .9 }] }) }; };
-        const result = await host.api.prepareContinuity(state, host.api.recallInput(state), 'test-chat'); assert.equal(calls.length, 1); assert.equal(calls[0].query, '玩家: 北海道\n\n林: 旅游\n\n玩家: 周末'); assert.deepEqual(calls[0].documents, [state.memories[0].content]); assert.equal(result.groups.length, 1); assert.equal(result.selected.length, 2);
+        globalThis.fetch = async (_url, options) => { calls.push(JSON.parse(options.body)); return { ok: true, json: async () => ({ results: calls.at(-1).documents.map((document, index) => ({ index, relevance_score: document === state.memories[0].content ? .9 : .1 })) }) }; };
+        const result = await host.api.prepareContinuity(state, host.api.recallInput(state), 'test-chat'); assert.equal(calls.length, 1); assert.equal(calls[0].query, '玩家: 北海道\n\n林: 旅游\n\n玩家: 周末'); assert.deepEqual(calls[0].documents, state.memories.map(item => item.content)); assert.equal(result.groups.length, 1); assert.equal(result.selected.length, 2);
     } finally { host.cleanup(); }
 });
 
