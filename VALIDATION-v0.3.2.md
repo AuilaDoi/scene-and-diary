@@ -1,5 +1,13 @@
 # v0.3.2 实现与验证记录
 
+## 2026-10-05 手动验收与 main 基线
+
+- 用户明确确认“本轮修改已通过手动测试验收”，并授权将本地/远端改动合并到 main 作为后续开发基线。
+- 已验收代码：`670d6a6`，包含记忆字段提交 `f09689c` 及 Tauri JSON 适配。本地工作区与远端 RC 一致，main 无独立改动，采用快进合并。
+- 基线版本为 0.3.2、schema 5；保留 auto_update=false。本轮不创建标签或 GitHub Release。README、升级说明和开发规范同步至 main 基线。
+- 合并后 npm run build、npm test（131/131）和 git diff --check 通过。
+- 手动验收来自用户确认；未提供客户端/Android 版本、提供商组合或逐项记录，不推断所有支持组合均已验证。以下历史记录保留当时范围。
+
 ## 2026-10-05 Tauri JSON 适配 RC 补丁
 
 - 工作分支 `fix/tauri-json-compatibility`，基于回退后的 RC 及设计文档提交 `d405326`，并包含记忆字段提交 `f09689c`；本轮提交并推送 `release/v0.3.2-rc`，不改变发行版本或 schema 5，不创建标签或 GitHub Release。

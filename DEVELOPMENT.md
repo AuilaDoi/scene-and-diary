@@ -9,13 +9,13 @@
 | 项目名称 | scene&diary |
 | 本地目录 | `D:\SillyTavern\SillyTavern\public\scripts\extensions\third-party\scene-and-diary` |
 | 远端仓库 | <https://github.com/AuilaDoi/scene-and-diary> |
-| 基准版本 | `v0.3.1` |
-| 基准提交 | `e817739` |
+| 基准版本 | `0.3.2`（`main` 开发基线） |
+| 基准代码提交 | `670d6a6`（含记忆字段与 Tauri JSON 适配；随后更新基线文档） |
 | 数据结构版本 | v0.3.0–v0.3.1 使用 schema 4；v0.3.2 使用 `SCHEMA_VERSION = 5` |
 | 最低宿主版本声明 | SillyTavern `1.18.0` |
-| 文档核对日期 | 2026-10-04 |
+| 文档核对日期 | 2026-10-05 |
 
-以上稳定基线来自 main 的 v0.3.1 提交。v0.3.2 候选交付到 `release/v0.3.2-rc`；真实宿主 RC 验收尚未完成，main 不进入本次更新。宿主更新当前分支，试用 RC 须先切换分支。后续开发从届时确认的稳定版本继续。
+2026-10-05 用户确认本轮手动测试验收通过，已将 `670d6a6` 中的记忆字段与 Tauri JSON 改动合并到 `main`。后续开发以本地/远端 `main` 为基线；工作前先核对最新提交和工作区状态。宿主更新当前分支，原 RC 用户应切换到 `main`。本轮不创建版本标签或 GitHub Release；`auto_update=false` 保持不变。
 
 本项目为独立的前端扩展仓库。默认修改范围限于本目录；涉及 SillyTavern 主程序、其他扩展、服务端或外部依赖时，必须在需求和交付说明中单独列出影响。
 

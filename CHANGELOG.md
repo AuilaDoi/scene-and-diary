@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-05 accepted main baseline
+
+- User confirmed manual acceptance of memory-field and Tauri JSON changes; fast-forward the accepted RC code into main as the 0.3.2 development baseline.
+- Update baseline, upgrade and compatibility documentation; retain schema 5 and manual updates without creating a tag or GitHub Release.
+
 ## 2026-10-05 memory fields
 
 - Inject recalled memory content and story time only; keep titles and association reasons for maintenance and user search.

@@ -1,10 +1,10 @@
 # scene&diary 0.3.2
 
-This is the v0.3.2 RC candidate on `release/v0.3.2-rc`, based on v0.3.1. Stable `main` remains v0.3.1; automatic updates are disabled until real-host RC acceptance. SillyTavern updates the extension's current branch, so switch to the RC branch before updating and reload afterward. See [v0.3.1 upgrade instructions](UPGRADE-v0.3.2.md) and [validation evidence](VALIDATION-v0.3.2.md).
+`main` is the v0.3.2 development baseline, including the manually accepted memory-field and Tauri JSON compatibility changes (user acceptance confirmed on 2026-10-05). Automatic updates remain disabled; use the extension update action and reload. SillyTavern updates the extension's current branch; RC users should switch to `main` for subsequent updates. See [v0.3.1 upgrade instructions](UPGRADE-v0.3.2.md) and [validation evidence](VALIDATION-v0.3.2.md).
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
-TauriTavern structured JSON compatibility is included in `release/v0.3.2-rc`, pending real-client acceptance. See [the extension-only implementation and verification plan](JSON-REQUEST-COMPATIBILITY.md). No host patch, Node installer, or APK rebuild is required; switch to the RC branch, update and reload to obtain the adapter.
+TauriTavern structured JSON compatibility is included in `main`; the user confirmed manual acceptance on 2026-10-05. See [the extension-only implementation and verification plan](JSON-REQUEST-COMPATIBILITY.md). No host patch, Node installer, or APK rebuild is required; use `main`, update and reload to obtain the adapter.
 
 scene&diary is a standalone SillyTavern extension for scene-based romance roleplay. It keeps the current act in normal chat context and carries earlier development through a cumulative character-growth document, recent first-person diaries, and a searchable per-chat long-term memory library.
 
