@@ -20,7 +20,6 @@ export async function hostFixture(messages = ['你好'], handler = null, options
     globalThis.document = { readyState: 'loading', addEventListener() {}, querySelector: () => null };
     globalThis.toastr = Object.fromEntries(['info', 'warning', 'error', 'success'].map(type => [type, text => notices.push({ type, text })]));
     globalThis.fetch = async url => {
-        if (url === '/api/backends/chat-completions/json-formats') return { ok: true, json: async () => ({ version: 1, formats: ['json_schema', 'json_object'] }) };
         if (url !== '/api/chats/get') throw new Error('network unavailable');
         return { ok: true, json: async () => [{ chat_metadata: saved.get('persisted') }, ...chat] };
     };

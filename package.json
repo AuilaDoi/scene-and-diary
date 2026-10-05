@@ -4,9 +4,8 @@
   "type": "module",
   "version": "0.3.2",
   "scripts": {
-    "build": "node --check index.js && node --check core.js && node --check memory-system.js && node --check semantic.js && node --check backup.js && node --check model-protocol.js && node --check json-request.js && node --check host-adapter/json-format.js && node --check scripts/install-json-host-adapter.mjs && node --check scripts/verify-json-host-adapter.mjs",
-    "test": "node --test test/*.test.mjs",
-    "test:host-json": "node scripts/verify-json-host-adapter.mjs"
+    "build": "node --check index.js && node --check core.js && node --check memory-system.js && node --check semantic.js && node --check backup.js && node --check model-protocol.js",
+    "test": "node --test test/*.test.mjs"
   }
 }
 

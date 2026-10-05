@@ -2,7 +2,6 @@ import { extension_prompt_roles, extension_prompt_types, setExtensionPrompt } fr
 import { getContext } from '../../../st-context.js';
 import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, selectRecallGroups, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
 import { OUTPUT_SCHEMAS, requestStructured, requireArrayField } from './model-protocol.js';
-import { createJsonSender } from './json-request.js';
 import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint } from './semantic.js';
 import { createContentBackup, restoreContentBackup } from './backup.js';
 import {
@@ -155,7 +154,8 @@ function changed(index) { const state = getState(), message = chat()[+index], ac
 function deleted() { const state = getState(); if (!state || disabledReason) return; let didChange = false; for (const act of state.acts) didChange = reviewSourceAct(state, act.id) || didChange; if (didChange) { setState(state); void saveState(state); render(state); } }
 
 function profileOptions(value) { try { return ['<option value="">沿用当前聊天连接</option>', ...(ctx().ConnectionManagerRequestService?.getSupportedProfiles?.() || []).map(profile => `<option value="${escape(profile.id)}" ${profile.id === value ? 'selected' : ''}>独立：${escape(profile.name)}</option>`)].join(''); } catch { return '<option value="">沿用当前聊天连接</option>'; } }
-const requestJson = (profile, prompt, schema, parse, maxTokens, label) => requestStructured(createJsonSender(ctx(), profile), prompt, schema, parse, maxTokens, label);
+async function request(profile, prompt, responseLength = 1600, jsonSchema = null) { if (profile) { const service = ctx().ConnectionManagerRequestService; if (!service?.sendRequest) throw new Error('连接管理器不可用。'); const output = await service.sendRequest(profile, prompt, responseLength, { stream: false, extractData: true, includePreset: false, includeInstruct: false }, jsonSchema ? { json_schema: jsonSchema } : {}); return output?.content ?? output; } if (String(ctx().mainApi || '').toLowerCase() !== 'openai') throw new Error('辅助整理需要 Chat Completion，或选择独立连接。'); const output = await ctx().generateRawData({ prompt, api: 'openai', quietToLoud: true, responseLength, jsonSchema }); return output?.content ?? output; }
+const requestJson = (profile, prompt, schema, parse, maxTokens, label) => requestStructured((messages, tokens, outputSchema) => request(profile, messages, tokens, outputSchema), prompt, schema, parse, maxTokens, label);
 function characterData() { const fields = ctx().getCharacterCardFields?.() || {}; return { char: ctx().name2 || fields.name || '角色', user: ctx().name1 || '玩家', context: buildCharacterContext({ description: fields.description, personality: fields.personality, scenario: fields.scenario }) }; }
 const modelMessages = content => [{ role: 'system', content: '你只输出机器可解析 JSON。' }, { role: 'user', content }];
 function modelJson(value, label) { try { return typeof value === 'object' ? value : JSON.parse(String(value).trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')); } catch { throw new Error(`${label}返回的 JSON 无法解析`); } }
