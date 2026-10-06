@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.4 — 2026-10-06
+
+- Keep act-close previews saveable after chat setting edits. Single-part regeneration uses current saved prompts, connection and body/story-time extraction settings while preserving other previews and manual edits. Running requests retain their original input; source-message, saved-growth and chat-identity checks remain in place.
+- Keep schema 5, content backup v2 and auto_update=false. Deliver v0.3.4 to main as requested; validation and real-host acceptance boundaries are recorded in [VALIDATION-v0.3.4.md](VALIDATION-v0.3.4.md).
+
 ## 0.3.3 — 2026-10-05
 
 - Add per-chat **最低召回分数** (default 0.30, range 0–1; 0 disables the cutoff). Filter ordinary final scores after local fusion or successful rerank, retain equality, and never fill spare group slots with rejected seeds. Permanent seeds bypass the cutoff but keep group/budget limits.

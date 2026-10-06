@@ -1,6 +1,8 @@
 # Compatibility
 
-v0.3.3 retains schema 5 and content backup v2. Existing settings acquire `recallScoreThreshold=0.30`; custom values are preserved, invalid values use the default, and numeric values are bounded to 0–1. No facts, links, diaries or growth are migrated or rewritten for this update. Final scoring now retains actual match strength (see README), so recall can be empty or shorter than before. A merged group with more than two distinct seeds drops attached non-seed neighbors. Rerank services should supply 0–1 relevance scores; values outside that range are clamped.
+v0.3.4 retains schema 5, content backup v2 and v0.3.3 recall behavior. Chat setting edits no longer invalidate close previews; regeneration uses the latest saved settings. Existing close previews, including legacy settings fingerprints, remain saveable when source messages and saved growth are unchanged. No data migration is required. See [v0.3.4 validation and rollback](VALIDATION-v0.3.4.md); real-client manual acceptance remains pending.
+
+v0.3.3 introduced `recallScoreThreshold=0.30`; custom values are preserved, invalid values use the default, and numeric values are bounded to 0–1. No facts, links, diaries or growth are migrated or rewritten for this update. Final scoring now retains actual match strength (see README), so recall can be empty or shorter than before. A merged group with more than two distinct seeds drops attached non-seed neighbors. Rerank services should supply 0–1 relevance scores; values outside that range are clamped.
 
 The user requested delivery to main; auto_update remains false. v0.3.3 automated and synthetic-browser evidence does not extend v0.3.2 manual acceptance to this update. See [validation and rollback](VALIDATION-v0.3.3.md).
 

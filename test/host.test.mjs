@@ -23,6 +23,99 @@ test('host close rejection and empty memory results preserve act and existing fa
     try { host.context.chatMetadata.scene_diary.memories = [memory('old')]; await host.api.closeAct(); host.api.getState().pendingTransaction.results.memory.value.candidates[0].accepted = false; await host.api.confirmClose(); assert.deepEqual(host.api.getState().memories.map(item => item.id), ['old']); }
     finally { host.cleanup(); }
 });
+
+test('host setting edits do not invalidate existing close previews or their persisted content', async () => {
+    const host = await hostFixture();
+    try {
+        await host.api.closeAct();
+        const state = host.api.getState(), preview = structuredClone(state.pendingTransaction.results);
+        state.settings.prompts.diary = '新的日记提示词';
+        state.settings.recallScoreThreshold = .7;
+        state.settings.extraction.user.bodyTagPairs = [{ open: '<missing>', close: '</missing>' }];
+        await host.api.confirmClose();
+        const saved = host.saved.get('persisted').scene_diary;
+        assert.equal(saved.status, 'pending_next_act');
+        assert.equal(saved.acts[0].diary, preview.diary.value.diary);
+        assert.equal(saved.characterGrowth.content, preview.growth.value);
+        assert.equal(saved.memories[0].content, preview.memory.value.candidates[0].content);
+        assert.equal(saved.settings.prompts.diary, '新的日记提示词');
+        assert.equal(saved.settings.recallScoreThreshold, .7);
+        assert.equal(host.requests.length, 3);
+    } finally { host.cleanup(); }
+});
+
+for (const kind of ['diary', 'memory', 'growth']) test(`host ${kind} regeneration uses new prompts, connection and extraction without replacing other previews`, async () => {
+    const host = await hostFixture(['<body>新的正文</body><date>故事次日</date>未提取内容']);
+    try {
+        await host.api.closeAct();
+        const state = host.api.getState(), tx = state.pendingTransaction;
+        tx.results.diary.value.diary = '手改日记';
+        tx.results.growth.value = '手改成长';
+        tx.results.memory.value.candidates[0].accepted = false;
+        const previews = structuredClone(tx.results);
+        state.settings.prompts[kind] = `新提示词 ${kind}`;
+        state.settings.diaryConnectionProfile = 'new-diary';
+        state.settings.memoryConnectionProfile = 'new-memory';
+        state.settings.extraction.user = { bodyTagPairs: [{ open: '<body>', close: '</body>' }], storyTimeTagPairs: [{ open: '<date>', close: '</date>' }] };
+        const calls = [];
+        host.context.ConnectionManagerRequestService = { sendRequest: async (profile, prompt) => {
+            calls.push({ profile, prompt });
+            if (kind === 'diary') return { title: '重新生成', diary: '新日记' };
+            if (kind === 'growth') return { characterGrowth: '新成长' };
+            return { memories: [] };
+        } };
+        await host.api.runCloseParts(tx.id, [kind]);
+        const current = host.api.getState().pendingTransaction;
+        assert.equal(current.results[kind].status, 'success');
+        assert.equal(calls.length, 1);
+        assert.equal(calls[0].profile, kind === 'memory' ? 'new-memory' : 'new-diary');
+        const prompt = JSON.stringify(calls[0].prompt);
+        assert.ok(prompt.includes(`新提示词 ${kind}`));
+        assert.match(prompt, /新的正文.*故事次日/);
+        assert.doesNotMatch(prompt, /未提取内容|<body>|<date>/);
+        for (const other of ['diary', 'memory', 'growth'].filter(item => item !== kind)) assert.deepEqual(current.results[other], previews[other]);
+        await host.api.confirmClose();
+        assert.equal(host.api.getState().status, 'pending_next_act');
+        if (kind === 'diary') assert.equal(host.api.getState().acts[0].endSceneTime, '故事次日');
+    } finally { host.cleanup(); }
+});
+
+test('host source and growth edits still prevent committing an old close preview', async () => {
+    for (const change of ['source', 'growth']) {
+        const host = await hostFixture();
+        try {
+            await host.api.closeAct();
+            host.api.getState().settings.prompts.diary = '允许改设置';
+            if (change === 'source') host.context.chat[0].mes = '实际修改正文';
+            else host.api.getState().characterGrowth.revision++;
+            await host.api.confirmClose();
+            assert.equal(host.api.getState().status, 'preview');
+            assert.equal(host.api.getState().memories.length, 0);
+            assert.ok(host.notices.some(item => item.type === 'error' && item.text.includes(change === 'source' ? '本幕内容' : '角色成长已被修改')));
+        } finally { host.cleanup(); }
+    }
+});
+
+test('host unmatched new extraction rules fail only the requested part before any model call', async () => {
+    const host = await hostFixture();
+    try {
+        await host.api.closeAct();
+        const state = host.api.getState(), tx = state.pendingTransaction, previous = structuredClone(tx.results);
+        state.settings.extraction.user.bodyTagPairs = [{ open: '<missing>', close: '</missing>' }];
+        await host.api.runCloseParts(tx.id, ['memory']);
+        const current = host.api.getState().pendingTransaction;
+        assert.equal(current.results.memory.status, 'error');
+        assert.match(current.results.memory.error, /楼层 0/);
+        assert.deepEqual(current.results.diary, previous.diary);
+        assert.deepEqual(current.results.growth, previous.growth);
+        assert.equal(host.requests.length, 3);
+        host.api.getState().settings.extraction.user.bodyTagPairs = [];
+        await host.api.runCloseParts(tx.id, ['memory']);
+        assert.equal(host.api.getState().pendingTransaction.results.memory.status, 'success');
+        await host.api.confirmClose();
+        assert.equal(host.api.getState().status, 'pending_next_act');
+    } finally { host.cleanup(); }
+});
 test('host maintenance uses only saved entries and applies associations after approval', async () => {
     const host = await hostFixture(['RAW_CHAT_MUST_NOT_APPEAR'], input => {
         assert.doesNotMatch(JSON.stringify(input.prompt), /RAW_CHAT_MUST_NOT_APPEAR|角色卡不能成为提取素材/);

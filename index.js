@@ -188,12 +188,10 @@ async function requestJson(profile, prompt, schema, parse, maxTokens, label, { a
     }
 }
 function closeJsonOptions(transaction, kind) {
-    const dialogue = JSON.stringify(transaction.dialogue);
     return { owner: `close:${transaction.id}:${kind}`, assertCurrent() {
         const state = meta()[STORAGE_KEY], current = state?.pendingTransaction;
         if (String(ctx().chatId) !== transaction.chatKey || activeChatKey !== transaction.chatKey || ctx().groupId || disabledReason
-            || current?.id !== transaction.id || JSON.stringify(current.dialogue) !== dialogue
-            || fingerprint(JSON.stringify(state.settings)) !== transaction.settingsFingerprint
+            || current?.id !== transaction.id
             || sourceFingerprint(messagesFor(transaction.actId)) !== transaction.sourceFingerprint
             || state.characterGrowth.revision !== transaction.growthRevision) throw staleJsonRequest();
     } };
@@ -202,9 +200,11 @@ function characterData() { const fields = ctx().getCharacterCardFields?.() || {}
 const modelMessages = content => [{ role: 'system', content: '你只输出机器可解析 JSON。' }, { role: 'user', content }];
 function modelJson(value, label) { try { return typeof value === 'object' ? value : JSON.parse(String(value).trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')); } catch { throw new Error(`${label}返回的 JSON 无法解析`); } }
 
-async function generateClosePart(transaction, kind, settings) {
+async function generateClosePart(transaction, kind, settings, dialogue) {
     const options = closeJsonOptions(transaction, kind);
-    const common = { characterName: transaction.character.char, userName: transaction.character.user, characterContext: transaction.character.context, dialogue: transaction.dialogue.text };
+    options.assertCurrent();
+    if (dialogue.errors.length) throw new Error(`正文标签无法匹配：${dialogue.errors.map(row => `楼层 ${row.index}：${row.errors.join('、')}`).join('；')}。请修正规则后重试本项。`);
+    const common = { characterName: transaction.character.char, userName: transaction.character.user, characterContext: transaction.character.context, dialogue: dialogue.text };
     if (kind === 'diary') { const prompt = modelMessages(buildDiaryPrompt({ ...common, targetLength: settings.diaryTargetLength, prompt: settings.prompts.diary })); return requestJson(settings.diaryConnectionProfile, prompt, OUTPUT_SCHEMAS.diary, parseDiaryResponse, 4096, '日记', options); }
     if (kind === 'memory') {
         const prompt = modelMessages(buildMemoryPrompt({ ...common, prompt: settings.prompts.memory }));
@@ -218,13 +218,17 @@ async function generateClosePart(transaction, kind, settings) {
 async function runCloseParts(transactionId, kinds) {
     const key = activeChatKey, before = getState(), transaction = before?.pendingTransaction;
     if (!transaction || transaction.id !== transactionId) return;
+    // Each attempt uses the settings at launch; later edits leave existing previews intact.
+    const settings = structuredClone(before.settings), dialogue = buildDialogue(messagesFor(transaction.actId), settings.extraction, transaction.character.char, transaction.character.user);
     for (const kind of kinds) transaction.results[kind] = { status: 'pending' };
     setState(before); try { await saveState(before, key, true); } catch (error) { if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transactionId) return; kinds.forEach(kind => { transaction.results[kind] = { status: 'error', error: `任务启动状态保存失败：${error.message}` }; }); before.status = 'preview'; setState(before); render(before); showSaveError(error); return; } if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transactionId) return; render(before);
-    const settled = await Promise.allSettled(kinds.map(async kind => ({ kind, value: await generateClosePart(transaction, kind, before.settings) })));
+    const settled = await Promise.allSettled(kinds.map(async kind => ({ kind, value: await generateClosePart(transaction, kind, settings, dialogue) })));
     if (key !== activeChatKey || String(ctx().chatId) !== key) return;
     const state = getState(), current = state?.pendingTransaction;
     if (!current || current.id !== transactionId || current.chatKey !== activeChatKey) return;
     settled.forEach((result, index) => { const kind = kinds[index]; current.results[kind] = result.status === 'fulfilled' ? { status: 'success', value: result.value.value } : { status: 'error', error: result.reason?.message || String(result.reason) }; });
+    // Act story time follows the input used for the successful diary, including regeneration.
+    if (kinds.includes('diary') && current.results.diary.status === 'success') current.dialogue = dialogue;
     state.status = 'preview'; setState(state); let previewSaved = true; try { await saveState(state, key, true); } catch (error) { previewSaved = false; showSaveError(error); } if (key !== activeChatKey) return; render(state);
     if (!previewSaved) return;
     const failures = kinds.filter(kind => current.results[kind].status === 'error');
@@ -240,7 +244,7 @@ async function closeAct() {
     const sourceMessages = messagesFor(act.id), character = characterData(), dialogue = buildDialogue(sourceMessages, state.settings.extraction, character.char, character.user);
     if (dialogue.errors.length) { state.drafts = [{ kind: 'extraction-errors', actId: act.id, errors: dialogue.errors, createdAt: Date.now() }]; setState(state); await saveState(state); render(state); notify('error', '正文标签无法匹配：请在“当前幕”检查并修正规则，或明确跳过楼层。'); return; }
     if (!sourceMessages.length) { notify('info', '当前幕还没有可整理内容。'); return; }
-    const transaction = { id: newId('close'), chatKey: activeChatKey, actId: act.id, sourceFingerprint: sourceFingerprint(sourceMessages), sourceMessageIds: sourceMessages.map(message => message.extra.scene_diary.messageId), settingsFingerprint: fingerprint(JSON.stringify(state.settings)), startedAt: Date.now(), dialogue, character, baseGrowth: state.characterGrowth.content, memoryRevision: state.memoryRevision, growthRevision: state.characterGrowth.revision, results: { diary: { status: 'pending' }, memory: { status: 'pending' }, growth: { status: 'pending' } } };
+    const transaction = { id: newId('close'), chatKey: activeChatKey, actId: act.id, sourceFingerprint: sourceFingerprint(sourceMessages), sourceMessageIds: sourceMessages.map(message => message.extra.scene_diary.messageId), startedAt: Date.now(), dialogue, character, baseGrowth: state.characterGrowth.content, memoryRevision: state.memoryRevision, growthRevision: state.characterGrowth.revision, results: { diary: { status: 'pending' }, memory: { status: 'pending' }, growth: { status: 'pending' } } };
     state.status = 'closing'; act.status = 'closing'; state.pendingTransaction = transaction; setState(state); try { await saveState(state, key, true); } catch (error) { if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transaction.id) return; state.status = 'active'; act.status = 'active'; state.pendingTransaction = null; setState(state); render(state); notify('error', `关幕准备未保存，尚未调用模型：${error.message}`); return; } if (key !== activeChatKey || getState()?.pendingTransaction?.id !== transaction.id) return; render(state);
     const running = runCloseParts(transaction.id, ['diary', 'memory', 'growth']).finally(() => { if (closingPromise === running) closingPromise = null; }); closingPromise = running;
     return closingPromise;
@@ -257,7 +261,7 @@ async function confirmClose() {
         const transaction = base?.pendingTransaction, act = transaction && findAct(base, transaction.actId);
         if (!base || base.status !== 'preview' || transaction?.id !== transactionId || !act || !allPartsReady(transaction)) throw new Error('日记、记忆和角色成长必须全部生成成功后才能确认关幕');
         const sourceMessages = messagesFor(act.id), fresh = sourceFingerprint(sourceMessages);
-        if (fresh !== transaction.sourceFingerprint || transaction.chatKey !== key || fingerprint(JSON.stringify(base.settings)) !== transaction.settingsFingerprint) throw new Error('本幕内容或设置已变更，请重新整理预览');
+        if (fresh !== transaction.sourceFingerprint || transaction.chatKey !== key) throw new Error('本幕内容或聊天已变更，请重新整理预览');
         if (base.characterGrowth.revision !== transaction.growthRevision) throw new Error('角色成长已被修改，请重新整理预览');
         const growthContent = String(transaction.results.growth.value || '').trim(), diary = transaction.results.diary.value;
         if (!growthContent || growthContent.length > base.settings.maxGrowthChars || !String(diary.diary || '').trim()) throw new Error('日记或角色成长为空、超长');
@@ -702,5 +706,5 @@ function fillSettings() {
     panel.querySelector('[data-rerank-remember]').checked = !!storedRerank;
 }
 function bind() { const eventSource = source(), eventTypes = types(); if (!eventSource?.on) return; eventSource.on(eventTypes.MESSAGE_SENT || 'message_sent', sent); eventSource.on(eventTypes.MESSAGE_RECEIVED || 'message_received', received); eventSource.on(eventTypes.MESSAGE_EDITED || 'message_edited', changed); eventSource.on(eventTypes.MESSAGE_UPDATED || 'message_updated', changed); eventSource.on(eventTypes.MESSAGE_DELETED || 'message_deleted', deleted); eventSource.on(eventTypes.MESSAGE_SWIPED || 'message_swiped', changed); eventSource.on(eventTypes.CHAT_CHANGED || 'chat_id_changed', initializeChat); eventSource.on(eventTypes.CHAT_LOADED || 'chatLoaded', initializeChat); eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY || 'chat_completion_prompt_ready', promptReady); }
-function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.3', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
+function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.4', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();

@@ -131,7 +131,6 @@ test('v0.3.1 old close preview preserves diary/growth edits but discards old mai
         assert.equal(host.api.getState().pendingTransaction.results.memory.status, 'success');
         // Disable optional background indexing before cleanup restores the real fetch function.
         host.context.chatMetadata.scene_diary.settings.semantic.enabled = false;
-        host.context.chatMetadata.scene_diary.pendingTransaction.settingsFingerprint = fingerprint(JSON.stringify(host.context.chatMetadata.scene_diary.settings));
         await host.api.confirmClose();
         const committed = host.api.getState();
         assert.equal(committed.status, 'pending_next_act');

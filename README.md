@@ -1,6 +1,6 @@
-# scene&diary 0.3.3
+# scene&diary 0.3.4
 
-`main` delivers v0.3.3 with a configurable final recall cutoff and bounded association expansion, on top of the manually accepted v0.3.2 memory-field and Tauri JSON changes. See [v0.3.3 validation, acceptance and rollback instructions](VALIDATION-v0.3.3.md). Automatic updates remain disabled; use the extension update action and reload. SillyTavern updates the extension's current branch; RC users should switch to `main` for subsequent updates. See [v0.3.1 upgrade instructions](UPGRADE-v0.3.2.md) and [validation evidence](VALIDATION-v0.3.2.md).
+`main` delivers v0.3.4: changing settings during act closing preserves existing previews and allows single-part regeneration with the latest saved settings. It retains v0.3.3 recall behavior and the accepted v0.3.2 memory-field and Tauri JSON changes. See [v0.3.4 validation and rollback instructions](VALIDATION-v0.3.4.md). Automatic updates remain disabled; use the extension update action and reload. SillyTavern updates the extension's current branch; RC users should switch to `main` for subsequent updates. See [v0.3.1 upgrade instructions](UPGRADE-v0.3.2.md) and [validation evidence](VALIDATION-v0.3.2.md).
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 
@@ -21,6 +21,8 @@ The 0.3 series supports solo character chats. Group chats, cross-chat shared mem
 3. Click **结束这一幕**. The extension freezes the current act and independently generates a diary, memory candidates, and an updated character-growth document.
 4. Review all three results. Edit, keep or reject each new memory candidate. A failed part keeps the successful parts and can be retried by itself. The act cannot close until all three parts succeed.
 5. Confirm to save the diary, accepted memories, character growth, and closed-act state together. The next real player message opens the next act.
+
+Changing chat settings during act closing keeps existing previews available for saving. Regenerating one part uses the settings saved when that attempt starts, including its prompt, connection, body tags and story-time tags; other previews and manual edits are retained. Running requests keep their original input. Changes to source messages or saved character growth still require a fresh close preview.
 
 On TauriTavern, supported DeepSeek, OpenAI Chat and Custom / OpenAI compatible connections request `json_schema` first, then `json_object` only after explicit format rejection. Both rejected formats produce a combined error; this path never switches to ordinary output. Malformed JSON or missing required fields receive one repair using the accepted format, with at most three calls per preview or organization batch. Authentication, quota and network failures stop immediately. Other native wire protocols currently report a support error. Ordinary SillyTavern retains its existing host schema path and ordinary-output fallback. Failed parts remain available for manual retry while successful previews are preserved.
 

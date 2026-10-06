@@ -87,6 +87,58 @@ test('Tauri close extraction remains independent of edits to the saved library a
     } finally { host.cleanup(); }
 });
 
+test('Tauri setting edits during generation preserve running requests and their frozen input through format retry', async () => {
+    let host;
+    host = await hostFixture(['<body>旅行</body>原始尾部'], input => {
+        const kind = kindOf(input);
+        if (kind === 'memory' && input.response_format.type === 'json_schema') {
+            const settings = host.context.chatMetadata.scene_diary.settings;
+            settings.prompts.memory = '下次使用的新提示词';
+            settings.memoryConnectionProfile = 'next-profile';
+            settings.extraction.user.bodyTagPairs = [{ open: '<body>', close: '</body>' }];
+            return refused();
+        }
+        return outputFor(kind);
+    }, { tauri: true, jsonDependencies });
+    try {
+        await host.api.closeAct();
+        const state = host.api.getState();
+        assert.ok(Object.values(state.pendingTransaction.results).every(result => result.status === 'success'));
+        const requests = host.requests.filter(input => kindOf(input) === 'memory');
+        assert.equal(requests.length, 2);
+        assert.equal(requests[1].response_format.type, 'json_object');
+        assert.deepEqual(requests[0].messages, requests[1].messages);
+        assert.match(JSON.stringify(requests[1].messages), /原始尾部/);
+        assert.doesNotMatch(JSON.stringify(requests[1].messages), /下次使用的新提示词/);
+        await host.api.confirmClose();
+        assert.equal(host.saved.get('persisted').scene_diary.status, 'pending_next_act');
+    } finally { host.cleanup(); }
+});
+
+for (const kind of ['diary', 'memory', 'growth']) test(`Tauri ${kind} regeneration accepts new settings and uses new extracted input and model`, async () => {
+    const host = await hostFixture(['<body>正文</body><date>故事次日</date>忽略尾部'], input => outputFor(kindOf(input)), { tauri: true, jsonDependencies });
+    try {
+        await host.api.closeAct();
+        const state = host.api.getState(), tx = state.pendingTransaction, previous = structuredClone(tx.results);
+        state.settings.prompts[kind] = `重新生成 ${kind}`;
+        state.settings.extraction.user = { bodyTagPairs: [{ open: '<body>', close: '</body>' }], storyTimeTagPairs: [{ open: '<date>', close: '</date>' }] };
+        host.context.chatCompletionSettings.model = 'new-model';
+        await host.api.runCloseParts(tx.id, [kind]);
+        const current = host.api.getState().pendingTransaction;
+        assert.equal(current.results[kind].status, 'success');
+        assert.equal(host.requests.length, 4);
+        const request = host.requests.at(-1), prompt = JSON.stringify(request.messages);
+        assert.equal(kindOf(request), kind);
+        assert.equal(request.model, 'new-model');
+        assert.ok(prompt.includes(`重新生成 ${kind}`));
+        assert.match(prompt, /正文.*故事次日/);
+        assert.doesNotMatch(prompt, /忽略尾部|<body>|<date>/);
+        for (const other of ['diary', 'memory', 'growth'].filter(item => item !== kind)) assert.deepEqual(current.results[other], previous[other]);
+        await host.api.confirmClose();
+        assert.equal(host.api.getState().status, 'pending_next_act');
+    } finally { host.cleanup(); }
+});
+
 test('Tauri cancellation aborts the bridge and prevents a rejected late response from starting object mode', async () => {
     let release, signal;
     const blocked = new Promise(resolve => { release = resolve; });
