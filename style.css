@@ -142,3 +142,20 @@
 #scene_diary_maintenance { margin-top: .75rem; }
 #scene_diary_maintenance .scene-diary-actions { position: static; }
 #scene_diary_panel [data-memory-id] { scroll-margin-top: 2rem; }
+
+#scene_diary_panel .scene-diary-diagnostic-summary { padding: .65rem; border: 1px solid #668cab; border-radius: .35rem; }
+#scene_diary_panel .scene-diary-log, #scene_diary_panel .scene-diary-recall-groups { list-style: none; padding: 0; }
+#scene_diary_panel .scene-diary-log-row { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: .6rem; padding: .6rem 0; border-bottom: 1px solid #668cab66; }
+#scene_diary_panel .scene-diary-log-time { font: .8em monospace; padding-top: .2rem; opacity: .75; }
+#scene_diary_panel .scene-diary-log-status { font-size: .8em; margin-left: .35rem; color: #a9f3c8; }
+#scene_diary_panel [data-log-status="error"] .scene-diary-log-status { color: #ffb9b9; }
+#scene_diary_panel [data-log-status="warn"] .scene-diary-log-status { color: #ffe08a; }
+#scene_diary_panel [data-log-status="skip"] .scene-diary-log-status, #scene_diary_panel [data-log-status="start"] .scene-diary-log-status { color: #c1d1df; }
+#scene_diary_panel .scene-diary-log-row p, #scene_diary_panel .scene-diary-recall-group p { margin: .3rem 0; }
+#scene_diary_panel .scene-diary-log-row, #scene_diary_panel .scene-diary-recall-group { overflow-wrap: anywhere; }
+#scene_diary_panel .scene-diary-log-row details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+#scene_diary_panel .scene-diary-log-row pre { font-size: .85em; margin: .25rem 0; }
+#scene_diary_panel .scene-diary-recall-group { padding: .65rem; border: 1px solid #668cab; border-radius: .35rem; margin: .65rem 0; }
+#scene_diary_panel .scene-diary-recall-group ol { padding-left: 1.4rem; margin: .6rem 0 0; }
+#scene_diary_panel .scene-diary-recall-group li { margin: .35rem 0; }
+@media (max-width: 600px) { #scene_diary_panel .scene-diary-log-row { grid-template-columns: 4.5rem minmax(0, 1fr); gap: .4rem; } }

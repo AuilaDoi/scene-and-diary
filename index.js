@@ -3,7 +3,8 @@ import { getContext } from '../../../st-context.js';
 import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, finalizeRecallCandidates, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
 import { OUTPUT_SCHEMAS, requestStructured, requestLegacyStructured, requireArrayField } from './model-protocol.js';
 import { createTauriJsonSession, loadTauriJsonDependencies } from './json-host-adapter.js';
-import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint } from './semantic.js';
+import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint, semanticErrorDetail } from './semantic.js';
+import { createRecallTrace, logRecall, finishRecallTrace, renderRecallDiagnostics, durationText } from './recall-diagnostics.js';
 import { createContentBackup, restoreContentBackup } from './backup.js';
 import {
     SCHEMA_VERSION, STORAGE_KEY, DEFAULT_SETTINGS, DEFAULT_DIARY_PROMPT, DEFAULT_MEMORY_PROMPT, DEFAULT_GROWTH_PROMPT,
@@ -23,6 +24,7 @@ const MEMORY_KEY = 'scene_diary_memories';
 let activeChatKey = '', disabledReason = '', initialized = false, closingPromise = null, lastRecall = null, lastContinuity = null, awaitingMainPrompt = false, migrationPending = false;
 let recallContent = '', recallCache = new Map(), semanticKey = '', rerankKey = '', sessionAccount = '', pendingSave = false, saveUnverified = false;
 let recallGeneration = 0, draftMemory = null, memoryRenderKey = '';
+let recallWork = null, lastRecallTrace = null, vectorCacheRevision = 0;
 const migrationReady = new Map(), migrationPreparing = new Set(), migrationSaving = new Set(), migrationRecoveries = new Map();
 const activeJsonRequests = new Map(), jsonProgress = new Map(), jsonWarnings = new Map();
 
@@ -73,11 +75,11 @@ function messagesFor(actId) { return chat().filter(message => +message.extra?.sc
 
 function initializeChat() {
     abortInvalidJsonRequests();
-    if (!ctx().chatId || ctx().groupId) { disabledReason = 'scene&diary v0.3 只支持单角色聊天。'; clearPrompts(); render(); return null; }
+    if (!ctx().chatId || ctx().groupId) { cancelRecallWork('当前聊天不支持召回'); lastRecallTrace = null; disabledReason = 'scene&diary v0.3 只支持单角色聊天。'; clearPrompts(); render(); return null; }
     if (!compatible()) { render(); return null; }
     const key = String(ctx().chatId);
     if (key !== activeChatKey) jsonWarnings.clear();
-    if (key !== activeChatKey) { jsonProgress.clear(); draftMemory = null; memoryRenderKey = ''; activeChatKey = key; closingPromise = null; lastRecall = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
+    if (key !== activeChatKey) { cancelRecallWork('聊天已切换'); lastRecallTrace = null; jsonProgress.clear(); draftMemory = null; memoryRenderKey = ''; activeChatKey = key; closingPromise = null; lastRecall = null; lastContinuity = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
     const original = meta()[STORAGE_KEY];
     if (original && schemaVersion(original) < SCHEMA_VERSION && migrationReady.get(key) !== original) {
         if (!migrationPreparing.has(key)) {
@@ -305,35 +307,113 @@ function skipExtraction(id) { const state = getState(), transaction = state?.pen
 
 function recallInput(state) { const current = chat().filter(message => isNormalRpMessage(message) && String(message.mes || '').trim()).slice(-3); const built = buildRecallQuery(current, state.settings.extraction); return { ...built, query: built.text }; }
 function localContinuity(state, input = recallInput(state)) { lastRecall = retrieveMemories(state.memories, input.query, state.settings, { links: state.memoryLinks, revision: state.memoryRevision }); return { recallQuery: input, content: buildContinuityBlock(state, lastRecall, state.settings) }; }
-async function syncVectors(state) { const config = state.settings.semantic; if (!config?.enabled) return; await indexVectors(state.memories.filter(memoryEligible), semanticIdentity(state), config, semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || ''); }
+async function syncVectors(state) { const config = state.settings.semantic; if (!config?.enabled) return; await indexVectors(state.memories.filter(memoryEligible), semanticIdentity(state), config, semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || ''); vectorCacheRevision++; recallCache.clear(); }
 async function prepareContinuity(state, input, chatKey) {
-    const cacheId = fingerprint(JSON.stringify([chatKey, state.memoryRevision, state.settings, input.query]));
-    if (recallCache.has(cacheId)) return recallCache.get(cacheId);
-    let vectors = new Map(), queryVector = null; const warnings = [];
-    if (state.settings.semantic?.enabled && input.query) {
-        try {
-            const config = state.settings.semantic;
-            vectors = await loadVectors(state.memories.filter(memoryEligible), semanticIdentity(state), config);
-            [queryVector] = await embed([input.query], config, semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || '', 3000);
-            if ([...vectors.values()].some(vector => vector.length !== queryVector.length || vector.some(value => !Number.isFinite(value)))) throw new Error('缓存向量维度或内容不兼容');
-        } catch (error) { vectors = new Map(); queryVector = null; warnings.push(`embedding 失败，已回退关键词召回：${error.message}`); }
+    const identity = semanticIdentity(state), embeddingKey = semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || '', rankingKey = rerankKey || ctx().accountStorage?.getItem('scene_diary_rerank_key') || '';
+    const cacheId = fingerprint(JSON.stringify([identity, chatKey, state.memoryRevision, vectorCacheRevision, state.settings, input.query, embeddingKey, rankingKey]));
+    if (recallWork?.id === cacheId) return recallWork.promise;
+    cancelRecallWork('新的召回已开始');
+    const trace = createRecallTrace(); lastRecallTrace = trace; lastContinuity = null;
+    const record = (stage, status, message, detail = '') => { logRecall(trace, stage, status, message, detail); refreshRecallDebug(); };
+    record('查询', 'ok', `最近 ${input.rows?.length ?? 0} 条有效消息 · 查询 ${input.query.length} 字符`);
+    if (recallCache.has(cacheId)) {
+        const cached = recallCache.get(cacheId);
+        record('缓存', 'ok', '复用相同查询、记忆版本和设置下的完整召回结果，无需网络请求');
+        finishRecallTrace(trace, cached); refreshRecallDebug(); return cached;
     }
-    const recall = retrieveMemories(state.memories, input.query, state.settings, { vectors, queryVector, links: state.memoryLinks, revision: state.memoryRevision });
-    const pool = recall.retrievalCandidates.filter(item => !item.permanent);
-    if (state.settings.semantic?.rerank && pool.length && input.query) {
+    const controller = new AbortController(), work = { id: cacheId, controller, trace, promise: null };
+    recallWork = work; state = structuredClone(state);
+    work.promise = (async () => {
+        const warnings = [], config = state.settings.semantic;
+        const check = () => { controller.signal.throwIfAborted(); if (chatKey !== activeChatKey || state.memoryRevision !== getState()?.memoryRevision) throw new DOMException('聊天或记忆库已变化', 'AbortError'); };
+        const stage = async (name, message, task, describe) => {
+            const start = Date.now(); record(name, 'start', message);
+            try { const value = await task(); check(); record(name, 'ok', `${describe(value)} · 用时 ${durationText(Date.now() - start)}`); return value; }
+            catch (error) { if (controller.signal.aborted || error?.name === 'AbortError' && (chatKey !== activeChatKey || state.memoryRevision !== getState()?.memoryRevision)) throw error; record(name, 'error', `用时 ${durationText(Date.now() - start)}`, semanticErrorDetail(error, [embeddingKey, rankingKey])); throw error; }
+        };
         try {
-            const scores = await rerank(input.query, pool.map(item => memoryText(item.memory)), state.settings.semantic, rerankKey || ctx().accountStorage?.getItem('scene_diary_rerank_key') || '');
-            const scored = [...recall.retrievalCandidates.filter(item => item.permanent), ...rankRecallCandidates(pool, scores, { absolute: true }).map(item => ({ ...item, source: 'rerank' }))];
-            Object.assign(recall, finalizeRecallCandidates(state.memories, scored, state.settings, state.memoryLinks));
-        } catch (error) { warnings.push(`rerank 失败，已保留重排前排序：${error.message}`); }
-    }
-    if (chatKey !== activeChatKey || state.memoryRevision !== getState()?.memoryRevision) return null;
-    recall.degradedReason = warnings.join('；');
-    if (!warnings.length) { recallCache.set(cacheId, recall); if (recallCache.size > 20) recallCache.delete(recallCache.keys().next().value); }
-    return recall;
+            let vectorTask = null;
+            const ordinary = state.memories.filter(memory => memoryEligible(memory) && !memory.permanent);
+            if (config?.enabled && input.query && ordinary.length) {
+                // Cache I/O and the query request are independent. Start both before local retrieval.
+                vectorTask = Promise.allSettled([
+                    stage('向量缓存', '读取本地记忆向量', () => loadVectors(ordinary, identity, config), values => `命中 ${values.size} 条缓存向量`),
+                    stage('embedding', '请求查询向量', () => embed([input.query], config, embeddingKey, { signal: controller.signal }), values => `收到查询向量 · ${values[0].length} 维`),
+                ]);
+            } else record('向量召回', 'skip', !config?.enabled ? '未启用 embedding' : !input.query ? '查询为空' : '没有普通记忆，常驻记忆直接参与分组');
+            let recall = retrieveMemories(state.memories, input.query, state.settings, { links: state.memoryLinks, revision: state.memoryRevision });
+            record('关键词', 'ok', `${recall.retrievalCandidates.filter(item => !item.permanent).length} 条普通候选 · ${recall.retrievalCandidates.filter(item => item.permanent).length} 条常驻种子`);
+            if (vectorTask) {
+                const [cached, embedded] = await vectorTask; check();
+                if (cached.status === 'fulfilled' && embedded.status === 'fulfilled') {
+                    try {
+                        const vectors = cached.value, queryVector = embedded.value[0];
+                        if ([...vectors.values()].some(vector => vector.length !== queryVector.length || vector.some(value => !Number.isFinite(value)))) throw new Error('缓存向量维度或内容不兼容，请重建向量');
+                        recall = retrieveMemories(state.memories, input.query, state.settings, { vectors, queryVector, links: state.memoryLinks, revision: state.memoryRevision });
+                        record('候选融合', 'ok', `关键词与向量去重后 ${recall.retrievalCandidates.filter(item => !item.permanent).length} 条普通候选`);
+                    } catch (error) { record('候选融合', 'error', '缓存向量无法参与召回', semanticErrorDetail(error)); warnings.push('embedding 失败，已回退关键词召回'); }
+                } else warnings.push('embedding 失败，已回退关键词召回');
+                if (warnings.length) record('候选融合', 'warn', '保留关键词召回结果');
+            }
+            const pool = recall.retrievalCandidates.filter(item => !item.permanent);
+            if (config?.rerank && pool.length && input.query) {
+                try {
+                    const scores = await stage('rerank', `提交 ${pool.length} 条候选正文`, () => rerank(input.query, pool.map(item => memoryText(item.memory)), config, rankingKey, { signal: controller.signal }), values => `收到 ${values.length} 条排序分数`);
+                    const scored = [...recall.retrievalCandidates.filter(item => item.permanent), ...rankRecallCandidates(pool, scores, { absolute: true }).map(item => ({ ...item, source: 'rerank' }))];
+                    Object.assign(recall, finalizeRecallCandidates(state.memories, scored, state.settings, state.memoryLinks));
+                } catch (error) { check(); warnings.push('rerank 失败，已保留重排前排序'); record('rerank', 'warn', '保留本地融合排序，继续生成'); }
+            } else record('rerank', 'skip', !config?.rerank ? '未启用重排' : !input.query ? '查询为空' : '没有普通候选');
+            check(); recall.degradedReason = warnings.join('；');
+            record('筛选与分组', 'ok', `最低分数 ${recall.scoreThreshold.toFixed(2)} · 排除 ${recall.rejectedCandidates.length} 条低分候选 · ${recall.skippedGroups.length} 组超预算跳过`);
+            record('召回结果', 'ok', `${recall.groups.length} 组 / ${recall.selected.length} 条 · 预算约 ${recall.budgetUsed} tokens`);
+            finishRecallTrace(trace, recall, warnings.length ? 'degraded' : 'done');
+            if (!warnings.length) { recallCache.set(cacheId, recall); if (recallCache.size > 20) recallCache.delete(recallCache.keys().next().value); }
+            return recall;
+        } catch (error) {
+            if (controller.signal.aborted || error?.name === 'AbortError') { if (trace.status !== 'cancelled') record('召回', 'cancel', '原召回已失效，丢弃结果'); finishRecallTrace(trace, null, 'cancelled'); return null; }
+            record('召回', 'error', '召回流程失败', semanticErrorDetail(error, [embeddingKey, rankingKey])); finishRecallTrace(trace, null, 'failed'); throw error;
+        } finally { if (recallWork === work) recallWork = null; refreshRecallDebug(); }
+    })();
+    return work.promise;
 }
-async function sceneDiaryRearrangeChat(promptChat, _contextSize, abort) { let state = getState(); const chatKey = activeChatKey, generation = ++recallGeneration; clearPrompts(); awaitingMainPrompt = false; if (!state || disabledReason || !compatible() || state.status !== 'active' || !Array.isArray(promptChat)) return; const input = recallInput(state); if (input.errors.length) { notify('error', `最近消息不符合正文标签规则：${input.errors.map(item => `楼层 ${item.index ?? '?'} ${item.errors.join('、')}`).join('；')}`); abort?.(true); return; } try { lastRecall = await prepareContinuity(state, input, chatKey); if (!lastRecall && chatKey === activeChatKey) { state = getState(); localContinuity(state, recallInput(state)); } } catch (error) { notify('warning', `语义召回失败，已使用本地召回：${error.message}`); localContinuity(state, input); } if (chatKey !== activeChatKey || generation !== recallGeneration) { abort?.(true); return; } const notices = [lastRecall?.degradedReason, lastRecall?.skippedGroups?.length ? `${lastRecall.skippedGroups.length} 个关联记忆组超出 token 预算，已整组跳过（含常驻组）。` : ''].filter(Boolean); if (notices.length) notify('warning', notices.join('；')); recallContent = buildContinuityBlock(state, lastRecall, state.settings); promptChat.splice(0, promptChat.length, ...filterPromptMessages(promptChat, state.currentActId)); if (String(ctx().mainApi || '').toLowerCase() === 'openai') awaitingMainPrompt = true; else setExtensionPrompt(MEMORY_KEY, recallContent, extension_prompt_types.IN_CHAT, Math.min(promptChat.length, 100), false, extension_prompt_roles.SYSTEM); }
-function promptReady(eventData) { const state = getState(), requestChat = eventData?.chat, dryRun = !!eventData?.dryRun; if (!dryRun && !awaitingMainPrompt) return; awaitingMainPrompt = false; if (!state || disabledReason || state.status !== 'active' || !Array.isArray(requestChat)) { lastContinuity = { included: false, reason: '聊天未处于可注入状态', dryRun }; return; } const input = dryRun ? recallInput(state) : null; if (input?.errors?.length) { lastContinuity = { included: false, reason: '召回正文提取失败', dryRun }; return; } const content = dryRun ? localContinuity(state, input).content : recallContent; const index = insertContinuityBeforeHistory(requestChat, content); lastContinuity = { included: index >= 0, index, length: content.length, growthIncluded: !!state.characterGrowth.content, growthRevision: state.characterGrowth.revision, dryRun, reason: index >= 0 ? '' : '没有可注入的角色成长、日记或记忆' }; recallContent = ''; }
+function cancelRecallWork(reason) { recallWork?.controller.abort(new DOMException(reason, 'AbortError')); recallWork = null; }
+function stopRecall() {
+    if (!recallWork) return;
+    const trace = recallWork.trace; recallGeneration++; cancelRecallWork('用户已停止生成');
+    logRecall(trace, '召回', 'cancel', '用户已停止生成'); finishRecallTrace(trace, null, 'cancelled');
+    awaitingMainPrompt = false; recallContent = ''; clearPrompts(); refreshRecallDebug();
+}
+function refreshRecallDebug() { const panel = document.getElementById?.(PANEL); if (panel && !panel.hidden && !panel.querySelector('[data-page="debug"]')?.hidden) renderDebug(panel); }
+async function sceneDiaryRearrangeChat(promptChat, _contextSize, abort) {
+    let state = getState(); const chatKey = activeChatKey, generation = ++recallGeneration;
+    clearPrompts(); awaitingMainPrompt = false;
+    if (!state || disabledReason || !compatible() || state.status !== 'active' || !Array.isArray(promptChat)) return;
+    const input = recallInput(state);
+    if (input.errors.length) {
+        cancelRecallWork('正文提取失败'); lastRecallTrace = createRecallTrace();
+        logRecall(lastRecallTrace, '查询', 'error', '最近消息不符合正文标签规则', input.errors.map(item => `楼层 ${item.index ?? '?'}：${item.errors.join('、')}`).join('\n'));
+        finishRecallTrace(lastRecallTrace, null, 'failed'); refreshRecallDebug();
+        notify('error', `最近消息不符合正文标签规则：${input.errors.map(item => `楼层 ${item.index ?? '?'} ${item.errors.join('、')}`).join('；')}`); abort?.(true); return;
+    }
+    let result;
+    try { result = await prepareContinuity(state, input, chatKey); }
+    catch { if (chatKey === activeChatKey && generation === recallGeneration) notify('warning', '语义召回失败，已使用本地召回；详情见诊断。'); }
+    if (chatKey !== activeChatKey || generation !== recallGeneration) { abort?.(true); return; }
+    if (!result) {
+        state = getState(); if (!state || disabledReason || state.status !== 'active') { abort?.(true); return; }
+        localContinuity(state, recallInput(state)); result = lastRecall;
+        if (lastRecallTrace) { logRecall(lastRecallTrace, '本地回退', 'warn', '使用当前记忆库完成关键词召回'); finishRecallTrace(lastRecallTrace, result, 'degraded'); }
+    }
+    lastRecall = result;
+    const notices = [lastRecall.degradedReason ? `${lastRecall.degradedReason}；详情见诊断。` : '', lastRecall.skippedGroups.length ? `${lastRecall.skippedGroups.length} 个关联记忆组超出 token 预算，已整组跳过（含常驻组）。` : ''].filter(Boolean);
+    if (notices.length) notify('warning', notices.join('；'));
+    recallContent = buildContinuityBlock(state, lastRecall, state.settings);
+    promptChat.splice(0, promptChat.length, ...filterPromptMessages(promptChat, state.currentActId));
+    if (String(ctx().mainApi || '').toLowerCase() === 'openai') awaitingMainPrompt = true;
+    else { setExtensionPrompt(MEMORY_KEY, recallContent, extension_prompt_types.IN_CHAT, Math.min(promptChat.length, 100), false, extension_prompt_roles.SYSTEM); lastContinuity = { included: !!recallContent, reason: recallContent ? '' : '没有可注入的内容' }; }
+    refreshRecallDebug();
+}
+function promptReady(eventData) { const state = getState(), requestChat = eventData?.chat, dryRun = !!eventData?.dryRun; if (!dryRun && !awaitingMainPrompt) return; awaitingMainPrompt = false; if (!state || disabledReason || state.status !== 'active' || !Array.isArray(requestChat)) { lastContinuity = { included: false, reason: '聊天未处于可注入状态', dryRun }; return; } const input = dryRun ? recallInput(state) : null; if (input?.errors?.length) { lastContinuity = { included: false, reason: '召回正文提取失败', dryRun }; return; } const content = dryRun ? localContinuity(state, input).content : recallContent; const index = insertContinuityBeforeHistory(requestChat, content); lastContinuity = { included: index >= 0, index, length: content.length, growthIncluded: !!state.characterGrowth.content, growthRevision: state.characterGrowth.revision, dryRun, reason: index >= 0 ? '' : '没有可注入的角色成长、日记或记忆' }; recallContent = ''; refreshRecallDebug(); }
 globalThis.sceneDiaryRearrangeChat = sceneDiaryRearrangeChat;
 
 const maintenanceRuns = new Set();
@@ -525,7 +605,7 @@ function createUi() {
     const form = document.querySelector('#send_form') || document.querySelector('#send_textarea')?.parentElement; if (!form) return;
     const bar = document.createElement('div'); bar.id = BAR; bar.innerHTML = '<button type="button" data-action="open">🎬 scene&diary</button><span data-role="status">等待接管</span><button type="button" data-action="end">结束这一幕</button>'; form.prepend(bar);
     const panel = document.createElement('section'); panel.id = PANEL; panel.hidden = true;
-    panel.innerHTML = `<header class="scene-diary-panel-head"><h3>scene&diary</h3><button data-action="close" aria-label="关闭">×</button></header><p data-role="status" class="scene-diary-warning"></p><nav class="scene-diary-tabs"><button data-tab="act">当前幕</button><button data-tab="growth">角色成长</button><button data-tab="memory">记忆库</button><button data-tab="diary">日记</button><button data-tab="settings">设置</button><button data-tab="debug">诊断</button></nav><section data-page="act"><p>结束当前幕后，会生成日记、记忆候选和角色成长；确认前不会正式写入。</p><div class="scene-diary-actions"><button data-action="end">结束这一幕</button><button data-action="takeover">从当前第一条接管旧聊天</button></div><div id="scene_diary_extraction"></div><div id="scene_diary_preview" hidden></div></section><section data-page="growth" hidden><p data-growth-notice class="scene-diary-warning"></p><label>角色成长<textarea data-growth-editor rows="14" maxlength="4000" placeholder="概括角色的成长路径、情感发展、双方关系与生活状态演变。"></textarea></label><p data-growth-count class="scene-diary-muted"></p><p data-growth-meta class="scene-diary-muted"></p><div class="scene-diary-actions"><button data-action="save-growth">保存角色成长</button></div></section><section data-page="memory" hidden><label>搜索<input data-memory-search placeholder="标题、内容、人物"></label><label>分类<select data-memory-category><option value="">全部分类</option>${MEMORY_CATEGORIES.map(item => `<option>${item}</option>`).join('')}</select></label><button data-action="new-memory">新增记忆</button><label>整理模式<select data-organization-mode><option value="full">全量整理／初始化</option><option value="incremental">增量整理</option></select></label><button data-action="organize-memory">记忆整理</button><div id="scene_diary_maintenance"></div><p data-recall-summary class="scene-diary-muted"></p><div id="scene_diary_memories"></div></section><section data-page="diary" hidden><div id="scene_diary_diaries"></div></section><section data-page="settings" hidden><h4>模型</h4><label>日记／角色成长连接<select data-setting="diaryConnectionProfile"></select></label><label>记忆连接<select data-setting="memoryConnectionProfile"></select></label><h4>召回</h4><label>读取最近有效消息数<input data-setting="recallMessageCount" type="number" min="1" max="20"></label><label>最多召回组数<input data-setting="recallLimit" type="number" min="0" max="30"></label><label>长期记忆预算（tokens）<input data-setting="memoryTokenBudget" type="number" min="100"></label><label>近期日记篇数<input data-setting="recentDiaryCount" type="number" min="0" max="20"></label><h4>正文标签</h4><p class="scene-diary-muted">每行一组完整标签；同一行的开始与结束标签必须同名。全部留空时提取完整消息。</p><div data-pair-editor>${[['角色正文', 'character.bodyTagPairs'], ['玩家正文', 'user.bodyTagPairs'], ['角色故事时间', 'character.storyTimeTagPairs'], ['玩家故事时间', 'user.storyTimeTagPairs']].map(([label, key]) => `<fieldset class="scene-diary-tag-pair"><legend>${label}</legend><label>开始标签<textarea rows="2" data-pair-open="${key}" placeholder="<now_plot>"></textarea></label><label>结束标签<textarea rows="2" data-pair-close="${key}" placeholder="</now_plot>"></textarea></label></fieldset>`).join('')}</div><h4>提示词</h4><p class="scene-diary-muted">这里只编辑模型角色定义。输入和 JSON 协议由插件附加；记忆提取仅使用本幕对话，日记与成长附加角色设定。</p><label>日记提示词<textarea data-setting="promptDiary" rows="5"></textarea></label><label>记忆提示词<textarea data-setting="promptMemory" rows="5"></textarea></label><label>角色成长提示词<textarea data-setting="promptGrowth" rows="8"></textarea></label><button data-action="save-settings">保存当前聊天设置</button><button data-action="reset-prompts">恢复默认提示词</button></section><section data-page="debug" hidden><p data-debug></p><pre data-debug-list></pre></section>`;
+    panel.innerHTML = `<header class="scene-diary-panel-head"><h3>scene&diary</h3><button data-action="close" aria-label="关闭">×</button></header><p data-role="status" class="scene-diary-warning"></p><nav class="scene-diary-tabs"><button data-tab="act">当前幕</button><button data-tab="growth">角色成长</button><button data-tab="memory">记忆库</button><button data-tab="diary">日记</button><button data-tab="settings">设置</button><button data-tab="debug">诊断</button></nav><section data-page="act"><p>结束当前幕后，会生成日记、记忆候选和角色成长；确认前不会正式写入。</p><div class="scene-diary-actions"><button data-action="end">结束这一幕</button><button data-action="takeover">从当前第一条接管旧聊天</button></div><div id="scene_diary_extraction"></div><div id="scene_diary_preview" hidden></div></section><section data-page="growth" hidden><p data-growth-notice class="scene-diary-warning"></p><label>角色成长<textarea data-growth-editor rows="14" maxlength="4000" placeholder="概括角色的成长路径、情感发展、双方关系与生活状态演变。"></textarea></label><p data-growth-count class="scene-diary-muted"></p><p data-growth-meta class="scene-diary-muted"></p><div class="scene-diary-actions"><button data-action="save-growth">保存角色成长</button></div></section><section data-page="memory" hidden><label>搜索<input data-memory-search placeholder="标题、内容、人物"></label><label>分类<select data-memory-category><option value="">全部分类</option>${MEMORY_CATEGORIES.map(item => `<option>${item}</option>`).join('')}</select></label><button data-action="new-memory">新增记忆</button><label>整理模式<select data-organization-mode><option value="full">全量整理／初始化</option><option value="incremental">增量整理</option></select></label><button data-action="organize-memory">记忆整理</button><div id="scene_diary_maintenance"></div><p data-recall-summary class="scene-diary-muted"></p><div id="scene_diary_memories"></div></section><section data-page="diary" hidden><div id="scene_diary_diaries"></div></section><section data-page="settings" hidden><h4>模型</h4><label>日记／角色成长连接<select data-setting="diaryConnectionProfile"></select></label><label>记忆连接<select data-setting="memoryConnectionProfile"></select></label><h4>召回</h4><label>读取最近有效消息数<input data-setting="recallMessageCount" type="number" min="1" max="20"></label><label>最多召回组数<input data-setting="recallLimit" type="number" min="0" max="30"></label><label>长期记忆预算（tokens）<input data-setting="memoryTokenBudget" type="number" min="100"></label><label>近期日记篇数<input data-setting="recentDiaryCount" type="number" min="0" max="20"></label><h4>正文标签</h4><p class="scene-diary-muted">每行一组完整标签；同一行的开始与结束标签必须同名。全部留空时提取完整消息。</p><div data-pair-editor>${[['角色正文', 'character.bodyTagPairs'], ['玩家正文', 'user.bodyTagPairs'], ['角色故事时间', 'character.storyTimeTagPairs'], ['玩家故事时间', 'user.storyTimeTagPairs']].map(([label, key]) => `<fieldset class="scene-diary-tag-pair"><legend>${label}</legend><label>开始标签<textarea rows="2" data-pair-open="${key}" placeholder="<now_plot>"></textarea></label><label>结束标签<textarea rows="2" data-pair-close="${key}" placeholder="</now_plot>"></textarea></label></fieldset>`).join('')}</div><h4>提示词</h4><p class="scene-diary-muted">这里只编辑模型角色定义。输入和 JSON 协议由插件附加；记忆提取仅使用本幕对话，日记与成长附加角色设定。</p><label>日记提示词<textarea data-setting="promptDiary" rows="5"></textarea></label><label>记忆提示词<textarea data-setting="promptMemory" rows="5"></textarea></label><label>角色成长提示词<textarea data-setting="promptGrowth" rows="8"></textarea></label><button data-action="save-settings">保存当前聊天设置</button><button data-action="reset-prompts">恢复默认提示词</button></section><section data-page="debug" hidden><p data-debug></p><div data-debug-list></div></section>`;
     panel.querySelector('[data-page=memory]').insertAdjacentHTML('beforeend', `<section class="scene-diary-maintenance"><h4>聊天内容备份与恢复</h4><p class="scene-diary-muted">备份当前聊天所有可见日记、角色成长和记忆内容。恢复时三项内容会一起替换，请先保存当前备份。</p><div class="scene-diary-actions"><button data-action="export-content">备份当前聊天内容</button></div><label>从备份恢复日记、角色成长和记忆<input type="file" accept="application/json" data-content-import></label><button data-action="recover-save" hidden>恢复未完成的保存</button><p data-maintenance-size class="scene-diary-muted"></p></section>`);
     panel.querySelector('[data-page=settings]').insertAdjacentHTML('beforeend', `
         <h4>可选向量召回</h4><p>记忆文本会发送至独立向量服务；浏览器直连需要服务允许跨域。</p>
@@ -687,9 +767,8 @@ function saveChatSettings(panel) {
 }
 function renderDebug(panel) {
     const state = getState(), output = panel.querySelector('[data-debug-list]');
-    panel.querySelector('[data-debug]').textContent = disabledReason || `当前幕 ${state?.currentActId || '-'}；记忆 ${state?.memories.length || 0} 条；召回本轮 ${lastRecall?.groups?.length || 0} 组 / ${lastRecall?.selected.length || 0} 条。`;
-    const growth = state?.characterGrowth;
-    output.textContent = JSON.stringify({ continuity: lastContinuity, characterGrowth: growth ? { included: !!growth.content, revision: growth.revision, lastIncludedActId: growth.lastIncludedActId, reviewRecommended: growth.reviewRecommended, characters: growth.content.length, estimatedTokens: estimateTokens(growth.content) } : null, recall: lastRecall ? { query: lastRecall.query, scoreThreshold: lastRecall.scoreThreshold, rejectedCandidates: lastRecall.rejectedCandidates.map(item => ({ id: item.memory.id, score: item.score, relevance: item.relevance, source: item.source })), budgetUsed: lastRecall.budgetUsed, degradedReason: lastRecall.degradedReason, skippedGroups: lastRecall.skippedGroups, groups: lastRecall.groups.map(group => ({ seeds: group.seedIds, members: group.ids, permanent: group.permanent, seedOnly: group.seedOnly, prunedNeighborIds: group.prunedNeighborIds })), candidates: lastRecall.candidates.map(item => ({ id: item.memory.id, title: item.memory.title, score: item.score, relevance: item.relevance, importanceWeight: item.importanceWeight, source: item.source, channels: item.channels, selected: lastRecall.selected.some(selected => selected.memory.id === item.memory.id) })) } : null }, null, 2);
+    panel.querySelector('[data-debug]').textContent = disabledReason || `当前幕 ${state?.currentActId || '-'} · 记忆库 ${state?.memories.length || 0} 条`;
+    output.innerHTML = renderRecallDiagnostics(lastRecallTrace, lastContinuity);
 }
 function fillSettings() {
     const panel = document.querySelector(`#${PANEL}`), state = getState(); if (!panel || !state) return;
@@ -705,6 +784,6 @@ function fillSettings() {
     panel.querySelector('[data-rerank-key]').value = rerankKey || storedRerank || '';
     panel.querySelector('[data-rerank-remember]').checked = !!storedRerank;
 }
-function bind() { const eventSource = source(), eventTypes = types(); if (!eventSource?.on) return; eventSource.on(eventTypes.MESSAGE_SENT || 'message_sent', sent); eventSource.on(eventTypes.MESSAGE_RECEIVED || 'message_received', received); eventSource.on(eventTypes.MESSAGE_EDITED || 'message_edited', changed); eventSource.on(eventTypes.MESSAGE_UPDATED || 'message_updated', changed); eventSource.on(eventTypes.MESSAGE_DELETED || 'message_deleted', deleted); eventSource.on(eventTypes.MESSAGE_SWIPED || 'message_swiped', changed); eventSource.on(eventTypes.CHAT_CHANGED || 'chat_id_changed', initializeChat); eventSource.on(eventTypes.CHAT_LOADED || 'chatLoaded', initializeChat); eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY || 'chat_completion_prompt_ready', promptReady); }
-function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.4', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
+function bind() { const eventSource = source(), eventTypes = types(); if (!eventSource?.on) return; eventSource.on(eventTypes.MESSAGE_SENT || 'message_sent', sent); eventSource.on(eventTypes.MESSAGE_RECEIVED || 'message_received', received); eventSource.on(eventTypes.MESSAGE_EDITED || 'message_edited', changed); eventSource.on(eventTypes.MESSAGE_UPDATED || 'message_updated', changed); eventSource.on(eventTypes.MESSAGE_DELETED || 'message_deleted', deleted); eventSource.on(eventTypes.MESSAGE_SWIPED || 'message_swiped', changed); eventSource.on(eventTypes.CHAT_CHANGED || 'chat_id_changed', initializeChat); eventSource.on(eventTypes.CHAT_LOADED || 'chatLoaded', initializeChat); eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY || 'chat_completion_prompt_ready', promptReady); eventSource.on(eventTypes.GENERATION_STOPPED || 'generation_stopped', stopRecall); }
+function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.5', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();

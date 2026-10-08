@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.5 — 2026-10-08
+
+- Remove extension-imposed embedding/rerank deadlines for queries and background vector builds; retain cancellation for stopped, superseded and cross-chat recalls.
+- Overlap cache reads, query embedding and lexical retrieval. Coalesce identical in-flight recalls, queue vector updates, batch IndexedDB transactions and invalidate recall caches after vector updates. Skip model calls for empty/permanent-only libraries without reducing ordinary rerank candidate coverage.
+- Replace the raw diagnostic JSON with the latest recall's stage log, elapsed times, expandable redacted failure reasons, and ranked groups/member titles. Keep brief combined fallback warnings and retry failed results on the next generation.
+- Deliver v0.3.5 to main as requested; keep schema 5, content backup v2 and auto_update=false. Validation and real-host acceptance boundaries: [VALIDATION-v0.3.5.md](VALIDATION-v0.3.5.md).
+
 ## 0.3.4 — 2026-10-06
 
 - Keep act-close previews saveable after chat setting edits. Single-part regeneration uses current saved prompts, connection and body/story-time extraction settings while preserving other previews and manual edits. Running requests retain their original input; source-message, saved-growth and chat-identity checks remain in place.

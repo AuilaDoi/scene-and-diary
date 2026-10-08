@@ -44,6 +44,7 @@ export async function hostFixture(messages = ['你好'], handler = null, options
     code = code.replace(/from '(\.\/[^']+)'/g, (_, path) => `from '${new URL('../../' + path.slice(2), import.meta.url).href}'`);
     if (options.tauri) code = code.replace('await loadTauriJsonDependencies()', `await globalThis.__sceneDiaryHosts[${JSON.stringify(id)}].jsonDependencies()`);
     code += '\nexport { initializeChat, getState, closeAct, confirmClose, cancelClose, runCloseParts, startMaintenance, runMaintenance, confirmMaintenance, cancelMaintenance, recoverSave, prepareContinuity, recallInput, sceneDiaryRearrangeChat, commitMemoryMutation }; export const hostStatus = () => ({ disabledReason, saveUnverified, migrationPending, migrating: migrationPreparing.size + migrationSaving.size });';
+    code += '\nexport { renderDebug, promptReady, stopRecall, syncVectors }; export const recallTrace = () => structuredClone(lastRecallTrace);';
     const api = await import('data:text/javascript;base64,' + Buffer.from(code).toString('base64')); if (options.initialize !== false) api.initializeChat();
     return { api, context, saved, local, notices, requests, events, async settle() { for (let i = 0; i < 200; i++) { await new Promise(resolve => setTimeout(resolve, 1)); if (!api.hostStatus().migrating) return; } throw new Error('host initialization did not settle'); }, cleanup() { Object.assign(globalThis, original); delete globalThis.__sceneDiaryHosts[id]; } };
 }

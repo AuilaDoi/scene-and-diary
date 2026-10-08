@@ -2,9 +2,9 @@
   "name": "scene-and-diary",
   "private": true,
   "type": "module",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "scripts": {
-    "build": "node --check index.js && node --check core.js && node --check memory-system.js && node --check semantic.js && node --check backup.js && node --check model-protocol.js && node --check json-host-adapter.js",
+    "build": "node --check index.js && node --check core.js && node --check memory-system.js && node --check semantic.js && node --check recall-diagnostics.js && node --check backup.js && node --check model-protocol.js && node --check json-host-adapter.js",
     "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {

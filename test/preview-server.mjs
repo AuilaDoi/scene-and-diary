@@ -23,11 +23,25 @@ if(name?.endsWith('_diary')) return {title:'旅行回忆',diary:'今天我们聊
 if(name?.endsWith('_growth')) return {characterGrowth:'两人愿意一起安排周末活动。'};
 return {memories:[{category:'preference',title:'周末出游意向',content:'玩家表达了周末想一起出门的意愿。',people:['玩家'],aliases:[],importance:3,storyTime:null}]}; };
 const recovery=new Map();globalThis.SillyTavern={libs:{localforage:{getItem:async key=>recovery.get(key),setItem:async(key,value)=>recovery.set(key,value),removeItem:async key=>recovery.delete(key)}}};
-globalThis.fetch=async()=>({ok:true,json:async()=>[{chat_metadata:{scene_diary:JSON.parse(localStorage.getItem('scene_diary_v032_synthetic_preview'))}},...chat]});
+globalThis.runSyntheticRecall=async(fail=false)=>{
+const current=context.chatMetadata.scene_diary; current.memoryRevision++;
+current.settings.semantic={enabled:true,endpoint:'https://synthetic.test/embedding',model:'synthetic-e',rerank:true,rerankEndpoint:'https://synthetic.test/rerank',rerankModel:'synthetic-r'};
+globalThis.syntheticRecallFailure=fail;
+await globalThis.sceneDiaryRearrangeChat(chat.map(message=>({role:message.is_user?'user':'assistant',content:message.mes,extra:message.extra})),0,()=>{});
+};
+globalThis.fetch=async(url,init)=>{
+if(String(url).startsWith('https://synthetic.test/')){
+await new Promise(resolve=>setTimeout(resolve,650));
+if(globalThis.syntheticRecallFailure) return new Response(JSON.stringify({error:{code:'synthetic_input_limit',message:'合成错误：候选输入超过服务限制，请调整服务配置。'}}),{status:422});
+const input=JSON.parse(init.body);
+return new Response(JSON.stringify(input.input?{data:input.input.map((_,index)=>({index,embedding:[1,0]}))}:{results:input.documents.map((_,index)=>({index,relevance_score:.9-index*.15}))}));
+}
+return {ok:true,json:async()=>[{chat_metadata:{scene_diary:JSON.parse(localStorage.getItem('scene_diary_v032_synthetic_preview'))}},...chat]};
+};
 globalThis.toastr=Object.fromEntries(['success','error','warning','info'].map(type=>[type,message=>{const notice=document.createElement('p');notice.textContent=type+': '+message;document.querySelector('#notices').prepend(notice);} ]));
 `;
-const html = `<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>scene&diary v0.3.3 合成数据预览</title><link rel="stylesheet" href="/style.css"><style>body{background:#141c26;color:#eee;font:16px sans-serif;padding:18px}#send_form{margin-top:12px}#notices{font-size:13px}button{min-height:44px}*{box-sizing:border-box}</style><h2>v0.3.3 合成测试预览</h2><p>所有数据和模型响应均为本预览内的合成素材。</p><button onclick="localStorage.removeItem('scene_diary_v032_synthetic_preview');location.reload()">重置合成数据</button><form id="send_form"></form><div id="notices"></div><script type="module">import '/index-preview.js';</script></html>`;
-const allowed = new Set(['core.js','memory-system.js','semantic.js','backup.js','model-protocol.js','json-host-adapter.js','style.css']);
+const html = `<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>scene&diary 当前工作区合成数据预览</title><link rel="stylesheet" href="/style.css"><style>body{background:#141c26;color:#eee;font:16px sans-serif;padding:18px}#send_form{margin-top:12px}#notices{font-size:13px}button{min-height:44px}*{box-sizing:border-box}</style><h2>当前工作区合成测试预览</h2><p>所有数据和模型响应均为本预览内的合成素材。</p><button onclick="localStorage.removeItem('scene_diary_v032_synthetic_preview');location.reload()">重置合成数据</button><button onclick="runSyntheticRecall(false)">运行合成召回</button><button onclick="runSyntheticRecall(true)">模拟服务失败</button><form id="send_form"></form><div id="notices"></div><script type="module">import '/index-preview.js';</script></html>`;
+const allowed = new Set(['core.js','memory-system.js','semantic.js','recall-diagnostics.js','backup.js','model-protocol.js','json-host-adapter.js','style.css']);
 const server = createServer(async (req,res) => {
 try {
 const path = new URL(req.url,'http://localhost').pathname.slice(1);
