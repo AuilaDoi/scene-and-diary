@@ -10,11 +10,11 @@ const seed = (entry, score = .8) => ({ memory: entry, score, permanent: !!entry.
 const ids = recall => recall.selected.map(item => item.memory.id).sort();
 const links = pairs => pairs.map(([a, b]) => ({ a, b, reason: '事实发展' }));
 
-test('threshold defaults within schema 5, retains custom values and normalizes damaged settings', () => {
+test('threshold defaults within schema 6, retains custom values and normalizes damaged settings', () => {
     for (const value of [undefined, null, '', ' ', true, {}, NaN, Infinity, 'wrong']) assert.equal(normalizeSettings({ recallScoreThreshold: value }).recallScoreThreshold, .3);
     for (const [value, expected] of [[0, 0], [1, 1], [.72, .72], ['0.41', .41], [-1, 0], [2, 1]]) assert.equal(normalizeSettings({ recallScoreThreshold: value }).recallScoreThreshold, expected);
     const state = createState(); delete state.settings.recallScoreThreshold;
-    const old = normalizeState(state); assert.equal(old.version, 5); assert.equal(old.settings.recallScoreThreshold, .3);
+    const old = normalizeState(state); assert.equal(old.version, 6); assert.equal(old.settings.recallScoreThreshold, .3);
     old.settings.recallScoreThreshold = .72; assert.deepEqual(normalizeState(old), old);
 });
 

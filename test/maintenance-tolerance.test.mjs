@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeMemory, normalizeState } from '../core.js';
 import { validateMaintenanceBatch, planMaintenance } from '../memory-system.js';
+import { splitCandidateTask } from '../maintenance-flow.js';
 import { hostFixture } from './helpers/host.mjs';
 
 const memory = (id, extra = {}) => normalizeMemory({ id, title: id, content: `事实 ${id}`, ...extra });
@@ -56,41 +57,45 @@ test('all-invalid output cannot silently initialize or clear the old graph', asy
     } finally { host.cleanup(); }
 });
 
-test('full cross-block analysis accepts useful same-side proposals and deduplicates them globally', async () => {
+test('candidate analysis filters unrelated visible pairs and repeated proposals without partial approval', async () => {
     const host = await hostFixture([], input => {
         const data = JSON.parse(input.prompt[1].content.split('\n').at(-1));
-        return { operations: data.left.length > 1 ? [link(data.left[0].id, data.left[1].id)] : [] };
+        const [a, b] = data.allowedPairs[0];
+        return { operations: [link(a, b), link(a, b)] };
     });
     try {
-        host.context.chatMetadata.scene_diary.memories = Array.from({ length: 40 }, (_, i) => memory(String(i), { content: '事实'.repeat(240) }));
+        host.context.chatMetadata.scene_diary.memories = ['a', 'b', 'c'].map(id => memory(id));
         await host.api.startMaintenance('full');
         const tx = host.api.getState().maintenanceTransaction;
-        assert.equal(tx.status, 'preview'); assert.ok(tx.tasks.some(task => task.right.length && task.operations.length));
-        assert.ok(tx.tasks.every(task => task.rejected.length === 0));
-        assert.ok(tx.operations.length < tx.tasks.flatMap(task => task.operations).length);
+        assert.equal(tx.status, 'preview'); assert.equal(tx.operations.length, 1);
+        assert.equal(tx.tasks[0].filtered.length, 1); assert.equal(tx.tasks[0].rejected.length, 0);
+        await host.api.confirmMaintenance(); assert.equal(host.api.getState().memoryLinks.length, 1);
     } finally { host.cleanup(); }
 });
 
 test('retry sends validation feedback only for excluded batches and preserves other successful batches', async () => {
-    let crossCalls = 0;
+    let phase = 'initial', badPair, failed = false;
     const host = await hostFixture([], input => {
         const text = input.prompt[1].content;
-        const data = JSON.parse(text.split('\n').find(line => line.startsWith('{"left":')));
-        if (!data.right.length) return { operations: [] };
-        crossCalls++;
-        if (crossCalls === 1) return { operations: [link(data.left[0].id, 'missing')] };
-        assert.match(text, /上一轮.*未通过校验/); assert.match(text, /missing/);
-        return { operations: [link(data.left[0].id, data.right[0].id)] };
+        const data = JSON.parse(text.split('\n').at(-1));
+        if (phase === 'initial') return { operations: [] };
+        if (JSON.stringify(data.allowedPairs[0]) !== badPair) return { operations: [] };
+        if (!failed) { failed = true; return { operations: [link(data.allowedPairs[0][0], 'missing')] }; }
+        assert.match(text, /上一轮.*未通过校验/);
+        return { operations: [link(...data.allowedPairs[0])] };
     });
     try {
-        host.context.chatMetadata.scene_diary.memories = Array.from({ length: 15 }, (_, i) => memory(String(i), { content: '事实'.repeat(240) }));
+        host.context.chatMetadata.scene_diary.memories = ['a', 'b', 'c'].map(id => memory(id));
         await host.api.startMaintenance('full');
-        const tx = host.context.chatMetadata.scene_diary.maintenanceTransaction, calls = host.requests.length;
-        assert.equal(tx.tasks.length, 3); assert.equal(tx.tasks.filter(task => task.rejected.length).length, 1);
-        tx.tasks.filter(task => task.rejected.length).forEach(task => { task.status = 'pending'; }); tx.status = 'ready';
+        const tx = host.context.chatMetadata.scene_diary.maintenanceTransaction;
+        tx.tasks = splitCandidateTask(tx.tasks[0]); badPair = JSON.stringify(tx.tasks[0].allowedPairs[0]); phase = 'retry';
         await host.api.runMaintenance(tx.id);
-        assert.equal(host.requests.length, calls + 1); assert.equal(crossCalls, 2);
-        assert.ok(host.api.getState().maintenanceTransaction.tasks.every(task => task.rejected.length === 0));
+        assert.equal(tx.tasks.filter(task => task.rejected.length).length, 1);
+        const calls = host.requests.length;
+        tx.tasks.filter(task => task.rejected.length).forEach(task => { task.status = 'pending'; });
+        await host.api.runMaintenance(tx.id);
+        assert.equal(host.requests.length, calls + 1);
+        assert.ok(tx.tasks.every(task => task.rejected.length === 0));
         await host.api.confirmMaintenance(); assert.equal(host.api.getState().memoryLinks.length, 1);
     } finally { host.cleanup(); }
 });

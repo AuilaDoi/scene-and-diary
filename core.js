@@ -1,17 +1,18 @@
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 export const STORAGE_KEY = 'scene_diary';
 export const MEMORY_CATEGORIES = ['preference', 'habit', 'promise', 'relationship', 'event', 'item_place'];
 export const DEFAULT_DIARY_PROMPT = '你是 {{char}} 的恋爱陪伴日记整理器。只依据角色设定与 [本幕对话]，以第一人称写日记；不要补写事实。';
 export const DEFAULT_MEMORY_PROMPT = '你是恋爱陪伴记忆提取器。只依据 [本幕对话] 提取已发生或已明确确认的事实。承诺已经作出可以记录，但承诺内容未发生时不得写成已经完成。不要补写事实。';
+export const DEFAULT_MAINTENANCE_PROMPT = '你是记忆库语义整理器。素材只有提供的已保存记忆及关联，不读取或补写外部事实。寻找同一事实的重复表达并建议合并；不同时间分别成立、发展、兑现、取消的事实保持独立并建议关联。仅人物或地点相同不足以关联。所有结果只是供用户批准的建议。';
 export const DEFAULT_GROWTH_PROMPT = '你是 {{char}} 的角色成长与恋爱关系发展整理器。根据 [当前角色成长] 和 [本幕对话]，重写截至本幕结束的完整角色成长记录。重点维护 {{char}} 的性格成长、情感变化、生活状态变化，以及 {{char}} 与 {{user}} 从相识至今的关系发展路径。说明重要经历如何影响角色及双方关系，但不要逐条复述剧情，不要补写未发生或未确认的变化，也不要假定下一幕与本幕在时间、地点或事件上连续。';
 
 export const DEFAULT_SETTINGS = Object.freeze({
     recentDiaryCount: 2, diaryTokenBudget: 1800, recallMessageCount: 3, recallLimit: 8, recallScoreThreshold: 0.3, memoryTokenBudget: 1200,
     diaryTargetLength: '400–800 Chinese characters',
-    maxDiaryChars: 9000, maxGrowthChars: 4000, diaryConnectionProfile: '', memoryConnectionProfile: '',
+    maxDiaryChars: 9000, maxGrowthChars: 4000, diaryConnectionProfile: '', memoryConnectionProfile: '', maintenanceConnectionProfile: '', maintenanceCandidateLimit: 20, maintenanceScoreThreshold: 0.15,
     semantic: { enabled: false, endpoint: '', model: '', dimensions: null, rerank: false, rerankEndpoint: '', rerankModel: '' },
     extraction: { user: { bodyTagPairs: [], storyTimeTagPairs: [], requiredStoryTime: false }, character: { bodyTagPairs: [], storyTimeTagPairs: [], requiredStoryTime: false } },
-    prompts: { diary: DEFAULT_DIARY_PROMPT, memory: DEFAULT_MEMORY_PROMPT, growth: DEFAULT_GROWTH_PROMPT },
+    prompts: { diary: DEFAULT_DIARY_PROMPT, memory: DEFAULT_MEMORY_PROMPT, growth: DEFAULT_GROWTH_PROMPT, maintenance: DEFAULT_MAINTENANCE_PROMPT },
 });
 
 const DIARY_FORMAT_INSTRUCTION = '只返回严格 JSON，不要使用 Markdown 代码围栏。格式：{"title":"短标题","diary":"日记"}';
@@ -34,7 +35,7 @@ export function validateTagPair(pair) { const open = str(pair?.open), close = st
 const legacyPairs = tags => list(tags).map(name => ({ open: `<${str(name).replace(/^<|>$/g, '')}>`, close: `</${str(name).replace(/^<|>$/g, '')}>` }));
 const pairs = (value, legacy) => list(value).length ? list(value).map(validateTagPair).filter(Boolean) : legacyPairs(legacy).map(validateTagPair).filter(Boolean);
 const side = value => ({ bodyTagPairs: pairs(value?.bodyTagPairs, value?.bodyTags), storyTimeTagPairs: pairs(value?.storyTimeTagPairs, value?.storyTimeTags), requiredStoryTime: !!value?.requiredStoryTime });
-export function normalizeSettings(value = {}) { const { growthTargetLength: _unusedGrowthTargetLength, ...settings } = value; return { ...DEFAULT_SETTINGS, ...settings, recentDiaryCount: clamp(value.recentDiaryCount, 0, 20, 2), recallMessageCount: clamp(value.recallMessageCount, 1, 20, 3), recallLimit: clamp(value.recallLimit, 0, 30, 8), recallScoreThreshold: normalizeRecallScoreThreshold(value.recallScoreThreshold), maxGrowthChars: DEFAULT_SETTINGS.maxGrowthChars, semantic: { enabled: !!value.semantic?.enabled, endpoint: str(value.semantic?.endpoint), model: str(value.semantic?.model), dimensions: Number.isInteger(+value.semantic?.dimensions) && +value.semantic.dimensions > 0 ? +value.semantic.dimensions : null, rerank: !!value.semantic?.rerank, rerankEndpoint: str(value.semantic?.rerankEndpoint), rerankModel: str(value.semantic?.rerankModel) }, extraction: { user: side(value.extraction?.user || DEFAULT_SETTINGS.extraction.user), character: side(value.extraction?.character || DEFAULT_SETTINGS.extraction.character) }, prompts: { diary: str(value.prompts?.diary) || DEFAULT_DIARY_PROMPT, memory: str(value.prompts?.memory) || DEFAULT_MEMORY_PROMPT, growth: str(value.prompts?.growth) || DEFAULT_GROWTH_PROMPT } }; }
+export function normalizeSettings(value = {}) { const { growthTargetLength: _unusedGrowthTargetLength, ...settings } = value; return { ...DEFAULT_SETTINGS, ...settings, recentDiaryCount: clamp(value.recentDiaryCount, 0, 20, 2), recallMessageCount: clamp(value.recallMessageCount, 1, 20, 3), recallLimit: clamp(value.recallLimit, 0, 30, 8), recallScoreThreshold: normalizeRecallScoreThreshold(value.recallScoreThreshold), maintenanceConnectionProfile: str(value.maintenanceConnectionProfile), maintenanceCandidateLimit: Math.trunc(clamp(value.maintenanceCandidateLimit, 1, 60, 20)), maintenanceScoreThreshold: (typeof value.maintenanceScoreThreshold === 'number' || typeof value.maintenanceScoreThreshold === 'string' && value.maintenanceScoreThreshold.trim()) && Number.isFinite(+value.maintenanceScoreThreshold) ? clamp(value.maintenanceScoreThreshold, 0, 1, 0.15) : 0.15, maxGrowthChars: DEFAULT_SETTINGS.maxGrowthChars, semantic: { enabled: !!value.semantic?.enabled, endpoint: str(value.semantic?.endpoint), model: str(value.semantic?.model), dimensions: Number.isInteger(+value.semantic?.dimensions) && +value.semantic.dimensions > 0 ? +value.semantic.dimensions : null, rerank: !!value.semantic?.rerank, rerankEndpoint: str(value.semantic?.rerankEndpoint), rerankModel: str(value.semantic?.rerankModel) }, extraction: { user: side(value.extraction?.user || DEFAULT_SETTINGS.extraction.user), character: side(value.extraction?.character || DEFAULT_SETTINGS.extraction.character) }, prompts: { diary: str(value.prompts?.diary) || DEFAULT_DIARY_PROMPT, memory: str(value.prompts?.memory) || DEFAULT_MEMORY_PROMPT, growth: str(value.prompts?.growth) || DEFAULT_GROWTH_PROMPT, maintenance: str(value.prompts?.maintenance) || DEFAULT_MAINTENANCE_PROMPT } }; }
 export function normalizeMemory(value = {}) {
     const { sources, sourceActId, sourceMessageIds, lifecycle, supersedes, mergedInto, revision, status, dirty, reviewRecommended, sourceFingerprint, accepted, disabled, ...rest } = value;
     const time = localTime();
@@ -53,6 +54,15 @@ export function normalizeMemoryOrganization(value, memories) {
     const reviewed = Object.fromEntries(memories.filter(memory => Object.hasOwn(value.reviewed, memory.id) && typeof value.reviewed[memory.id] === 'string').map(memory => [memory.id, value.reviewed[memory.id]]));
     return { version: 1, initializedAt: value.initializedAt, lastOrganizedAt: Number.isFinite(value.lastOrganizedAt) && value.lastOrganizedAt > 0 ? value.lastOrganizedAt : value.initializedAt, reviewed };
 }
+function normalizeMaintenanceTransaction(value) {
+    if (!value) return null;
+    if (value.version === 2 || value.status === 'preview' || value.status === 'legacy') return value;
+    const tx = structuredClone(value);
+    if (tx.version !== 2 && tx.status !== 'preview') {
+        tx.status = 'legacy'; tx.error = '旧版未完成整理需要重新发起；可查看已完成批次或取消。';
+    }
+    return tx;
+}
 export function normalizeState(raw) {
     const start = createState(), value = raw && typeof raw === 'object' ? raw : {}, schema = Number.isFinite(+value.version) ? +value.version : 0;
     if (schema > SCHEMA_VERSION) throw new Error(`聊天数据版本 ${value.version} 高于支持版本 ${SCHEMA_VERSION}`);
@@ -65,7 +75,7 @@ export function normalizeState(raw) {
         delete pendingTransaction.memoryCandidates; delete pendingTransaction.memoryRejected;
         pendingTransaction.results ||= {}; pendingTransaction.results.memory = { status: 'error', error: '记忆协议已升级，请重新提取本幕记忆。' };
     }
-    return { ...start, ...rest, version: SCHEMA_VERSION, acts: all, currentActId: current, status: ['active', 'closing', 'preview', 'pending_next_act'].includes(value.status) ? value.status : 'active', memories, memoryLinks: normalizeMemoryLinks(value.memoryLinks, memories), memoryOrganization: schema < 5 ? null : normalizeMemoryOrganization(value.memoryOrganization, memories), memoryRevision: +value.memoryRevision || 0, memorySpaceId: str(value.memorySpaceId) || start.memorySpaceId, pendingTransaction, maintenanceTransaction: schema < 5 ? null : value.maintenanceTransaction || null, characterGrowth: normalizeCharacterGrowth(value.characterGrowth && typeof value.characterGrowth === 'object' ? value.characterGrowth : value.summary), settings: normalizeSettings(value.settings), drafts: list(value.drafts) };
+    return { ...start, ...rest, version: SCHEMA_VERSION, acts: all, currentActId: current, status: ['active', 'closing', 'preview', 'pending_next_act'].includes(value.status) ? value.status : 'active', memories, memoryLinks: normalizeMemoryLinks(value.memoryLinks, memories), memoryOrganization: schema < 5 ? null : normalizeMemoryOrganization(value.memoryOrganization, memories), memoryRevision: +value.memoryRevision || 0, memorySpaceId: str(value.memorySpaceId) || start.memorySpaceId, pendingTransaction, maintenanceTransaction: schema < 5 ? null : normalizeMaintenanceTransaction(value.maintenanceTransaction), characterGrowth: normalizeCharacterGrowth(value.characterGrowth && typeof value.characterGrowth === 'object' ? value.characterGrowth : value.summary), settings: normalizeSettings(value.settings), drafts: list(value.drafts) };
 }
 
 export const currentAct = state => list(state?.acts).find(act => act.id === state.currentActId) || list(state?.acts).at(-1) || null;

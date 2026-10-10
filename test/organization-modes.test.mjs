@@ -16,7 +16,7 @@ function pairs(tasks) {
     }
     return result;
 }
-function initialized(ids = ['a', 'b']) { const state = createState(); state.memories = ids.map(id => memory(id)); return applyMaintenance(state, [], { mode: 'full' }); }
+function initialized(ids = ['a', 'b']) { const state = createState(); state.settings.maintenanceConnectionProfile = 'maintenance-profile'; state.memories = ids.map(id => memory(id)); return applyMaintenance(state, [], { mode: 'full' }); }
 
 test('full approval replaces all old links and initializes the resulting independent records', () => {
     const state = createState(); state.memories = ['a', 'b', 'c'].map(id => memory(id)); state.memoryLinks = [link('a', 'b')];
@@ -116,8 +116,8 @@ test('host incremental prompts compare pending entries against the baseline and 
     const host = await hostFixture([], input => {
         assert.match(JSON.stringify(input.prompt), /增量整理/);
         const data = JSON.parse(input.prompt[1].content.split('\n').at(-1));
-        assert.deepEqual(data.pendingIds, ['new']); assert.deepEqual(data.left.map(item => item.id), ['new']);
-        assert.deepEqual(data.right.map(item => item.id), ['a', 'b']);
+        assert.deepEqual(data.pendingIds, ['new']); assert.deepEqual(data.anchors, ['new']);
+        assert.deepEqual(data.memories.map(item => item.id), ['a', 'b', 'new']); assert.deepEqual(data.allowedPairs, [['a', 'new'], ['b', 'new']]);
         return { operations: [{ action: 'link', ...link('b', 'new') }] };
     });
     try {
@@ -132,16 +132,17 @@ test('host incremental prompts compare pending entries against the baseline and 
     } finally { host.cleanup(); }
 });
 
-test('host model old-only suggestions are visible exclusions and require explicit partial approval', async () => {
+test('host model old-only suggestions are automatically filtered and allow ordinary approval', async () => {
     const host = await hostFixture([], () => ({ operations: [{ action: 'link', ...link('a', 'b') }] }));
     try {
         const state = initialized(); state.memories.push(memory('new')); host.context.chatMetadata.scene_diary = state;
         const baseline = structuredClone(state.memoryOrganization);
         await host.api.startMaintenance('incremental'); assert.equal(host.api.getState().maintenanceTransaction.status, 'preview');
-        assert.match(host.api.getState().maintenanceTransaction.tasks[0].rejected[0].reason, /未变更/);
+        assert.match(host.api.getState().maintenanceTransaction.tasks[0].filtered[0].reason, /未变更/);
+        assert.equal(host.api.getState().maintenanceTransaction.tasks[0].rejected.length, 0);
         await host.api.confirmMaintenance();
-        assert.deepEqual(host.api.getState().memoryLinks, []); assert.deepEqual(host.api.getState().memoryOrganization, baseline);
-        assert.deepEqual(pendingOrganizationIds(host.api.getState()), ['new']);
+        assert.deepEqual(host.api.getState().memoryLinks, []); assert.notDeepEqual(host.api.getState().memoryOrganization, baseline);
+        assert.deepEqual(pendingOrganizationIds(host.api.getState()), []);
     } finally { host.cleanup(); }
 });
 

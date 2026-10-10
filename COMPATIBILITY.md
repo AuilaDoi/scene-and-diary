@@ -1,5 +1,14 @@
 # Compatibility
 
+## v0.3.6 current working version
+
+Chat schema upgrades to 6 with a pre-migration full-chat backup and verified save. Schema 5 facts, links, initialization and close previews survive; completed old organization previews remain approvable, unfinished old runs must be restarted. Content backups remain v2. The new transaction shape requires the new runtime; restore the pre-upgrade full chat when rolling back.
+
+Organization requires a dedicated Chat Completion Connection Manager profile and uses a custom system prompt. Optional semantic endpoints and credentials are shared with recall, but screening limits/scoring are independent. Enabled-service failure pauses organization; chat recall retains its previous fallback behavior. Native and Tauri JSON host adapters retain their existing provider-specific request paths. Real browser/Tauri/provider acceptance remains pending; see [v0.3.6 validation](VALIDATION-v0.3.6.md).
+
+## Historical version behavior
+
+
 v0.3.4 retains schema 5, content backup v2 and v0.3.3 recall behavior. Chat setting edits no longer invalidate close previews; regeneration uses the latest saved settings. Existing close previews, including legacy settings fingerprints, remain saveable when source messages and saved growth are unchanged. No data migration is required. See [v0.3.4 validation and rollback](VALIDATION-v0.3.4.md); real-client manual acceptance remains pending.
 
 v0.3.3 introduced `recallScoreThreshold=0.30`; custom values are preserved, invalid values use the default, and numeric values are bounded to 0–1. No facts, links, diaries or growth are migrated or rewritten for this update. Final scoring now retains actual match strength (see README), so recall can be empty or shorter than before. A merged group with more than two distinct seeds drops attached non-seed neighbors. Rerank services should supply 0–1 relevance scores; values outside that range are clamped.

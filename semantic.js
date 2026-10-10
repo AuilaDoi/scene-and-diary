@@ -91,12 +91,15 @@ export function indexVectors(memories, identity, config, key) {
     if (queue.pending.has(snapshot)) return queue.pending.get(snapshot);
     const frozen = structuredClone({ memories, identity, config });
     const task = queue.tail.catch(() => {}).then(async () => {
+        const result = await loadVectors(frozen.memories, frozen.identity, frozen.config);
         for (let i = 0; i < frozen.memories.length; i += 16) {
-            const batch = frozen.memories.slice(i, i + 16), cached = await loadVectors(batch, frozen.identity, frozen.config), missing = batch.filter(memory => !cached.has(memory.id));
+            const batch = frozen.memories.slice(i, i + 16), missing = batch.filter(memory => !result.has(memory.id));
             if (!missing.length) continue;
             const vectors = await embed(missing.map(memoryText), frozen.config, key);
             await writeVectors(missing, vectors, frozen.identity, frozen.config);
+            missing.forEach((memory, index) => result.set(memory.id, vectors[index]));
         }
+        return result;
     }).finally(() => {
         queue.pending.delete(snapshot);
         if (!queue.pending.size) indexQueues.delete(space);

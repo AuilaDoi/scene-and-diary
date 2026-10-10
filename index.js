@@ -1,13 +1,15 @@
 import { extension_prompt_roles, extension_prompt_types, setExtensionPrompt } from '../../../../script.js';
 import { getContext } from '../../../st-context.js';
-import { appendExtractedMemories, applyMaintenance, maintenanceTasks, maintenanceMaterial, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, splitMaintenanceTask, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, finalizeRecallCandidates, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
+import { appendExtractedMemories, applyMaintenance, pendingOrganizationIds, validateMaintenanceScope, validateMaintenanceBatch, planMaintenance, memoryEligible, memoryText, rankRecallCandidates, finalizeRecallCandidates, retrieveMemories, validateCandidateBatch, validateMemoryFormat } from './memory-system.js';
+import { createMemoryRetriever, validateMaintenanceTaskScopes } from './memory-system.js';
+import { maintenanceMessages, maintenanceConnectionIdentity, candidatePairs, candidateTasks, splitCandidateTask, waitForMaintenance, maintenanceInputSize, MAINTENANCE_INPUT_LIMIT } from './maintenance-flow.js';
 import { OUTPUT_SCHEMAS, requestStructured, requestLegacyStructured, requireArrayField } from './model-protocol.js';
 import { createTauriJsonSession, loadTauriJsonDependencies } from './json-host-adapter.js';
 import { embed, indexVectors, loadVectors, rerank, validateSemanticEndpoint, semanticErrorDetail } from './semantic.js';
 import { createRecallTrace, logRecall, finishRecallTrace, renderRecallDiagnostics, durationText } from './recall-diagnostics.js';
 import { createContentBackup, restoreContentBackup } from './backup.js';
 import {
-    SCHEMA_VERSION, STORAGE_KEY, DEFAULT_SETTINGS, DEFAULT_DIARY_PROMPT, DEFAULT_MEMORY_PROMPT, DEFAULT_GROWTH_PROMPT,
+    SCHEMA_VERSION, STORAGE_KEY, DEFAULT_SETTINGS, DEFAULT_DIARY_PROMPT, DEFAULT_MEMORY_PROMPT, DEFAULT_GROWTH_PROMPT, DEFAULT_MAINTENANCE_PROMPT,
     MEMORY_CATEGORIES, acknowledgeActReview, acknowledgeMemoryReview, assignMessageToAct, beginNextAct,
     buildCharacterContext, buildContinuityBlock, buildDialogue, buildDiaryPrompt, buildGrowthPrompt, buildMemoryPrompt,
     buildRecallQuery, createState, currentAct, estimateTokens, filterPromptMessages, findAct,
@@ -79,7 +81,7 @@ function initializeChat() {
     if (!compatible()) { render(); return null; }
     const key = String(ctx().chatId);
     if (key !== activeChatKey) jsonWarnings.clear();
-    if (key !== activeChatKey) { cancelRecallWork('聊天已切换'); lastRecallTrace = null; jsonProgress.clear(); draftMemory = null; memoryRenderKey = ''; activeChatKey = key; closingPromise = null; lastRecall = null; lastContinuity = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
+    if (key !== activeChatKey) { for (const work of maintenanceWork.values()) work.controller.abort(new DOMException('聊天已切换', 'AbortError')); cancelRecallWork('聊天已切换'); lastRecallTrace = null; jsonProgress.clear(); draftMemory = null; memoryRenderKey = ''; activeChatKey = key; closingPromise = null; lastRecall = null; lastContinuity = null; recallContent = ''; recallCache.clear(); recallGeneration++; migrationPending = false; saveUnverified = false; clearPrompts(); }
     const original = meta()[STORAGE_KEY];
     if (original && schemaVersion(original) < SCHEMA_VERSION && migrationReady.get(key) !== original) {
         if (!migrationPreparing.has(key)) {
@@ -87,8 +89,8 @@ function initializeChat() {
             void (async () => {
                 try {
                     const account = semanticIdentity({ memorySpaceId: 'legacy' }).account;
-                    const backupKey = `scene_diary_migration_backup_${account}_${key}_schema${schemaVersion(original)}_to5`;
-                    const snapshot = { savedAt: Date.now(), codeVersion: '0.3.2', schema: original.version, metadata: structuredClone(meta()), messages: structuredClone(chat()) };
+                    const backupKey = `scene_diary_migration_backup_${account}_${key}_schema${schemaVersion(original)}_to${SCHEMA_VERSION}`;
+                    const snapshot = { savedAt: Date.now(), codeVersion: '0.3.6', schema: original.version, metadata: structuredClone(meta()), messages: structuredClone(chat()) };
                     const pendingRecovery = original.memorySpaceId ? await SillyTavern.libs.localforage.getItem(`scene_diary_recovery_${account}_${key}_${original.memorySpaceId}`) : null;
                     if (pendingRecovery) snapshot.pendingRecovery = structuredClone(pendingRecovery);
                     if (!await SillyTavern.libs.localforage.getItem(backupKey)) await SillyTavern.libs.localforage.setItem(backupKey, snapshot);
@@ -416,9 +418,7 @@ async function sceneDiaryRearrangeChat(promptChat, _contextSize, abort) {
 function promptReady(eventData) { const state = getState(), requestChat = eventData?.chat, dryRun = !!eventData?.dryRun; if (!dryRun && !awaitingMainPrompt) return; awaitingMainPrompt = false; if (!state || disabledReason || state.status !== 'active' || !Array.isArray(requestChat)) { lastContinuity = { included: false, reason: '聊天未处于可注入状态', dryRun }; return; } const input = dryRun ? recallInput(state) : null; if (input?.errors?.length) { lastContinuity = { included: false, reason: '召回正文提取失败', dryRun }; return; } const content = dryRun ? localContinuity(state, input).content : recallContent; const index = insertContinuityBeforeHistory(requestChat, content); lastContinuity = { included: index >= 0, index, length: content.length, growthIncluded: !!state.characterGrowth.content, growthRevision: state.characterGrowth.revision, dryRun, reason: index >= 0 ? '' : '没有可注入的角色成长、日记或记忆' }; recallContent = ''; refreshRecallDebug(); }
 globalThis.sceneDiaryRearrangeChat = sceneDiaryRearrangeChat;
 
-const maintenanceRuns = new Set();
-const maintenanceInstruction = `你是记忆库语义整理器。素材只有下列已保存记忆及关联，不读取或补写外部事实。寻找同一事实的重复表达并建议 merge；不同时间分别成立、发展、兑现、取消的事实保持独立并建议 link。仅人物或地点相同不足以关联。锁定条目不能合并，但允许关联。所有结果只是供用户批准的建议。
-返回严格 JSON {"operations":[]}。merge 项：action, memberIds（至少两个输入ID）, targetId（成员之一）, title, content, category, a:null,b:null,reason。link 项：action, memberIds:[],targetId:null,title:null,content:null,category:null,a,b,reason。所有 ID 原样复制本批输入的 id 字段；link 的 a、b 必须为两个不同的输入 ID，不能为 null、标题、序号或新建的合并 ID。理由最多300字符，合并标题最多120字符、正文最多500字符，category 必须是 preference/habit/promise/relationship/event/item_place。不要在同一批中生成重复操作。既有关系无需重复建议。`;
+const maintenanceRuns = new Set(), maintenanceWork = new Map();
 function editCandidate(field) {
     if (pendingSave || disabledReason) return;
     const state = getState(), memory = state?.pendingTransaction?.results?.memory?.value?.candidates?.[+field.dataset.candidateIndex]; if (!memory) return;
@@ -439,67 +439,125 @@ function maintenanceCurrent(id, key) {
     if (key !== activeChatKey || key !== String(ctx().chatId) || !compatible()) return null;
     const state = getState(); return state?.maintenanceTransaction?.id === id ? state : null;
 }
+function maintenanceLog(tx, stage, status, message, elapsed = 0) {
+    tx.events ||= []; tx.events.push({ stage, status, message, elapsed, at: Date.now() - tx.startedAt });
+}
 async function startMaintenance(mode = null) {
     const state = getState(); if (!state || disabledReason || pendingSave) return;
     if (state.maintenanceTransaction?.status === 'running') { notify('info', '记忆整理正在运行。'); return; }
     mode ||= state.memoryOrganization ? 'incremental' : 'full';
     if (!['full', 'incremental'].includes(mode)) { notify('error', '记忆整理模式无效。'); return; }
     if (mode === 'incremental' && !state.memoryOrganization) { notify('info', '请先完成并批准一次全量整理／初始化。'); return; }
-    const pendingIds = mode === 'full' ? state.memories.map(memory => memory.id) : pendingOrganizationIds(state);
+    const pendingIds = (mode === 'full' ? state.memories.map(memory => memory.id) : pendingOrganizationIds(state)).sort();
     if (mode === 'incremental' && !pendingIds.length) { notify('info', '没有新增或变更的记忆，无需增量整理。'); return; }
-    const snapshot = structuredClone(state.memories), id = newId('maintenance');
-    const key = activeChatKey;
-    state.maintenanceTransaction = { id, chatKey: key, memoryRevision: state.memoryRevision, mode, pendingIds, profile: state.settings.memoryConnectionProfile || state.settings.diaryConnectionProfile, snapshot, originalLinks: structuredClone(state.memoryLinks), links: mode === 'full' ? [] : structuredClone(state.memoryLinks), tasks: maintenanceTasks(snapshot, 12000, mode === 'full' ? null : pendingIds), status: 'ready', startedAt: Date.now() };
+    const settings = structuredClone(state.settings), profile = settings.maintenanceConnectionProfile;
+    let connectionIdentity;
+    try { connectionIdentity = maintenanceConnectionIdentity(ctx(), profile); }
+    catch (error) { notify('error', error.message); return; }
+    const snapshot = structuredClone(state.memories), id = newId('maintenance'), key = activeChatKey;
+    const identity = semanticIdentity(state);
+    state.maintenanceTransaction = { version: 2, id, chatKey: key, memoryRevision: state.memoryRevision, mode, pendingIds, profile, connectionIdentity,
+        settings: { maintenanceCandidateLimit: settings.maintenanceCandidateLimit, maintenanceScoreThreshold: settings.maintenanceScoreThreshold, semantic: settings.semantic, prompts: { maintenance: settings.prompts.maintenance } },
+        character: { char: ctx().name2 || '角色', user: ctx().name1 || '玩家' }, identity, snapshot,
+        originalLinks: structuredClone(state.memoryLinks), links: mode === 'full' ? [] : structuredClone(state.memoryLinks),
+        queries: pendingIds.map(id => ({ id, status: 'pending' })), tasks: [], allowedPairs: [], stage: 'index', status: 'ready', startedAt: Date.now(), events: [] };
     setState(state); await saveState(state, key, true); if (!maintenanceCurrent(id, key)) return; render(state); await runMaintenance(id);
 }
 async function runMaintenance(id) {
     if (maintenanceRuns.has(id) || pendingSave || disabledReason) return;
     const key = activeChatKey; let state = maintenanceCurrent(id, key); if (!state) return;
-    if (state.memoryRevision !== state.maintenanceTransaction.memoryRevision) { notify('warning', '记忆库已变化，请重新点击“记忆整理”。'); return; }
-    maintenanceRuns.add(id);
+    const tx = state.maintenanceTransaction;
+    if (tx.version !== 2) { notify('warning', '旧版未完成整理需要重新发起；已完成预览仍可批准。'); return; }
+    if (state.memoryRevision !== tx.memoryRevision) { notify('warning', '记忆库已变化，请重新整理。'); return; }
+    const controller = new AbortController();
+    const check = () => {
+        controller.signal.throwIfAborted();
+        const latest = maintenanceCurrent(id, key);
+        if (!latest || latest.memoryRevision !== tx.memoryRevision || ctx().groupId || disabledReason) throw staleJsonRequest();
+        if (JSON.stringify(semanticIdentity(latest)) !== JSON.stringify(tx.identity)) throw staleJsonRequest();
+        if (maintenanceConnectionIdentity(ctx(), tx.profile) !== tx.connectionIdentity) throw new Error('记忆整理连接配置已改变，请重新发起整理。');
+    };
+    const checkpoint = async () => { check(); const latest = maintenanceCurrent(id, key); setState(latest); await saveState(latest, key); check(); render(latest); };
+    const keys = { embedding: semanticKey || ctx().accountStorage?.getItem('scene_diary_embedding_key') || '', rerank: rerankKey || ctx().accountStorage?.getItem('scene_diary_rerank_key') || '' };
+    const monitor = setInterval(() => { try { check(); } catch (error) { controller.abort(error); } }, 250);
+    maintenanceRuns.add(id); maintenanceWork.set(id, { controller });
     try {
-        state.maintenanceTransaction.status = 'running'; setState(state); await saveState(state, key, true); render(state);
-        while ((state = maintenanceCurrent(id, key))) {
-            const tx = state.maintenanceTransaction;
-            if (state.memoryRevision !== tx.memoryRevision) { tx.status = 'stale'; setState(state); await saveState(state, key); render(state); return; }
-            const task = tx.tasks.find(item => item.status !== 'success');
-            if (!task) {
-                validateMaintenanceScope(tx.tasks.flatMap(item => item.operations || []), tx.mode === 'incremental' ? tx.pendingIds : null);
-                tx.operations = planMaintenance(tx.snapshot, tx.links, tx.tasks.flatMap(item => item.operations || [])); tx.status = 'preview';
-                const rejectedCount = tx.tasks.reduce((sum, item) => sum + (item.rejected?.length || 0), 0);
-                setState(state); await saveState(state, key, true); render(state); notify(rejectedCount ? 'warning' : 'success', `记忆整理完成：${tx.operations.length} 项有效建议，${rejectedCount} 项建议未通过校验，等待批准。`); return;
-            }
-            task.status = 'running'; task.error = ''; setState(state); await saveState(state, key); if (!maintenanceCurrent(id, key)) return; render(state);
+        check(); tx.status = 'running'; tx.error = ''; await checkpoint();
+        const config = tx.settings.semantic, retrieve = createMemoryRetriever(tx.snapshot, tx.memoryRevision, { includePermanent: true });
+        let vectors = new Map();
+        if (config.enabled && tx.snapshot.length > 1 && tx.queries.some(query => query.status !== 'success')) {
+            const start = Date.now(); maintenanceLog(tx, '索引', 'start', '检查缓存并补齐缺失的记忆向量'); await checkpoint();
             try {
-                const byId = new Map(tx.snapshot.map(memory => [memory.id, memory])), input = [...task.left, ...task.right].map(id => byId.get(id)), ids = new Set([...task.left, ...task.right]);
-                const material = id => maintenanceMaterial(byId.get(id));
-                const scope = tx.mode === 'incremental' ? '这是增量整理。已有结构保留，只检查涉及待整理条目的组合；禁止仅对未变更的旧条目提出合并或关联。' : tx.mode === 'full' ? '这是全量整理／初始化。所有现有条目视为独立事实，从空关联重建结构。' : '这是旧版整理任务。';
-                const prompt = `${maintenanceInstruction}\n${scope}\n本批${task.right.length ? '为跨块比较，只检查左块与右块之间的语义重复和发展关联；不提出单侧内部操作' : '为块内比较'}。\n${JSON.stringify({ left: task.left.map(material), right: task.right.map(material), pendingIds: tx.mode === 'incremental' ? tx.pendingIds.filter(id => ids.has(id)) : undefined, links: tx.links.filter(link => ids.has(link.a) && ids.has(link.b)) })}`;
-                const feedback = task.rejected?.length ? `\n上一轮下列建议未通过校验，请修正这些错误并重新返回本批完整建议：${JSON.stringify(task.rejected)}` : '';
-                const output = await requestJson(tx.profile, modelMessages(prompt + feedback), OUTPUT_SCHEMAS.maintenance, value => requireArrayField(modelJson(value, '记忆整理'), 'operations', '记忆整理'), 8192, '记忆整理', { owner: `maintenance:${id}`, assertCurrent() {
-                    const latest = meta()[STORAGE_KEY];
-                    if (!latest || String(ctx().chatId) !== key || activeChatKey !== key || latest.maintenanceTransaction?.id !== id
-                        || ctx().groupId || disabledReason || latest.memoryRevision !== tx.memoryRevision
-                        || (latest.settings.memoryConnectionProfile || latest.settings.diaryConnectionProfile) !== tx.profile) throw staleJsonRequest();
-                } });
-                // Validate only IDs, fields and locks. No factual/source verification.
-                const batch = validateMaintenanceBatch(input, tx.links, output.operations, tx.mode === 'incremental' ? tx.pendingIds : null);
-                state = maintenanceCurrent(id, key); if (!state) return;
-                const current = state.maintenanceTransaction.tasks.find(item => item.id === task.id); if (!current) return;
-                current.operations = batch.operations; current.rejected = batch.rejected; current.status = 'success';
-            } catch (error) {
-                state = maintenanceCurrent(id, key); if (!state) return;
-                const current = state.maintenanceTransaction.tasks.find(item => item.id === task.id); if (!current) return;
-                const split = /context|too (?:many|long)|token.*(?:limit|exceed)|上下文|超限|两次输出均未满足/i.test(error.message) ? splitMaintenanceTask(current) : null;
-                if (split) state.maintenanceTransaction.tasks.splice(state.maintenanceTransaction.tasks.indexOf(current), 1, ...split);
-                else { current.status = 'error'; current.error = error.message; state.maintenanceTransaction.status = 'error'; setState(state); await saveState(state, key); render(state); notify('error', `整理批次失败，成功批次已保留：${error.message}`); return; }
-            }
-            setState(state); await saveState(state, key); render(state);
+                vectors = await waitForMaintenance(indexVectors(tx.snapshot, tx.identity, config, keys.embedding), controller.signal); check();
+                const widths = new Set([...vectors.values()].map(vector => vector.length));
+                if (vectors.size !== tx.snapshot.length || widths.size !== 1 || [...vectors.values()].some(vector => !vector.length || vector.some(value => !Number.isFinite(value))) || config.dimensions && !widths.has(config.dimensions)) throw new Error('记忆向量缺失、维度或内容不兼容，请重建向量后重新整理。');
+                maintenanceLog(tx, '索引', 'ok', '向量已就绪，查询复用条目自身向量', Date.now() - start);
+            } catch (error) { maintenanceLog(tx, '索引', 'error', semanticErrorDetail(error, Object.values(keys)), Date.now() - start); throw error; }
+        } else maintenanceLog(tx, '索引', 'skip', config.enabled ? '无需补充初筛查询' : '未启用 embedding，使用本地检索');
+        if (tx.stage === 'index') tx.stage = 'retrieval'; await checkpoint();
+        for (const query of tx.queries.filter(item => item.status !== 'success')) {
+            check(); query.status = 'running'; const started = Date.now(); await checkpoint();
+            try {
+                const memory = tx.snapshot.find(item => item.id === query.id);
+                let pool = retrieve(memoryText(memory), { vectors, queryVector: vectors.get(query.id), excludeId: query.id, useImportance: false });
+                if (config.rerank && pool.length) {
+                    const scores = await waitForMaintenance(rerank(memoryText(memory), pool.map(item => memoryText(item.memory)), config, keys.rerank, { signal: controller.signal }), controller.signal); check();
+                    pool = rankRecallCandidates(pool, scores, { absolute: true, useImportance: false });
+                }
+                query.candidates = pool.filter(item => item.score >= tx.settings.maintenanceScoreThreshold).slice(0, tx.settings.maintenanceCandidateLimit).map(item => ({ id: item.memory.id, score: item.score }));
+                query.status = 'success'; query.error = '';
+                maintenanceLog(tx, '初筛', 'ok', (memory.title || query.id) + '：' + pool.length + ' 条初选，保留 ' + query.candidates.length + ' 条候选', Date.now() - started);
+            } catch (error) { query.status = 'error'; query.error = semanticErrorDetail(error, Object.values(keys)); maintenanceLog(tx, '初筛', 'error', query.error, Date.now() - started); throw error; }
+            await checkpoint();
         }
+        if (tx.stage === 'retrieval') {
+            tx.allowedPairs = candidatePairs(tx.queries, tx.mode === 'incremental' ? tx.pendingIds : null);
+            tx.tasks = candidateTasks(tx); tx.stage = 'analysis';
+            maintenanceLog(tx, '配对', 'ok', tx.allowedPairs.length + ' 个去重候选配对，' + tx.tasks.length + ' 个分析批次'); await checkpoint();
+        }
+        while (tx.tasks.some(task => task.status !== 'success')) {
+            check(); const task = tx.tasks.find(item => item.status !== 'success'); task.status = 'running'; task.error = ''; await checkpoint();
+            const started = Date.now();
+            try {
+                const feedback = task.rejected?.length ? JSON.stringify(task.rejected) : '';
+                const messages = maintenanceMessages(tx, task, feedback);
+                if (maintenanceInputSize(messages) > MAINTENANCE_INPUT_LIMIT) throw new Error('整理输入超限，需要拆批。');
+                const parse = value => requireArrayField(modelJson(value, '记忆整理'), 'operations', '记忆整理');
+                let output;
+                if (globalThis.__TAURI_RUNNING__ === true) {
+                    output = await waitForMaintenance(requestJson(tx.profile, messages, OUTPUT_SCHEMAS.maintenance, parse, 8192, '记忆整理', { owner: 'maintenance:' + id, assertCurrent: check }), controller.signal);
+                } else {
+                    output = await waitForMaintenance(requestLegacyStructured(async (prompt, tokens, schema) => {
+                        check(); const result = await ctx().ConnectionManagerRequestService.sendRequest(tx.profile, prompt, tokens, { stream: false, signal: controller.signal, extractData: true, includePreset: false, includeInstruct: false }, schema ? { json_schema: schema } : {}); check(); return result?.content ?? result;
+                    }, messages, OUTPUT_SCHEMAS.maintenance, parse, 8192, '记忆整理'), controller.signal);
+                }
+                check();
+                const batch = validateMaintenanceBatch(tx.snapshot, tx.links, output.operations, tx.mode === 'incremental' ? tx.pendingIds : null, task);
+                task.operations = batch.operations; task.rejected = batch.rejected; task.filtered = batch.filtered; task.status = 'success';
+                maintenanceLog(tx, '分析', 'ok', batch.operations.length + ' 项有效建议，自动过滤 ' + batch.filtered.length + ' 项，校验失败 ' + batch.rejected.length + ' 项', Date.now() - started);
+            } catch (error) {
+                check(); const split = /context|too (?:many|long)|token.*(?:limit|exceed)|上下文|超限|两次输出均未满足/i.test(error.message) ? splitCandidateTask(task) : null;
+                if (split) tx.tasks.splice(tx.tasks.indexOf(task), 1, ...split);
+                else { task.status = 'error'; task.error = semanticErrorDetail(error, Object.values(keys)); throw error; }
+            }
+            await checkpoint();
+        }
+        const raw = tx.tasks.flatMap(task => task.operations || []);
+        validateMaintenanceScope(raw, tx.mode === 'incremental' ? tx.pendingIds : null); validateMaintenanceTaskScopes(raw, tx.tasks);
+        tx.operations = planMaintenance(tx.snapshot, tx.links, raw); tx.deduplicatedCount = raw.length - tx.operations.length; validateMaintenanceTaskScopes(tx.operations, tx.tasks);
+        tx.status = 'preview'; tx.stage = 'review';
+        const rejectedCount = tx.tasks.reduce((sum, task) => sum + (task.rejected?.length || 0), 0);
+        maintenanceLog(tx, '审核', 'ok', tx.operations.length + ' 项建议等待批准');
+        await checkpoint(); notify(rejectedCount ? 'warning' : 'success', '记忆整理完成：' + tx.operations.length + ' 项有效建议，' + rejectedCount + ' 项建议未通过校验，等待批准。');
     } catch (error) {
         state = maintenanceCurrent(id, key);
-        if (state) { state.maintenanceTransaction.status = 'error'; state.maintenanceTransaction.error = error.message; setState(state); render(state); notify('error', `整理未完成：${error.message}`); }
-    } finally { maintenanceRuns.delete(id); }
+        if (state) {
+            tx.status = state.memoryRevision !== tx.memoryRevision ? 'stale' : 'error'; tx.error = semanticErrorDetail(error, Object.values(keys));
+            for (const query of tx.queries) if (query.status === 'running') query.status = 'error';
+            for (const task of tx.tasks) if (task.status === 'running') task.status = 'error';
+            maintenanceLog(tx, '暂停', 'error', tx.error); setState(state); await saveState(state, key).catch(saveError => notify('warning', '整理进度保存失败：' + semanticErrorDetail(saveError, Object.values(keys)))); render(state); notify('error', '整理暂停，已完成进度保留：' + tx.error);
+        }
+    } finally { clearInterval(monitor); maintenanceRuns.delete(id); maintenanceWork.delete(id); }
 }
 async function confirmMaintenance(acceptRejected = false) {
     if (pendingSave || disabledReason) return;
@@ -508,7 +566,7 @@ async function confirmMaintenance(acceptRejected = false) {
     if (tx.tasks.some(task => task.rejected?.length) && acceptRejected !== true) { notify('warning', '部分模型建议未通过校验。请查看原因，并使用“忽略未通过的建议并批准”按钮明确确认。'); return; }
     if (state.memoryRevision !== tx.memoryRevision) { notify('error', '记忆库已变化，请重新整理。'); return; }
     let next;
-    try { next = applyMaintenance(state, tx.operations, { mode: tx.mode, pendingIds: tx.pendingIds }); } catch (error) { notify('error', `整理未保存：${error.message}`); return; }
+    try { next = applyMaintenance(state, tx.operations, { mode: tx.mode, pendingIds: tx.pendingIds, tasks: tx.version === 2 ? tx.tasks : undefined }); } catch (error) { notify('error', `整理未保存：${error.message}`); return; }
     pendingSave = true; let applied = false;
     try {
         await preserveRecovery(next, key);
@@ -524,8 +582,12 @@ async function confirmMaintenance(acceptRejected = false) {
 }
 function cancelMaintenance() {
     const state = getState(); if (!state) return;
+    maintenanceWork.get(state.maintenanceTransaction?.id)?.controller.abort(new DOMException('整理已取消', 'AbortError'));
     abortInvalidJsonRequests(`maintenance:${state.maintenanceTransaction?.id}`);
     state.maintenanceTransaction = null; setState(state); void saveState(state).catch(showSaveError); render(state);
+}
+function maintenanceDiagnostics(tx) {
+    return '<ol class="scene-diary-log">' + (tx.events || []).slice(-100).map(event => '<li><strong>' + escape(event.stage) + '</strong> · ' + escape(event.status) + ' · +' + durationText(event.at) + ' · ' + durationText(event.elapsed) + '<p>' + escape(event.message) + '</p></li>').join('') + '</ol>' + tx.tasks.flatMap(task => task.filtered || []).map(item => '<p>自动过滤：' + escape(item.reason) + '（' + escape(item.targets.join(' ↔ ')) + '）</p>').join('');
 }
 function renderMaintenance(state) {
     const root = document.querySelector('#scene_diary_maintenance'); if (!root) return;
@@ -541,8 +603,10 @@ function renderMaintenance(state) {
     if (tx.status === 'running' && jsonProgress.has(`maintenance:${tx.id}`)) status += `<p>${escape(jsonProgress.get(`maintenance:${tx.id}`))}</p>`;
     const stale = state.memoryRevision !== tx.memoryRevision, completed = tx.tasks.filter(task => task.status === 'success').length;
     const count = tx.pendingIds?.length || 0, total = tx.snapshot.length;
-    const pairs = tx.mode === 'incremental' ? count * (total - count) + count * (count - 1) / 2 : total * (total - 1) / 2;
-    const header = `${status}<h4>${tx.mode === 'full' ? '全量整理／初始化' : tx.mode === 'incremental' ? '增量整理' : '旧版整理预览'}</h4><p>${total} 条记忆${tx.mode === 'incremental' ? `，其中 ${count} 条待整理` : ''}；覆盖 ${pairs} 个条目组合。${completed}/${tx.tasks.length} 批已完成（预计 ${tx.tasks.length} 次请求，超限拆批后可能增加）。${stale ? '记忆库已变化，需重新整理。' : tx.status === 'running' ? '正在分析…' : ''}</p>${tx.mode === 'full' ? `<p class="scene-diary-warning">批准后将替换原有 ${tx.originalLinks?.length || 0} 条关联，只保留本次批准的关联及合并结果。</p>${tx.originalLinks?.map(link => `<p>待替换关联：${escape(tx.snapshot.find(memory => memory.id === link.a)?.title || link.a)} ↔ ${escape(tx.snapshot.find(memory => memory.id === link.b)?.title || link.b)}：${escape(link.reason)}</p>`).join('') || ''}` : ''}${tx.error ? `<p>${escape(tx.error)}</p>` : ''}${tx.tasks.filter(task => task.status === 'error').map(task => `<p class="scene-diary-warning">${escape(task.error)}</p>`).join('')}`;
+    const retrievalProgress = tx.version === 2 ? tx.queries.filter(query => query.status === 'success').length : 0;
+    const phase = { index: '建立索引', retrieval: '逐条初筛', analysis: '合批分析', review: '审核' };
+    const coverage = tx.version === 2 ? `阶段：${phase[tx.stage] || tx.stage}；${retrievalProgress}/${tx.queries.length} 条初筛完成；${tx.allowedPairs.length} 个候选配对，${completed}/${tx.tasks.length} 批分析完成。初筛不保证覆盖全部组合。` : `旧版任务；${completed}/${tx.tasks.length} 批已完成。`;
+    const header = `${status}<h4>${tx.mode === 'full' ? '全量整理／初始化' : tx.mode === 'incremental' ? '增量整理' : '旧版整理预览'}</h4><p>${total} 条记忆${tx.mode === 'incremental' ? `，其中 ${count} 条待整理` : ''}；${coverage}${stale ? '记忆库已变化，需重新整理。' : tx.status === 'running' ? '正在分析…' : ''}</p>${tx.mode === 'full' ? `<p class="scene-diary-warning">批准后将替换原有 ${tx.originalLinks?.length || 0} 条关联，只保留本次批准的关联及合并结果。</p>${tx.originalLinks?.map(link => `<p>待替换关联：${escape(tx.snapshot.find(memory => memory.id === link.a)?.title || link.a)} ↔ ${escape(tx.snapshot.find(memory => memory.id === link.b)?.title || link.b)}：${escape(link.reason)}</p>`).join('') || ''}` : ''}${tx.error ? `<p>${escape(tx.error)}</p>` : ''}${tx.tasks.filter(task => task.status === 'error').map(task => `<p class="scene-diary-warning">${escape(task.error)}</p>`).join('')}`;
     const operationLabels = new Map((tx.operations || []).map((op, index) => [op.id, `#${index + 1}`]));
     const operations = tx.status === 'preview' ? tx.operations.map(op => {
         const attrs = field => `data-operation-id="${escape(op.id)}" data-maintenance-field="${field}"`;
@@ -551,7 +615,9 @@ function renderMaintenance(state) {
     }).join('') : '';
     const rejected = tx.tasks.flatMap((task, batch) => (task.rejected || []).map(item => ({ ...item, batch: batch + 1 })));
     const warnings = rejected.length ? `<p class="scene-diary-warning">${rejected.length} 项模型建议未通过校验，未纳入可批准操作。请检查下列原因；忽略后批准会记录整理基线${tx.mode === 'full' ? '并替换全部旧关联' : ''}。</p>${rejected.map(item => `<p class="scene-diary-warning">批次 ${item.batch}，建议 ${item.index}（${escape(item.action)}；${escape(item.targets.join(' ↔ '))}）：${escape(item.reason)}</p>`).join('')}` : '';
-    root.innerHTML = `${header}${warnings}${operations}${tx.status === 'preview' && !tx.operations.length ? `<p>${rejected.length ? '没有可批准的有效建议，不能据此认定无需整理。' : '没有合并或新增关联建议。'}确认后仍会记录本次检查；全量模式会清除旧关联。</p>` : ''}<div class="scene-diary-actions">${!stale && tx.status === 'preview' ? `<button data-action="${rejected.length ? 'confirm-maintenance-partial' : 'confirm-maintenance'}">${rejected.length ? '忽略未通过的建议并批准' : tx.mode === 'full' ? '批准并重建记忆结构' : '保存批准的操作'}</button>${rejected.length ? '<button data-action="retry-rejected-maintenance">重试含未通过建议的批次</button>' : ''}` : ''}${!stale && tx.status === 'error' ? `<button data-action="retry-maintenance" data-transaction-id="${escape(tx.id)}">重试未完成批次</button>` : ''}<button data-action="cancel-maintenance">取消整理</button></div>`;
+    const filtered = tx.tasks.reduce((sum, task) => sum + (task.filtered?.length || 0), 0) + (tx.deduplicatedCount || 0);
+    const trace = tx.version === 2 ? `<details><summary>整理诊断：自动过滤 ${filtered} 项建议</summary>${maintenanceDiagnostics(tx)}</details>` : '';
+    root.innerHTML = `${header}${trace}${warnings}${operations}${tx.status === 'preview' && !tx.operations.length ? `<p>${rejected.length ? '没有可批准的有效建议，不能据此认定无需整理。' : '没有合并或新增关联建议。'}确认后仍会记录本次检查；全量模式会清除旧关联。</p>` : ''}<div class="scene-diary-actions">${!stale && tx.status === 'preview' ? `<button data-action="${rejected.length ? 'confirm-maintenance-partial' : 'confirm-maintenance'}">${rejected.length ? '忽略未通过的建议并批准' : tx.mode === 'full' ? '批准并重建记忆结构' : '保存批准的操作'}</button>${rejected.length && tx.version === 2 ? '<button data-action="retry-rejected-maintenance">重试含未通过建议的批次</button>' : ''}` : ''}${!stale && tx.status === 'error' && tx.version === 2 ? `<button data-action="retry-maintenance" data-transaction-id="${escape(tx.id)}">重试未完成批次</button>` : ''}<button data-action="cancel-maintenance">取消整理</button></div>`;
 }
 
 function renderMemories(state) {
@@ -597,6 +663,7 @@ function render(state = getState()) {
     const transaction = state?.pendingTransaction, preview = panel.querySelector('#scene_diary_preview'); preview.hidden = !transaction || !['closing', 'preview'].includes(state.status);
     if (!preview.hidden) { const ready = allPartsReady(transaction); preview.innerHTML = `<h4>关幕预览</h4>${jsonWarningHtml(`close:${transaction.id}:`)}${renderPart('diary', transaction.results.diary, transaction)}${renderPart('growth', transaction.results.growth, transaction)}${renderPart('memory', transaction.results.memory, transaction)}<div class="scene-diary-actions"><button data-action="confirm" ${ready && !pendingSave ? '' : 'disabled'}>确认保存并结束</button><button data-action="cancel-close">取消</button></div>`; }
     const errors = state?.drafts?.at(-1), extraction = panel.querySelector('#scene_diary_extraction'); extraction.innerHTML = errors?.kind === 'extraction-errors' ? `<h4>正文提取错误</h4>${errors.errors.map(error => `<p>楼层 ${error.index ?? '?'}：${escape(error.errors.join('；'))} <button data-action="skip" data-id="${escape(error.id)}">跳过此条</button></p>`).join('')}` : '';
+    const maintenanceProfile = panel.querySelector('[data-setting=maintenanceConnectionProfile]'); if (maintenanceProfile) maintenanceProfile.innerHTML = profileOptions(state?.settings.maintenanceConnectionProfile).replace('沿用当前聊天连接', '请选择整理专属连接');
     const diaryProfile = panel.querySelector('[data-setting=diaryConnectionProfile]'), memoryProfile = panel.querySelector('[data-setting=memoryConnectionProfile]'); if (diaryProfile) diaryProfile.innerHTML = profileOptions(state?.settings.diaryConnectionProfile); if (memoryProfile) memoryProfile.innerHTML = profileOptions(state?.settings.memoryConnectionProfile);
 }
 
@@ -605,7 +672,7 @@ function createUi() {
     const form = document.querySelector('#send_form') || document.querySelector('#send_textarea')?.parentElement; if (!form) return;
     const bar = document.createElement('div'); bar.id = BAR; bar.innerHTML = '<button type="button" data-action="open">🎬 scene&diary</button><span data-role="status">等待接管</span><button type="button" data-action="end">结束这一幕</button>'; form.prepend(bar);
     const panel = document.createElement('section'); panel.id = PANEL; panel.hidden = true;
-    panel.innerHTML = `<header class="scene-diary-panel-head"><h3>scene&diary</h3><button data-action="close" aria-label="关闭">×</button></header><p data-role="status" class="scene-diary-warning"></p><nav class="scene-diary-tabs"><button data-tab="act">当前幕</button><button data-tab="growth">角色成长</button><button data-tab="memory">记忆库</button><button data-tab="diary">日记</button><button data-tab="settings">设置</button><button data-tab="debug">诊断</button></nav><section data-page="act"><p>结束当前幕后，会生成日记、记忆候选和角色成长；确认前不会正式写入。</p><div class="scene-diary-actions"><button data-action="end">结束这一幕</button><button data-action="takeover">从当前第一条接管旧聊天</button></div><div id="scene_diary_extraction"></div><div id="scene_diary_preview" hidden></div></section><section data-page="growth" hidden><p data-growth-notice class="scene-diary-warning"></p><label>角色成长<textarea data-growth-editor rows="14" maxlength="4000" placeholder="概括角色的成长路径、情感发展、双方关系与生活状态演变。"></textarea></label><p data-growth-count class="scene-diary-muted"></p><p data-growth-meta class="scene-diary-muted"></p><div class="scene-diary-actions"><button data-action="save-growth">保存角色成长</button></div></section><section data-page="memory" hidden><label>搜索<input data-memory-search placeholder="标题、内容、人物"></label><label>分类<select data-memory-category><option value="">全部分类</option>${MEMORY_CATEGORIES.map(item => `<option>${item}</option>`).join('')}</select></label><button data-action="new-memory">新增记忆</button><label>整理模式<select data-organization-mode><option value="full">全量整理／初始化</option><option value="incremental">增量整理</option></select></label><button data-action="organize-memory">记忆整理</button><div id="scene_diary_maintenance"></div><p data-recall-summary class="scene-diary-muted"></p><div id="scene_diary_memories"></div></section><section data-page="diary" hidden><div id="scene_diary_diaries"></div></section><section data-page="settings" hidden><h4>模型</h4><label>日记／角色成长连接<select data-setting="diaryConnectionProfile"></select></label><label>记忆连接<select data-setting="memoryConnectionProfile"></select></label><h4>召回</h4><label>读取最近有效消息数<input data-setting="recallMessageCount" type="number" min="1" max="20"></label><label>最多召回组数<input data-setting="recallLimit" type="number" min="0" max="30"></label><label>长期记忆预算（tokens）<input data-setting="memoryTokenBudget" type="number" min="100"></label><label>近期日记篇数<input data-setting="recentDiaryCount" type="number" min="0" max="20"></label><h4>正文标签</h4><p class="scene-diary-muted">每行一组完整标签；同一行的开始与结束标签必须同名。全部留空时提取完整消息。</p><div data-pair-editor>${[['角色正文', 'character.bodyTagPairs'], ['玩家正文', 'user.bodyTagPairs'], ['角色故事时间', 'character.storyTimeTagPairs'], ['玩家故事时间', 'user.storyTimeTagPairs']].map(([label, key]) => `<fieldset class="scene-diary-tag-pair"><legend>${label}</legend><label>开始标签<textarea rows="2" data-pair-open="${key}" placeholder="<now_plot>"></textarea></label><label>结束标签<textarea rows="2" data-pair-close="${key}" placeholder="</now_plot>"></textarea></label></fieldset>`).join('')}</div><h4>提示词</h4><p class="scene-diary-muted">这里只编辑模型角色定义。输入和 JSON 协议由插件附加；记忆提取仅使用本幕对话，日记与成长附加角色设定。</p><label>日记提示词<textarea data-setting="promptDiary" rows="5"></textarea></label><label>记忆提示词<textarea data-setting="promptMemory" rows="5"></textarea></label><label>角色成长提示词<textarea data-setting="promptGrowth" rows="8"></textarea></label><button data-action="save-settings">保存当前聊天设置</button><button data-action="reset-prompts">恢复默认提示词</button></section><section data-page="debug" hidden><p data-debug></p><div data-debug-list></div></section>`;
+    panel.innerHTML = `<header class="scene-diary-panel-head"><h3>scene&diary</h3><button data-action="close" aria-label="关闭">×</button></header><p data-role="status" class="scene-diary-warning"></p><nav class="scene-diary-tabs"><button data-tab="act">当前幕</button><button data-tab="growth">角色成长</button><button data-tab="memory">记忆库</button><button data-tab="diary">日记</button><button data-tab="settings">设置</button><button data-tab="debug">诊断</button></nav><section data-page="act"><p>结束当前幕后，会生成日记、记忆候选和角色成长；确认前不会正式写入。</p><div class="scene-diary-actions"><button data-action="end">结束这一幕</button><button data-action="takeover">从当前第一条接管旧聊天</button></div><div id="scene_diary_extraction"></div><div id="scene_diary_preview" hidden></div></section><section data-page="growth" hidden><p data-growth-notice class="scene-diary-warning"></p><label>角色成长<textarea data-growth-editor rows="14" maxlength="4000" placeholder="概括角色的成长路径、情感发展、双方关系与生活状态演变。"></textarea></label><p data-growth-count class="scene-diary-muted"></p><p data-growth-meta class="scene-diary-muted"></p><div class="scene-diary-actions"><button data-action="save-growth">保存角色成长</button></div></section><section data-page="memory" hidden><label>搜索<input data-memory-search placeholder="标题、内容、人物"></label><label>分类<select data-memory-category><option value="">全部分类</option>${MEMORY_CATEGORIES.map(item => `<option>${item}</option>`).join('')}</select></label><button data-action="new-memory">新增记忆</button><label>整理模式<select data-organization-mode><option value="full">全量整理／初始化</option><option value="incremental">增量整理</option></select></label><button data-action="organize-memory">记忆整理</button><div id="scene_diary_maintenance"></div><p data-recall-summary class="scene-diary-muted"></p><div id="scene_diary_memories"></div></section><section data-page="diary" hidden><div id="scene_diary_diaries"></div></section><section data-page="settings" hidden><h4>模型</h4><label>日记／角色成长连接<select data-setting="diaryConnectionProfile"></select></label><label>记忆提取连接<select data-setting="memoryConnectionProfile"></select></label><label>记忆整理连接<select data-setting="maintenanceConnectionProfile"></select></label><h4>记忆整理初筛</h4><label>每条记忆最多整理候选<input data-setting="maintenanceCandidateLimit" type="number" min="1" max="60" step="1"></label><label>整理最低相关分数<input data-setting="maintenanceScoreThreshold" type="number" min="0" max="1" step="0.01"></label><p class="scene-diary-muted">独立于聊天召回。默认 20 条、0.15；设为 0 关闭分数截断。未启用的检索服务跳过，已启用服务失败会暂停并保留进度。</p><h4>召回</h4><label>读取最近有效消息数<input data-setting="recallMessageCount" type="number" min="1" max="20"></label><label>最多召回组数<input data-setting="recallLimit" type="number" min="0" max="30"></label><label>长期记忆预算（tokens）<input data-setting="memoryTokenBudget" type="number" min="100"></label><label>近期日记篇数<input data-setting="recentDiaryCount" type="number" min="0" max="20"></label><h4>正文标签</h4><p class="scene-diary-muted">每行一组完整标签；同一行的开始与结束标签必须同名。全部留空时提取完整消息。</p><div data-pair-editor>${[['角色正文', 'character.bodyTagPairs'], ['玩家正文', 'user.bodyTagPairs'], ['角色故事时间', 'character.storyTimeTagPairs'], ['玩家故事时间', 'user.storyTimeTagPairs']].map(([label, key]) => `<fieldset class="scene-diary-tag-pair"><legend>${label}</legend><label>开始标签<textarea rows="2" data-pair-open="${key}" placeholder="<now_plot>"></textarea></label><label>结束标签<textarea rows="2" data-pair-close="${key}" placeholder="</now_plot>"></textarea></label></fieldset>`).join('')}</div><h4>提示词</h4><p class="scene-diary-muted">这里只编辑模型角色定义。输入和 JSON 协议由插件附加；记忆提取仅使用本幕对话，日记与成长附加角色设定。</p><label>日记提示词<textarea data-setting="promptDiary" rows="5"></textarea></label><label>记忆提示词<textarea data-setting="promptMemory" rows="5"></textarea></label><label>角色成长提示词<textarea data-setting="promptGrowth" rows="8"></textarea></label><label>记忆整理系统提示词<textarea data-setting="promptMaintenance" rows="7"></textarea></label><p class="scene-diary-muted">整理只读取已保存记忆与关联。系统指导可自定义，JSON 协议与候选范围由插件附加。本次整理设置冻结，新设置在下一次整理生效。</p><button data-action="save-settings">保存当前聊天设置</button><button data-action="reset-prompts">恢复默认提示词</button></section><section data-page="debug" hidden><p data-debug></p><div data-debug-list></div></section>`;
     panel.querySelector('[data-page=memory]').insertAdjacentHTML('beforeend', `<section class="scene-diary-maintenance"><h4>聊天内容备份与恢复</h4><p class="scene-diary-muted">备份当前聊天所有可见日记、角色成长和记忆内容。恢复时三项内容会一起替换，请先保存当前备份。</p><div class="scene-diary-actions"><button data-action="export-content">备份当前聊天内容</button></div><label>从备份恢复日记、角色成长和记忆<input type="file" accept="application/json" data-content-import></label><button data-action="recover-save" hidden>恢复未完成的保存</button><p data-maintenance-size class="scene-diary-muted"></p></section>`);
     panel.querySelector('[data-page=settings]').insertAdjacentHTML('beforeend', `
         <h4>可选向量召回</h4><p>记忆文本会发送至独立向量服务；浏览器直连需要服务允许跨域。</p>
@@ -652,7 +719,7 @@ function handlePanelClick(event) {
     if (action === 'confirm-maintenance-partial') { panel.querySelectorAll('[data-maintenance-field]').forEach(editMaintenance); void confirmMaintenance(true); }
     if (action === 'retry-rejected-maintenance') {
         const state = getState(), tx = state?.maintenanceTransaction;
-        if (tx?.status === 'preview' && !pendingSave && !disabledReason) {
+        if (tx?.version === 2 && tx.status === 'preview' && !pendingSave && !disabledReason) {
             tx.tasks.filter(task => task.rejected?.length).forEach(task => { task.status = 'pending'; });
             tx.status = 'ready'; setState(state); void runMaintenance(tx.id);
         }
@@ -670,7 +737,7 @@ function handlePanelClick(event) {
     if (action === 'clear-semantic-key') { semanticKey = ''; ctx().accountStorage?.removeItem('scene_diary_embedding_key'); panel.querySelector('[data-semantic-key]').value = ''; notify('success', '已清除向量密钥。'); }
     if (action === 'clear-rerank-key') { rerankKey = ''; ctx().accountStorage?.removeItem('scene_diary_rerank_key'); panel.querySelector('[data-rerank-key]').value = ''; notify('success', '已清除重排密钥。'); }
     if (action === 'rebuild-vectors') void syncVectors(getState()).then(() => notify('success', '向量已更新。')).catch(error => notify('error', error.message));
-    if (action === 'reset-prompts') { panel.querySelector('[data-setting=promptDiary]').value = DEFAULT_DIARY_PROMPT; panel.querySelector('[data-setting=promptMemory]').value = DEFAULT_MEMORY_PROMPT; panel.querySelector('[data-setting=promptGrowth]').value = DEFAULT_GROWTH_PROMPT; }
+    if (action === 'reset-prompts') { panel.querySelector('[data-setting=promptDiary]').value = DEFAULT_DIARY_PROMPT; panel.querySelector('[data-setting=promptMemory]').value = DEFAULT_MEMORY_PROMPT; panel.querySelector('[data-setting=promptGrowth]').value = DEFAULT_GROWTH_PROMPT; panel.querySelector('[data-setting=promptMaintenance]').value = DEFAULT_MAINTENANCE_PROMPT; }
     const tab = event.target.closest('[data-tab]')?.dataset.tab; if (tab) { panel.querySelectorAll('[data-page]').forEach(page => page.hidden = page.dataset.page !== tab); if (tab === 'debug') renderDebug(panel); }
 }
 
@@ -747,13 +814,17 @@ function saveChatSettings(panel) {
         const settings = structuredClone(state.settings);
         settings.diaryConnectionProfile = panel.querySelector('[data-setting=diaryConnectionProfile]').value;
         settings.memoryConnectionProfile = panel.querySelector('[data-setting=memoryConnectionProfile]').value;
+        settings.maintenanceConnectionProfile = panel.querySelector('[data-setting=maintenanceConnectionProfile]').value;
+        const candidateLimit = +panel.querySelector('[data-setting=maintenanceCandidateLimit]').value, maintenanceThreshold = panel.querySelector('[data-setting=maintenanceScoreThreshold]').value.trim();
+        if (!Number.isInteger(candidateLimit) || candidateLimit < 1 || candidateLimit > 60 || !maintenanceThreshold || !Number.isFinite(+maintenanceThreshold) || +maintenanceThreshold < 0 || +maintenanceThreshold > 1) throw new Error('整理候选数量须为 1–60 的整数，最低相关分数须为 0–1。');
+        settings.maintenanceCandidateLimit = candidateLimit; settings.maintenanceScoreThreshold = +maintenanceThreshold;
         for (const key of ['recallLimit', 'memoryTokenBudget', 'recentDiaryCount']) settings[key] = +panel.querySelector(`[data-setting="${key}"]`).value;
         const threshold = panel.querySelector('[data-setting=recallScoreThreshold]').value.trim();
         if (!threshold || !Number.isFinite(+threshold) || +threshold < 0 || +threshold > 1) throw new Error('最低召回分数须为 0–1 之间的数值。');
         settings.recallScoreThreshold = +threshold;
         settings.extraction ||= {};
         for (const key of ['character.bodyTagPairs', 'user.bodyTagPairs', 'character.storyTimeTagPairs', 'user.storyTimeTagPairs']) { const [who, field] = key.split('.'); settings.extraction[who] ||= {}; settings.extraction[who][field] = readPairEditor(panel, key); }
-        settings.prompts = { diary: panel.querySelector('[data-setting=promptDiary]').value.trim() || DEFAULT_DIARY_PROMPT, memory: panel.querySelector('[data-setting=promptMemory]').value.trim() || DEFAULT_MEMORY_PROMPT, growth: panel.querySelector('[data-setting=promptGrowth]').value.trim() || DEFAULT_GROWTH_PROMPT };
+        settings.prompts = { diary: panel.querySelector('[data-setting=promptDiary]').value.trim() || DEFAULT_DIARY_PROMPT, memory: panel.querySelector('[data-setting=promptMemory]').value.trim() || DEFAULT_MEMORY_PROMPT, growth: panel.querySelector('[data-setting=promptGrowth]').value.trim() || DEFAULT_GROWTH_PROMPT, maintenance: panel.querySelector('[data-setting=promptMaintenance]').value.trim() || DEFAULT_MAINTENANCE_PROMPT };
         settings.semantic = { enabled: panel.querySelector('[data-semantic=enabled]').checked, endpoint: panel.querySelector('[data-semantic=endpoint]').value.trim(), model: panel.querySelector('[data-semantic=model]').value.trim(), dimensions: panel.querySelector('[data-semantic=dimensions]').value || null, rerank: panel.querySelector('[data-semantic=rerank]').checked, rerankEndpoint: panel.querySelector('[data-semantic=rerankEndpoint]').value.trim(), rerankModel: panel.querySelector('[data-semantic=rerankModel]').value.trim() };
         if (settings.semantic.enabled) { if (!settings.semantic.model) throw new Error('请填写向量模型。'); validateSemanticEndpoint(settings.semantic.endpoint); }
         if (settings.semantic.rerank) { if (!settings.semantic.rerankModel) throw new Error('请填写重排模型。'); validateSemanticEndpoint(settings.semantic.rerankEndpoint, '重排'); }
@@ -768,7 +839,7 @@ function saveChatSettings(panel) {
 function renderDebug(panel) {
     const state = getState(), output = panel.querySelector('[data-debug-list]');
     panel.querySelector('[data-debug]').textContent = disabledReason || `当前幕 ${state?.currentActId || '-'} · 记忆库 ${state?.memories.length || 0} 条`;
-    output.innerHTML = renderRecallDiagnostics(lastRecallTrace, lastContinuity);
+    output.innerHTML = renderRecallDiagnostics(lastRecallTrace, lastContinuity) + (state?.maintenanceTransaction?.version === 2 ? '<h4>记忆整理诊断</h4>' + maintenanceDiagnostics(state.maintenanceTransaction) : '');
 }
 function fillSettings() {
     const panel = document.querySelector(`#${PANEL}`), state = getState(); if (!panel || !state) return;
@@ -777,6 +848,9 @@ function fillSettings() {
     panel.querySelector('[data-setting=promptDiary]').value = state.settings.prompts.diary || DEFAULT_DIARY_PROMPT;
     panel.querySelector('[data-setting=promptMemory]').value = state.settings.prompts.memory || DEFAULT_MEMORY_PROMPT;
     panel.querySelector('[data-setting=promptGrowth]').value = state.settings.prompts.growth || DEFAULT_GROWTH_PROMPT;
+    panel.querySelector('[data-setting=promptMaintenance]').value = state.settings.prompts.maintenance || DEFAULT_MAINTENANCE_PROMPT;
+    panel.querySelector('[data-setting=maintenanceCandidateLimit]').value = state.settings.maintenanceCandidateLimit;
+    panel.querySelector('[data-setting=maintenanceScoreThreshold]').value = state.settings.maintenanceScoreThreshold;
     for (const field of ['enabled', 'endpoint', 'model', 'dimensions', 'rerank', 'rerankEndpoint', 'rerankModel']) { const input = panel.querySelector(`[data-semantic="${field}"]`); if (input.type === 'checkbox') input.checked = !!state.settings.semantic[field]; else input.value = state.settings.semantic[field] ?? ''; }
     const stored = ctx().accountStorage?.getItem('scene_diary_embedding_key'), storedRerank = ctx().accountStorage?.getItem('scene_diary_rerank_key');
     panel.querySelector('[data-semantic-key]').value = semanticKey || stored || '';
@@ -785,5 +859,5 @@ function fillSettings() {
     panel.querySelector('[data-rerank-remember]').checked = !!storedRerank;
 }
 function bind() { const eventSource = source(), eventTypes = types(); if (!eventSource?.on) return; eventSource.on(eventTypes.MESSAGE_SENT || 'message_sent', sent); eventSource.on(eventTypes.MESSAGE_RECEIVED || 'message_received', received); eventSource.on(eventTypes.MESSAGE_EDITED || 'message_edited', changed); eventSource.on(eventTypes.MESSAGE_UPDATED || 'message_updated', changed); eventSource.on(eventTypes.MESSAGE_DELETED || 'message_deleted', deleted); eventSource.on(eventTypes.MESSAGE_SWIPED || 'message_swiped', changed); eventSource.on(eventTypes.CHAT_CHANGED || 'chat_id_changed', initializeChat); eventSource.on(eventTypes.CHAT_LOADED || 'chatLoaded', initializeChat); eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY || 'chat_completion_prompt_ready', promptReady); eventSource.on(eventTypes.GENERATION_STOPPED || 'generation_stopped', stopRecall); }
-function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.5', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
+function init() { if (initialized) return; initialized = true; createUi(); if (!document.getElementById(BAR)) setTimeout(() => { createUi(); initializeChat(); fillSettings(); }, 800); bind(); initializeChat(); fillSettings(); globalThis.sceneDiary = { version: '0.3.6', getState, closeAct, confirmClose, takeOver, startMaintenance, confirmMaintenance }; console.info(`[${NAME}] loaded`); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();

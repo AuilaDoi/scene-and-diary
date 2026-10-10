@@ -9,16 +9,16 @@ const settings = { recallLimit: 8, memoryTokenBudget: 1200 };
 const link = (a, b) => ({ a, b, reason: '承诺与履行' });
 const merge = (ids, targetId = ids[0]) => ({ action: 'merge', memberIds: ids, targetId, title: '合并事实', content: '同一事实的合并表达', category: 'event', reason: '同一事实' });
 
-test('schema 5 migration removes legacy fields and hidden entries, preserves user controls and is idempotent', () => {
+test('schema 6 migration removes legacy fields and hidden entries, preserves user controls and is idempotent', () => {
     for (const version of [undefined, 1, 2, 3, 4]) {
         const state = normalizeState({ version, custom: 'keep', memories: [memory('keep', { locked: true, permanent: true, disabled: true, custom: 'keep' }), { ...memory('archived'), lifecycle: 'archived' }, { ...memory('old'), lifecycle: 'superseded' }, memory('deleted', { deletedAt: 5 })].map(item => ({ ...item, sources: [{ messageId: 'x' }], sourceActId: 1, sourceMessageIds: ['x'], status: 'active', supersedes: [], mergedInto: null, revision: 4, dirty: true })), maintenanceHistory: [{ before: ['legacy'] }] });
-        assert.equal(state.version, 5); assert.deepEqual(state.memories.map(item => item.id), ['keep']);
+        assert.equal(state.version, 6); assert.deepEqual(state.memories.map(item => item.id), ['keep']);
         assert.equal(state.custom, 'keep'); assert.equal(state.memories[0].custom, 'keep');
         assert.equal(state.memories[0].locked && state.memories[0].permanent, true);
         for (const field of ['sources', 'sourceActId', 'sourceMessageIds', 'lifecycle', 'supersedes', 'mergedInto', 'revision', 'status', 'dirty']) assert.equal(field in state.memories[0], false);
         assert.equal('maintenanceHistory' in state, false); assert.deepEqual(normalizeState(state), state);
     }
-    assert.throws(() => normalizeState({ version: 6 }), /高于支持版本/);
+    assert.throws(() => normalizeState({ version: 7 }), /高于支持版本/);
 });
 test('migration keeps diary and growth previews but invalidates only legacy memory output', () => {
     const tx = { memoryCandidates: [memory('a')], results: { diary: { status: 'success', value: { title: '幕', diary: '日记' } }, growth: { status: 'success', value: '成长' }, memory: { status: 'success', value: { operations: [] } } } };

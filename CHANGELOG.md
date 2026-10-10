@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.6 — 2026-10-10 (working version; acceptance pending)
+
+- Replace exhaustive organization blocks with per-memory BM25/vector candidate retrieval, full-pool optional rerank, independent relevance cutoff/limit and deduplicated candidate batches. Reuse cached memory query vectors; preserve chat recall behavior.
+- Require a dedicated organization profile; expose an editable system prompt with character/player substitutions. Freeze settings and connection identity for the whole run and retries.
+- Automatically filter old-only/out-of-scope/duplicate proposals. Keep integrity-error diagnostics, partial approval and merge conflicts, with repeated candidate-scope checks at review/save.
+- Persist screening and model progress for retry/reload. Pause on enabled-service failures; retain cancellation and stale-result protection, stage logs and redacted errors without short semantic timeouts.
+- Upgrade to schema 6 with full-chat backup and verified migration, retaining existing initialization/fixed facts/close previews and completed legacy maintenance previews. Unfinished legacy maintenance needs a fresh run; content backups stay v2.
+- Keep full approval replacing old links, incremental approval preserving links, and auto_update=false. No synthetic-library validation or scale benchmark is scheduled. [Validation](VALIDATION-v0.3.6.md), [upgrade/rollback](UPGRADE-v0.3.6.md).
+
+
 ## 0.3.5 — 2026-10-08
 
 - Remove extension-imposed embedding/rerank deadlines for queries and background vector builds; retain cancellation for stopped, superseded and cross-chat recalls.

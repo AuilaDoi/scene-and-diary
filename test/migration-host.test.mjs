@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { hostFixture } from './helpers/host.mjs';
 import { createContentBackup, restoreContentBackup } from '../backup.js';
-import { fingerprint, normalizeState } from '../core.js';
+import { fingerprint, normalizeState, normalizeSettings } from '../core.js';
 import { validateCandidateBatch } from '../memory-system.js';
 
 // Generated using the actual v0.3.1 tag, rather than approximating schema 4 by hand.
@@ -17,7 +17,7 @@ const retained = fixture.metadata.scene_diary.memories.filter(memory => !memory.
 const migrationCopies = host => [...host.local.entries()].filter(([key]) => key.startsWith('scene_diary_migration_backup_'));
 const recoveryCopies = host => [...host.local.entries()].filter(([key]) => key.startsWith('scene_diary_recovery_'));
 function assertRetained(state) {
-    assert.equal(state.version, 5);
+    assert.equal(state.version, 6);
     assert.deepEqual(state.memories.map(memory => memory.id), retained.map(memory => memory.id));
     for (const memory of state.memories) {
         const old = retained.find(item => item.id === memory.id);
@@ -29,11 +29,11 @@ function assertRetained(state) {
     assert.equal(state.memoryRevision, 17);
     assert.equal(state.memorySpaceId, 'space-v031');
     assert.deepEqual(state.characterGrowth, fixture.metadata.scene_diary.characterGrowth);
-    assert.deepEqual(state.settings, { ...fixture.metadata.scene_diary.settings, recallScoreThreshold: 0.3 });
+    assert.deepEqual(state.settings, normalizeSettings(fixture.metadata.scene_diary.settings));
 }
 const legacyHost = options => hostFixture([], null, { metadata: fixture.metadata, chat: fixture.messages, initialize: false, ...options });
 
-test('v0.3.1 host update backs up original chat before migration, verifies schema 5 save and survives reload', async () => {
+test('v0.3.1 host update backs up original chat before migration, verifies schema 6 save and survives reload', async () => {
     const host = await legacyHost();
     let metadata, saved, local;
     try {
@@ -49,12 +49,12 @@ test('v0.3.1 host update backs up original chat before migration, verifies schem
         assert.equal(host.api.hostStatus().disabledReason, '');
         assert.equal(host.api.hostStatus().saveUnverified, false);
         const copies = migrationCopies(host); assert.equal(copies.length, 1);
-        assert.match(copies[0][0], /_schema4_to5$/);
+        assert.match(copies[0][0], /_schema4_to6$/);
         assert.deepEqual(copies[0][1].metadata, fixture.metadata);
         assert.deepEqual(copies[0][1].messages, fixture.messages);
         assert.equal(host.events[0].type, 'local-copy'); assert.equal(host.events[0].schema, 4);
         assert.ok(host.events[0].key.startsWith('scene_diary_migration_backup_'));
-        assert.equal(host.events.find(event => event.type === 'save').schema, 5);
+        assert.equal(host.events.find(event => event.type === 'save').schema, 6);
         assert.equal(recoveryCopies(host).length, 0);
         metadata = structuredClone(host.saved.get('persisted')); saved = host.saved; local = host.local;
         assert.deepEqual(metadata.scene_diary, host.api.getState());
@@ -160,7 +160,7 @@ test('v0.3.1 pending recovery is never overwritten by migration and restores its
         assert.equal(restored.memoryRevision, raw.memoryRevision);
         assert.deepEqual(restored.memories.map(memory => memory.id), retained.map(memory => memory.id));
         assert.equal('maintenanceHistory' in restored, false);
-        assert.equal(restored.version, 5); assert.equal(host.api.hostStatus().disabledReason, '');
+        assert.equal(restored.version, 6); assert.equal(host.api.hostStatus().disabledReason, '');
         assert.equal(recoveryCopies(host).length, 0);
         assert.deepEqual(host.saved.get('persisted').scene_diary, restored);
     } finally { host.cleanup(); }
@@ -188,7 +188,7 @@ test('switching chat during a legacy recovery read cannot write the old library 
     } finally { host.cleanup(); }
 });
 
-test('genuine v0.3.1 content backup imports to schema 5 and re-exported v2 retains every saved fact', () => {
+test('genuine v0.3.1 content backup imports to schema 6 and re-exported v2 retains every saved fact', () => {
     const state = normalizeState(fixture.metadata.scene_diary);
     const restored = restoreContentBackup(state, fixture.contentBackup, 'test-chat');
     assert.deepEqual(restored.memories, state.memories);
@@ -202,7 +202,7 @@ test('genuine v0.3.1 content backup imports to schema 5 and re-exported v2 retai
 });
 
 test('future schema is left untouched by host startup without migration, save or model requests', async () => {
-    const metadata = structuredClone(fixture.metadata); metadata.scene_diary.version = 6;
+    const metadata = structuredClone(fixture.metadata); metadata.scene_diary.version = 7;
     const host = await legacyHost({ metadata });
     try { host.api.initializeChat(); await host.settle(); assert.equal(host.api.getState(), null); assert.deepEqual(host.context.chatMetadata, metadata); assert.equal(host.events.length, 0); assert.equal(host.requests.length, 0); }
     finally { host.cleanup(); }

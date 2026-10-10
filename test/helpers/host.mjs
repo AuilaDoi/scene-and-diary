@@ -5,6 +5,13 @@ export async function hostFixture(messages = ['你好'], handler = null, options
     const saved = options.saved || new Map(), notices = [], requests = [], events = [], state = createState(), chat = options.chat ? structuredClone(options.chat) : messages.map((mes, index) => ({ mes, is_user: index % 2 === 0, name: index % 2 === 0 ? '玩家' : '林', extra: {} }));
     if (!options.metadata) chat.forEach((message, index) => assignMessageToAct(state, message, 1, index));
     const context = { chatId: 'test-chat', chat, chatMetadata: options.metadata ? structuredClone(options.metadata) : { scene_diary: state }, mainApi: 'openai', name1: '玩家', name2: '林', characterId: 0, characters: [{ name: '林', chat: 'test-chat', avatar: 'a.png' }], getCharacterCardFields: () => ({ description: '角色卡不能成为提取素材' }), accountStorage: { getItem: key => saved.get(key), setItem: (key, value) => saved.set(key, value), removeItem: key => saved.delete(key) } };
+    if (!options.metadata && options.maintenanceConfigured !== false) state.settings.maintenanceConnectionProfile = 'maintenance-profile';
+    const profiles = options.profiles || [{ id: 'maintenance-profile', name: '整理测试连接', api: 'deepseek', model: 'deepseek-flash' }];
+    context.ConnectionManagerRequestService = {
+        getProfile: id => profiles.find(profile => profile.id === id), getSupportedProfiles: () => profiles,
+        validateProfile: () => ({ selected: 'openai', source: 'deepseek' }),
+        sendRequest: (profileId, prompt, responseLength, custom, payload) => context.generateRawData({ profileId, prompt, responseLength, signal: custom.signal, jsonSchema: payload.json_schema }),
+    };
     context.saveMetadata = async () => { events.push({ type: 'save', schema: context.chatMetadata.scene_diary?.version }); saved.set('persisted', structuredClone(context.chatMetadata)); };
     if (options.tauri) {
         globalThis.__TAURI_RUNNING__ = true;

@@ -14,7 +14,24 @@ export function validateMaintenanceScope(operations, pendingIds = null, task = n
     for (const op of operations) {
         const ids = op.action === 'merge' ? arr(op.memberIds) : [op.a, op.b];
         if (pending && !ids.some(id => pending.has(id))) throw new Error('增量整理不能合并或关联未变更的旧条目组合');
-        if (task?.right.length && (!ids.some(id => task.left.includes(id)) || !ids.some(id => task.right.includes(id)))) throw new Error('跨块建议必须涉及本批左右两块');
+        if (task?.allowedPairs) validateMaintenanceCandidateScope(op, task);
+        else if (task?.right.length && (!ids.some(id => task.left.includes(id)) || !ids.some(id => task.right.includes(id)))) throw new Error('跨块建议必须涉及本批左右两块');
+    }
+}
+export const maintenancePairKey = (a, b) => JSON.stringify([a, b].sort());
+export function validateMaintenanceCandidateScope(op, task) {
+    const pairs = new Set(task.allowedPairs.map(([a, b]) => maintenancePairKey(a, b)));
+    if (op.action === 'link') {
+        if (!pairs.has(maintenancePairKey(op.a, op.b))) throw new Error('建议超出本批候选配对范围');
+    } else if (!task.anchors.some(anchor => op.memberIds.includes(anchor) && op.memberIds.every(id => id === anchor || pairs.has(maintenancePairKey(anchor, id))))) {
+        throw new Error('合并成员必须属于同一整理锚点的本批候选范围');
+    }
+}
+export function validateMaintenanceTaskScopes(operations, tasks) {
+    for (const op of operations) {
+        const task = tasks.find(item => item.id === op.taskId);
+        if (!task) throw new Error('整理建议的来源批次无效');
+        validateMaintenanceCandidateScope(op, task);
     }
 }
 export function validateMemoryFormat(item, { extendedArrays = false, extendedContent = false } = {}) {
@@ -62,7 +79,7 @@ export function planMaintenance(memories, links, raw) {
             if (!byId.has(a) || !byId.has(b) || a === b) throw new Error('关联目标无效');
             const key = JSON.stringify(['link', a, b]);
             if (seen.has(key) || links.some(link => [link.a, link.b].sort().join('\u0000') === [a, b].join('\u0000'))) continue;
-            seen.add(key); planned.push({ id: newId('op'), action: 'link', a, b, reason: proposal.reason, accepted: true });
+            seen.add(key); planned.push({ id: newId('op'), ...(proposal.taskId ? { taskId: proposal.taskId } : {}), action: 'link', a, b, reason: proposal.reason, accepted: true });
         } else {
             if (!Array.isArray(proposal.memberIds) || new Set(proposal.memberIds).size !== proposal.memberIds.length || proposal.memberIds.length < 2 || !proposal.memberIds.includes(proposal.targetId)) throw new Error('合并成员或保留 ID 无效');
             const members = proposal.memberIds.map(id => byId.get(id));
@@ -72,16 +89,16 @@ export function planMaintenance(memories, links, raw) {
             merged.permanent = members.some(memory => memory.permanent);
             const key = JSON.stringify(['merge', [...proposal.memberIds].sort(), proposal.targetId, merged.title, merged.content, merged.category]);
             if (seen.has(key)) continue;
-            seen.add(key); planned.push({ id: newId('op'), action: 'merge', targetId: proposal.targetId, memberIds: proposal.memberIds, merged, reason: proposal.reason, timeChoices: time.choices, timeResolved: !time.ambiguous, accepted: true });
+            seen.add(key); planned.push({ id: newId('op'), ...(proposal.taskId ? { taskId: proposal.taskId } : {}), action: 'merge', targetId: proposal.targetId, memberIds: proposal.memberIds, merged, reason: proposal.reason, timeChoices: time.choices, timeResolved: !time.ambiguous, accepted: true });
         }
     }
     for (const op of planned) if (op.action === 'merge') { op.conflicts = planned.filter(other => other !== op && other.action === 'merge' && other.memberIds.some(id => op.memberIds.includes(id))).map(other => other.id); if (op.conflicts.length) op.accepted = false; }
     return planned;
 }
 // Model proposals are independent suggestions, not an all-or-nothing write transaction.
-export function validateMaintenanceBatch(memories, links, raw, pendingIds = null) {
+export function validateMaintenanceBatch(memories, links, raw, pendingIds = null, task = null) {
     if (!Array.isArray(raw)) throw new Error('维护结果必须为 operations 数组');
-    const operations = [], rejected = [];
+    const operations = [], rejected = [], filtered = [], seen = new Set();
     const ids = new Set(memories.map(memory => memory.id));
     const resolve = id => typeof id === 'string' && !ids.has(id) && ids.has(id.trim()) ? id.trim() : id;
     raw.forEach((proposal, index) => {
@@ -89,15 +106,18 @@ export function validateMaintenanceBatch(memories, links, raw, pendingIds = null
         try {
             if (op?.action === 'link') { op.a = resolve(op.a); op.b = resolve(op.b); }
             if (op?.action === 'merge') { op.targetId = resolve(op.targetId); if (Array.isArray(op.memberIds)) op.memberIds = op.memberIds.map(resolve); }
-            planMaintenance(memories, links, [op]);
-            // Cross-block scope guides requests; valid within-block proposals are useful too.
-            validateMaintenanceScope([op], pendingIds);
-            operations.push(op);
+            const planned = planMaintenance(memories, links, [op]);
+            const detail = reason => ({ index: index + 1, action: clean(op.action), targets: op.action === 'merge' ? op.memberIds : [op.a, op.b], reason });
+            try { validateMaintenanceScope([op], pendingIds, task); }
+            catch (error) { if (!task) throw error; filtered.push(detail(error.message)); return; }
+            const signature = op.action === 'link' ? maintenancePairKey(op.a, op.b) : JSON.stringify(['merge', [...op.memberIds].sort(), op.targetId, op.title, op.content, op.category]);
+            if (!planned.length || seen.has(signature)) { filtered.push(detail('重复建议或已有关联')); return; }
+            seen.add(signature); operations.push(task ? { ...op, taskId: task.id } : op);
         } catch (error) {
             rejected.push({ index: index + 1, action: clean(op?.action), targets: op?.action === 'merge' ? arr(op.memberIds).map(clean) : [clean(op?.a), clean(op?.b)], reason: error.message });
         }
     });
-    return { operations, rejected };
+    return { operations, rejected, filtered };
 }
 export function applyMaintenance(state, operations, options = {}) {
     if (!Array.isArray(operations) || operations.some(op => !['merge', 'link'].includes(op?.action))) throw new Error('维护操作格式无效');
@@ -106,6 +126,7 @@ export function applyMaintenance(state, operations, options = {}) {
         if (!state.memoryOrganization || !Array.isArray(options.pendingIds)) throw new Error('增量整理需要先完成全量初始化');
         validateMaintenanceScope(operations, options.pendingIds);
     }
+    if (options.tasks) validateMaintenanceTaskScopes(operations, options.tasks);
     const next = structuredClone(state), accepted = operations.filter(op => op.accepted), map = new Map(next.memories.map(memory => [memory.id, memory])), remap = new Map();
     for (const op of accepted.filter(op => op.action === 'merge')) {
         if (!op.timeResolved) throw new Error('请先选择无法排序的故事时间');
@@ -163,13 +184,13 @@ function lexicalIndex(memories, revision) {
     const result = { docs, df, average: docs.reduce((sum, doc) => sum + doc.length, 0) / Math.max(1, docs.length) };
     indexCache.set(key, result); if (indexCache.size > 3) indexCache.delete(indexCache.keys().next().value); return result;
 }
-export function rankRecallCandidates(candidates, rawScores = candidates.map(item => item.relevanceScore ?? item.score), { absolute = false } = {}) {
+export function rankRecallCandidates(candidates, rawScores = candidates.map(item => item.relevanceScore ?? item.score), { absolute = false, useImportance = true } = {}) {
     const min = Math.min(...rawScores), max = Math.max(...rawScores);
     return candidates.map((item, i) => {
         const normalized = max === min ? (max > 0 ? 1 : 0) : min >= 0 ? rawScores[i] / Math.max(max, Number.EPSILON) : (rawScores[i] - min) / (max - min);
         // Ranking alone must not turn a weak top result into strong relevance.
         const relevance = absolute ? Math.max(0, Math.min(1, rawScores[i])) : Math.min(normalized, item.evidenceRelevance ?? 1), importance = ((item.memory.importance || 3) - 1) / 4;
-        return { ...item, relevanceScore: rawScores[i], relevance, importanceWeight: importance, score: .95 * relevance + .05 * importance };
+        return { ...item, relevanceScore: rawScores[i], relevance, importanceWeight: useImportance ? importance : 0, score: useImportance ? .95 * relevance + .05 * importance : relevance };
     }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id));
 }
 export function finalizeRecallCandidates(memories, scoredCandidates, settings, links = []) {
@@ -209,16 +230,26 @@ export function selectRecallGroups(memories, candidates, settings, links = []) {
     return { selected: selectedGroups.flatMap(group => group.members), groups: selectedGroups, skippedGroups, budgetUsed };
 }
 const cosine = (a, b) => { if (!a || !b || a.length !== b.length) return 0; let dot = 0, an = 0, bn = 0; for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; an += a[i] ** 2; bn += b[i] ** 2; } return an && bn ? dot / Math.sqrt(an * bn) : 0; };
+// Construct once per corpus; maintenance queries share the same content-only lexical index.
+export function createMemoryRetriever(memories, revision = null, { includePermanent = false } = {}) {
+    const ordinary = memories.filter(memory => memoryEligible(memory) && (includePermanent || !memory.permanent));
+    const index = lexicalIndex(ordinary, revision);
+    return (query, { vectors = new Map(), queryVector = null, excludeId = null, useImportance = true } = {}) => {
+        const terms = tokenize(query);
+        const lexical = index.docs.filter(doc => doc.memory.id !== excludeId).map(doc => {
+            const hits = terms.filter(term => doc.tf.has(term)), direct = clean(doc.memory.content) && query.toLowerCase().includes(clean(doc.memory.content).toLowerCase());
+            const score = hits.reduce((sum, term) => { const tf = doc.tf.get(term), df = index.df.get(term); return sum + Math.log(1 + (ordinary.length - df + .5) / (df + .5)) * tf * 2.2 / (tf + 1.2 * (.25 + .75 * doc.length / Math.max(1, index.average))); }, 0) + (direct ? 2 : 0);
+            return { memory: doc.memory, score, evidenceRelevance: score / (score + .5), hits, source: direct ? 'exact' : 'lexical' };
+        }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30);
+        const semantic = queryVector ? ordinary.filter(memory => memory.id !== excludeId && vectors.has(memory.id)).map(memory => { const score = cosine(queryVector, vectors.get(memory.id)); return { memory, score, evidenceRelevance: Math.max(0, Math.min(1, score)), hits: [], source: 'vector' }; }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30) : [];
+        const scores = new Map();
+        for (const [channel, items] of [['lexical', lexical], ['vector', semantic]]) items.forEach((item, rank) => { const previous = scores.get(item.memory.id) || { ...item, score: 0, evidenceRelevance: 0, channels: [] }; previous.score += 1 / (60 + rank + 1); previous.evidenceRelevance = Math.max(previous.evidenceRelevance, item.evidenceRelevance); previous.channels.push(channel); scores.set(item.memory.id, previous); });
+
+        return rankRecallCandidates([...scores.values()], undefined, { useImportance });
+    };
+}
 export function retrieveMemories(memories, query, settings, { vectors = new Map(), queryVector = null, revision = null, links = [] } = {}) {
-    const eligible = memories.filter(memoryEligible), permanent = eligible.filter(memory => memory.permanent).map(memory => ({ memory, score: .95 + .05 * ((memory.importance || 3) - 1) / 4, relevance: 1, importanceWeight: ((memory.importance || 3) - 1) / 4, hits: [], permanent: true, source: 'permanent' })), ordinary = eligible.filter(memory => !memory.permanent), index = lexicalIndex(ordinary, revision), terms = tokenize(query);
-    const lexical = index.docs.map(doc => {
-        const hits = terms.filter(term => doc.tf.has(term)), direct = clean(doc.memory.content) && query.toLowerCase().includes(clean(doc.memory.content).toLowerCase());
-        const score = hits.reduce((sum, term) => { const tf = doc.tf.get(term), df = index.df.get(term); return sum + Math.log(1 + (ordinary.length - df + .5) / (df + .5)) * tf * 2.2 / (tf + 1.2 * (.25 + .75 * doc.length / Math.max(1, index.average))); }, 0) + (direct ? 2 : 0);
-        return { memory: doc.memory, score, evidenceRelevance: score / (score + .5), hits, source: direct ? 'exact' : 'lexical' };
-    }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30);
-    const semantic = queryVector ? ordinary.filter(memory => vectors.has(memory.id)).map(memory => { const score = cosine(queryVector, vectors.get(memory.id)); return { memory, score, evidenceRelevance: Math.max(0, Math.min(1, score)), hits: [], source: 'vector' }; }).sort((a, b) => b.score - a.score || a.memory.id.localeCompare(b.memory.id)).slice(0, 30) : [];
-    const scores = new Map();
-    for (const [channel, items] of [['lexical', lexical], ['vector', semantic]]) items.forEach((item, rank) => { const previous = scores.get(item.memory.id) || { ...item, score: 0, evidenceRelevance: 0, channels: [] }; previous.score += 1 / (60 + rank + 1); previous.evidenceRelevance = Math.max(previous.evidenceRelevance, item.evidenceRelevance); previous.channels.push(channel); scores.set(item.memory.id, previous); });
-    const ranked = rankRecallCandidates([...scores.values()]), retrievalCandidates = [...permanent, ...ranked];
+    const permanent = memories.filter(memory => memoryEligible(memory) && memory.permanent).map(memory => ({ memory, score: .95 + .05 * ((memory.importance || 3) - 1) / 4, relevance: 1, importanceWeight: ((memory.importance || 3) - 1) / 4, hits: [], permanent: true, source: 'permanent' }));
+    const ranked = createMemoryRetriever(memories, revision)(query, { vectors, queryVector }), retrievalCandidates = [...permanent, ...ranked];
     return { query, retrievalCandidates, ...finalizeRecallCandidates(memories, retrievalCandidates, settings, links) };
 }

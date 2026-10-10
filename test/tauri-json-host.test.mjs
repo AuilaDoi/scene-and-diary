@@ -219,7 +219,7 @@ test('Tauri maintenance cancellation aborts in-flight work without object retry 
     const ready = new Promise(resolve => { started = resolve; });
     const host = await hostFixture(['原文'], async (_input, _count, init) => { signal = init.signal; started(); await blocked; return refused(); }, { tauri: true, jsonDependencies });
     try {
-        const state = host.api.getState(); state.memories = ['a', 'b'].map(id => normalizeMemory({ id, title: id, content: id }));
+        const state = host.api.getState(); state.memories = ['a', 'b'].map(id => normalizeMemory({ id, title: id, content: id })); state.settings.maintenanceScoreThreshold = 0;
         host.context.chatMetadata.scene_diary = state;
         const running = host.api.startMaintenance('full'); await ready;
         host.api.cancelMaintenance(); assert.equal(signal.aborted, true);
@@ -238,11 +238,11 @@ test('Tauri library changes during maintenance prevent accepting a late response
         return { operations: [{ action: 'link', a: 'a', b: 'b', reason: '发展' }] };
     }, { tauri: true, jsonDependencies });
     try {
-        const state = host.api.getState(); state.memories = ['a', 'b'].map(id => normalizeMemory({ id, title: id, content: id }));
+        const state = host.api.getState(); state.memories = ['a', 'b'].map(id => normalizeMemory({ id, title: id, content: id })); state.settings.maintenanceScoreThreshold = 0;
         host.context.chatMetadata.scene_diary = state;
         await host.api.startMaintenance('full');
         assert.equal(host.requests.length, 1);
-        assert.equal(host.api.getState().maintenanceTransaction.status, 'error');
+        assert.equal(host.api.getState().maintenanceTransaction.status, 'stale');
         assert.equal(host.api.getState().memoryLinks.length, 0);
         assert.equal(host.api.getState().memoryOrganization, null);
     } finally { host.cleanup(); }
