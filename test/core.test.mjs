@@ -19,6 +19,30 @@ test('source review reacts to content changes instead of incidental update event
 test('saving a reviewed memory clears its pending-review state', () => { const memory={dirty:true,edited:false,revision:2,updatedAt:1};assert.equal(acknowledgeMemoryReview(memory),true);assert.equal('dirty' in memory,false);assert.equal(memory.edited,true);assert.equal('revision' in memory,false);assert.ok(memory.updatedAt>1); });
 test('diary review remains while a legacy memory dirty flag does not block recall', () => { const messages=[{mes:'第一幕原文',extra:{scene_diary:{messageId:'a'}}}],state=createState(1),act=state.acts[0],memory={id:'m',category:'event',title:'约会',content:'一起看了海',people:[],aliases:['海边'],status:'active',importance:3,dirty:true};act.status='closed';act.diary='今天一起看了海。';act.sourceFingerprint=sourceFingerprint(messages);act.dirty=true;state.memories=[memory];assert.equal(buildDiaryBlock(state,state.settings),'');assert.equal(recallMemories(state.memories,'看了海',state.settings).selected[0].memory.id,'m');acknowledgeActReview(act,messages);acknowledgeMemoryReview(memory);assert.match(buildDiaryBlock(state,state.settings),/今天一起看了海/);assert.equal(recallMemories(state.memories,'看了海',state.settings).selected[0].memory.id,'m'); });
 test('zero diary count injects no diary', () => { const s=createState(1);s.acts[0].status='closed';s.acts[0].diary='不应注入';assert.equal(buildDiaryBlock(s,{...s.settings,recentDiaryCount:0}), ''); });
+test('recent diary count retains complete long diaries in chronological order regardless of legacy budget', () => {
+    const state = createState(1);
+    const longDiary = '完整日记正文。'.repeat(1000);
+    state.acts = [
+        { id: 1, status: 'closed', title: '旧幕', diary: '超出篇数范围' },
+        { id: 2, status: 'closed', title: '较近幕', endSceneTime: '昨天', diary: longDiary },
+        { id: 3, status: 'closed', title: '最新幕', startSceneTime: '今天', diary: longDiary + '结尾' },
+        { id: 4, status: 'closed', diary: '等待复核', dirty: true },
+        { id: 5, status: 'active', diary: '尚未结束' },
+        { id: 6, status: 'closed', diary: '' },
+    ];
+    const expected = `[scene&diary 近期日记]\n第2幕｜较近幕｜昨天\n${longDiary}\n\n第3幕｜最新幕｜今天\n${longDiary}结尾\n[/scene&diary 近期日记]`;
+    assert.equal(buildDiaryBlock(state), expected);
+    assert.equal(buildDiaryBlock(state, { ...state.settings, diaryTokenBudget: 1 }), expected);
+    assert.equal(buildDiaryBlock(state, { ...state.settings, recentDiaryCount: 1 }), `[scene&diary 近期日记]\n第3幕｜最新幕｜今天\n${longDiary}结尾\n[/scene&diary 近期日记]`);
+    assert.ok(buildContinuityBlock(state, []).includes(expected));
+});
+test('settings normalization removes obsolete diary budgets without changing memory budgets', () => {
+    const settings = normalizeSettings({ diaryTokenBudget: 1, recentDiaryCount: 3, memoryTokenBudget: 750 });
+    assert.equal(Object.hasOwn(settings, 'diaryTokenBudget'), false);
+    assert.equal(Object.hasOwn(createState(1).settings, 'diaryTokenBudget'), false);
+    assert.equal(settings.recentDiaryCount, 3);
+    assert.equal(settings.memoryTokenBudget, 750);
+});
 test('memory parser removes references and recall finds Chinese content', () => { const ms=validateCandidates([{category:'habit',title:'小名',content:'玩家喜欢被叫小兔',aliases:['兔兔'],people:[],importance:3,storyTime:null,sourceMessageIds:['a','fake']}]);assert.equal('sourceMessageIds' in ms[0],false);const r=recallMemories(ms,'小兔今天怎么样',{recallLimit:8,memoryTokenBudget:1200});assert.equal(r.selected[0].memory.title,'小名');assert.match(buildMemoryBlock(r),/仅作事实参考/); });
 test('permanent memories are always recalled first and occupy recall slots', () => { const memories=[{id:'fixed',category:'relationship',title:'固定关系',content:'两人已经确认恋爱关系',people:[],aliases:[],importance:3,permanent:true},{id:'match',category:'event',title:'海边约会',content:'一起去海边散步',people:[],aliases:['海边'],importance:5,permanent:false}];const empty=recallMemories(memories,'',{recallLimit:1,memoryTokenBudget:1});assert.deepEqual(empty.selected,[]);assert.equal(empty.skippedGroups[0].permanent,true);assert.equal(empty.budgetUsed,0);const matched=recallMemories(memories,'海边',{recallLimit:1,memoryTokenBudget:1200});assert.deepEqual(matched.selected.map(x=>x.memory.id),['fixed']); });
 test('continuity block orders growth then diary then memory without handoff', () => { const s=createState(1);s.characterGrowth.content='她逐渐开始信任玩家。';s.acts[0]={...s.acts[0],status:'closed',title:'约会',diary:'今天一起看了海。',handoff:{location:'不应注入'}};const recall={selected:[{memory:{category:'event',status:'active',title:'海边约会',content:'两人一起看海',storyTime:null}}]};const block=buildContinuityBlock(s,recall,s.settings);assert.ok(block.indexOf('角色成长')<block.indexOf('近期日记'));assert.ok(block.indexOf('近期日记')<block.indexOf('长期记忆'));assert.doesNotMatch(block,/handoff|上一幕交接|不应注入/); });

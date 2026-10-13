@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.7 — 2026-10-13
+
+- Remove the diary injection token budget. Inject the latest eligible diaries in full, limited only by recent diary count; preserve chronological order, zero-count disablement and source-review exclusion.
+- Remove the default diary budget and discard legacy `diaryTokenBudget` settings during normalization. Keep long-term memory budgets, schema 6, content backup v2 and auto_update=false.
+- Deliver v0.3.7 to main as requested. Automated coverage and real-host acceptance boundaries: [validation](VALIDATION-v0.3.7.md).
+
 ## 0.3.6 — 2026-10-13 (manual acceptance confirmed)
 
 - Replace exhaustive organization blocks with per-memory BM25/vector candidate retrieval, full-pool optional rerank, independent relevance cutoff/limit and deduplicated candidate batches. Reuse cached memory query vectors; preserve chat recall behavior.

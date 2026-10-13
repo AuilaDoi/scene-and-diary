@@ -1,4 +1,6 @@
-# scene&diary 0.3.6
+# scene&diary 0.3.7
+
+v0.3.7 removes the diary injection token budget: recent diaries are injected in full, limited only by **近期日记篇数** (default 2; 0 disables injection). Legacy `diaryTokenBudget` settings are ignored and removed during normalization. Schema 6 and content backup v2 remain unchanged. See [v0.3.7 validation](VALIDATION-v0.3.7.md).
 
 v0.3.6 introduces retrieval-based memory organization, a required dedicated connection, and an editable organization system prompt. Chat schema upgrades to 6; content backups remain v2. See [validation and rollback](VALIDATION-v0.3.6.md) and [upgrade instructions](UPGRADE-v0.3.6.md). Automatic updates remain disabled. The user confirmed manual acceptance on 2026-10-13; v0.3.6 is available on main. RC installations should switch to main for subsequent updates.
 
@@ -130,7 +132,7 @@ Schema 5 initialization, current facts and completed legacy organization preview
 - **正文标签**: complete matching opening and closing tags such as `<now_plot>` and `</now_plot>`; multiple pairs use corresponding lines.
 - **最近有效消息**: fixed at three for recall, merged chronologically into one query across acts.
 - **长期记忆**: default maximum 8 groups and 1,200 estimated tokens; permanent groups have priority and obey the budget.
-- **近期日记篇数**: default 2; zero disables diary injection.
+- **近期日记篇数**: default 2; zero disables diary injection. Inject the latest eligible closed-act diaries in full, in chronological order; no diary token budget or truncation. Diaries awaiting source review remain excluded.
 - **角色成长**: stored content is capped at 4,000 characters; the full saved document is injected.
 - **提示词**: diary, memory, and character-growth role definitions are editable. Available variables are `{{char}}` and `{{user}}`; inputs and output formats are appended internally.
 
