@@ -9,7 +9,7 @@
 | 项目名称 | scene&diary |
 | 本地目录 | `D:\SillyTavern\SillyTavern\public\scripts\extensions\third-party\scene-and-diary` |
 | 远端仓库 | <https://github.com/AuilaDoi/scene-and-diary> |
-| 基准版本 | `0.3.6` 工作版本；候选召回整理、独立连接与系统提示词；真实宿主验收后发布 |
+| 基准版本 | `0.3.6`；候选召回整理、独立连接与系统提示词；2026-10-13 用户确认手动验收通过，合并至 main |
 | 本轮起始提交 | `538a347`（v0.3.5；开发分支 `feat/maintenance-retrieval`） |
 | 数据结构版本 | v0.3.0–v0.3.1 使用 schema 4；v0.3.2–v0.3.5 使用 schema 5；v0.3.6 使用 `SCHEMA_VERSION = 6` |
 | 最低宿主版本声明 | SillyTavern `1.18.0` |

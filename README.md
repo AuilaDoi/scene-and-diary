@@ -1,6 +1,6 @@
 # scene&diary 0.3.6
 
-v0.3.6 introduces retrieval-based memory organization, a required dedicated connection, and an editable organization system prompt. Chat schema upgrades to 6; content backups remain v2. See [validation and rollback](VALIDATION-v0.3.6.md) and [upgrade instructions](UPGRADE-v0.3.6.md). Automatic updates remain disabled. This working version awaits real-host acceptance before publication.
+v0.3.6 introduces retrieval-based memory organization, a required dedicated connection, and an editable organization system prompt. Chat schema upgrades to 6; content backups remain v2. See [validation and rollback](VALIDATION-v0.3.6.md) and [upgrade instructions](UPGRADE-v0.3.6.md). Automatic updates remain disabled. The user confirmed manual acceptance on 2026-10-13; v0.3.6 is available on main. RC installations should switch to main for subsequent updates.
 
 开发与维护请遵循 [开发与维护规范](DEVELOPMENT.md)。
 

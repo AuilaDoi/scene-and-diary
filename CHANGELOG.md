@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.6 — 2026-10-10 (working version; acceptance pending)
+## 0.3.6 — 2026-10-13 (manual acceptance confirmed)
 
 - Replace exhaustive organization blocks with per-memory BM25/vector candidate retrieval, full-pool optional rerank, independent relevance cutoff/limit and deduplicated candidate batches. Reuse cached memory query vectors; preserve chat recall behavior.
 - Require a dedicated organization profile; expose an editable system prompt with character/player substitutions. Freeze settings and connection identity for the whole run and retries.

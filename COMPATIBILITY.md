@@ -1,10 +1,10 @@
 # Compatibility
 
-## v0.3.6 current working version
+## v0.3.6 current version
 
 Chat schema upgrades to 6 with a pre-migration full-chat backup and verified save. Schema 5 facts, links, initialization and close previews survive; completed old organization previews remain approvable, unfinished old runs must be restarted. Content backups remain v2. The new transaction shape requires the new runtime; restore the pre-upgrade full chat when rolling back.
 
-Organization requires a dedicated Chat Completion Connection Manager profile and uses a custom system prompt. Optional semantic endpoints and credentials are shared with recall, but screening limits/scoring are independent. Enabled-service failure pauses organization; chat recall retains its previous fallback behavior. Native and Tauri JSON host adapters retain their existing provider-specific request paths. Real browser/Tauri/provider acceptance remains pending; see [v0.3.6 validation](VALIDATION-v0.3.6.md).
+Organization requires a dedicated Chat Completion Connection Manager profile and uses a custom system prompt. Optional semantic endpoints and credentials are shared with recall, but screening limits/scoring are independent. Enabled-service failure pauses organization; chat recall retains its previous fallback behavior. Native and Tauri JSON host adapters retain their existing provider-specific request paths. The user confirmed manual acceptance on 2026-10-13; client versions and provider combinations were not supplied, so no broader compatibility matrix is claimed. See [v0.3.6 validation](VALIDATION-v0.3.6.md).
 
 ## Historical version behavior
 
