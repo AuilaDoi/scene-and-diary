@@ -33,7 +33,7 @@ function assertRetained(state) {
 }
 const legacyHost = options => hostFixture([], null, { metadata: fixture.metadata, chat: fixture.messages, initialize: false, ...options });
 
-test('v0.3.1 host update backs up original chat before migration, verifies schema 6 save and survives reload', async () => {
+test('v0.3.1 host update backs up original chat before migration, saves schema 6 and survives reload', async () => {
     const host = await legacyHost();
     let metadata, saved, local;
     try {
@@ -47,7 +47,7 @@ test('v0.3.1 host update backs up original chat before migration, verifies schem
         assert.deepEqual(host.context.chat, fixture.messages);
         assert.deepEqual(host.context.chatMetadata.other_extension, fixture.metadata.other_extension);
         assert.equal(host.api.hostStatus().disabledReason, '');
-        assert.equal(host.api.hostStatus().saveUnverified, false);
+        assert.equal(host.api.hostStatus().saveError, '');
         const copies = migrationCopies(host); assert.equal(copies.length, 1);
         assert.match(copies[0][0], /_schema4_to6$/);
         assert.deepEqual(copies[0][1].metadata, fixture.metadata);
@@ -84,30 +84,25 @@ test('v0.3.1 migration backup failure leaves original metadata untouched and can
     } finally { host.cleanup(); }
 });
 
-for (const failure of ['save', 'readback', 'recovery-copy']) test(`v0.3.1 migration ${failure} failure keeps backups and recovers without losing or duplicating facts`, async () => {
+test('v0.3.1 migration save failure keeps its original backup and retries without locking or duplicating facts', async () => {
     const host = await legacyHost();
     let metadata, local, saved;
     try {
-        const save = host.context.saveMetadata, fetch = globalThis.fetch;
-        const store = globalThis.SillyTavern.libs.localforage, write = store.setItem;
-        if (failure === 'save') host.context.saveMetadata = async () => { throw new Error('disk full'); };
-        if (failure === 'readback') globalThis.fetch = async () => ({ ok: true, json: async () => [{ chat_metadata: fixture.metadata }, ...fixture.messages] });
-        if (failure === 'recovery-copy') store.setItem = async (key, value) => { if (key.startsWith('scene_diary_recovery_')) throw new Error('quota exceeded'); return write(key, value); };
+        const save = host.context.saveMetadata;
+        host.context.saveMetadata = async () => { throw new Error('disk full'); };
         host.api.initializeChat(); await host.settle();
-        assertRetained(host.api.getState()); assert.equal(host.api.hostStatus().saveUnverified, true);
-        assert.match(host.api.hostStatus().disabledReason, /迁移保存未核验/);
+        assertRetained(host.api.getState()); assert.match(host.api.hostStatus().saveError, /disk full/);
+        assert.equal(host.api.hostStatus().disabledReason, '');
         assert.deepEqual(migrationCopies(host)[0][1].metadata, fixture.metadata);
-        const expectedCopy = failure === 'recovery-copy' ? 0 : 1;
-        assert.equal(recoveryCopies(host).length, expectedCopy);
-        host.context.saveMetadata = save; globalThis.fetch = fetch; store.setItem = write;
-        if (failure === 'recovery-copy') { host.api.initializeChat(); await host.settle(); }
-        else await host.api.recoverSave();
+        assert.equal(recoveryCopies(host).length, 0);
+        host.context.saveMetadata = save;
+        await host.api.retrySave();
         assertRetained(host.api.getState()); assert.equal(host.api.hostStatus().disabledReason, '');
         assert.equal(recoveryCopies(host).length, 0);
         metadata = structuredClone(host.saved.get('persisted')); local = host.local; saved = host.saved;
     } finally { host.cleanup(); }
     const reloaded = await legacyHost({ metadata, saved, local });
-    try { reloaded.api.initializeChat(); await reloaded.settle(); assertRetained(reloaded.api.getState()); assert.equal(reloaded.api.hostStatus().saveUnverified, false); }
+    try { reloaded.api.initializeChat(); await reloaded.settle(); assertRetained(reloaded.api.getState()); assert.equal(reloaded.api.hostStatus().saveError, ''); }
     finally { reloaded.cleanup(); }
 });
 
@@ -149,8 +144,8 @@ test('v0.3.1 pending recovery is never overwritten by migration and restores its
     const host = await legacyHost({ saved, local });
     try {
         host.api.initializeChat(); await host.settle();
-        assert.match(host.api.hostStatus().disabledReason, /旧版未核验/);
-        assert.equal(host.saved.has('persisted'), false);
+        assert.equal(host.api.hostStatus().disabledReason, '');
+        assert.equal(host.saved.has('persisted'), true);
         assert.deepEqual(local.get(key), raw);
         assert.deepEqual(migrationCopies(host)[0][1].pendingRecovery, raw);
         host.api.initializeChat(); await host.settle(); assert.deepEqual(local.get(key), raw);
@@ -173,6 +168,7 @@ test('switching chat during a legacy recovery read cannot write the old library 
     const host = await legacyHost({ saved, local });
     try {
         host.api.initializeChat(); await host.settle();
+        const savesBefore = host.events.filter(event => event.type === 'save').length;
         const store = globalThis.SillyTavern.libs.localforage, read = store.getItem;
         let release, started;
         const ready = new Promise(resolve => started = resolve), delayed = new Promise(resolve => release = resolve);
@@ -183,7 +179,7 @@ test('switching chat during a legacy recovery read cannot write the old library 
         host.api.initializeChat(); release(); await recovering; await host.settle();
         assert.deepEqual(host.api.getState().memories, []);
         assert.equal(host.api.getState().memorySpaceId, 'space-other');
-        assert.equal(host.events.filter(event => event.type === 'save').length, 0);
+        assert.equal(host.events.filter(event => event.type === 'save').length, savesBefore);
         assert.deepEqual(local.get(key), fixture.metadata.scene_diary);
     } finally { host.cleanup(); }
 });

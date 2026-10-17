@@ -137,6 +137,14 @@ test('repeated malformed object content stops at three calls including schema re
     assert.equal(calls, 3);
 });
 
+test('harmless extra model fields do not reject valid content or trigger another model request', async () => {
+    let calls = 0;
+    const result = await requestTauriStructured(async () => {
+        calls++; return JSON.stringify({ characterGrowth: '双方更熟悉了。', explanation: 'extra metadata' });
+    }, '成长', OUTPUT_SCHEMAS.growth, parseGrowthResponse, 6144, '角色成长');
+    assert.equal(result, '双方更熟悉了。'); assert.equal(calls, 1);
+});
+
 test('network and quota failures do not trigger duplicate model calls', async () => {
     let calls = 0;
     await assert.rejects(requestStructured(async () => { calls++; throw new Error('429 rate limit'); }, '记忆', OUTPUT_SCHEMAS.memory, JSON.parse, 8192, '记忆'), /429/);

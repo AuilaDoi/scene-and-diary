@@ -1,4 +1,6 @@
-# scene&diary 0.3.7
+# scene&diary 0.3.8
+
+v0.3.8 simplifies saving and validation. All saves use the host save API without rereading chat files, comparing serialized state, or creating verification recovery copies. A reported save error keeps current page content editable and offers **重试保存** and export. Old local copies remain accessible under **记忆库 → 旧版本保存副本** with confirmation; they never block normal use. Schema 6 and content backup v2 are unchanged. Delivered to main at the user's request; update the extension and reload the client. See [validation and validation audit](VALIDATION-v0.3.8.md) for automated coverage and pending real-host acceptance.
 
 v0.3.7 removes the diary injection token budget: recent diaries are injected in full, limited only by **近期日记篇数** (default 2; 0 disables injection). Legacy `diaryTokenBudget` settings are ignored and removed during normalization. Schema 6 and content backup v2 remain unchanged. See [v0.3.7 validation](VALIDATION-v0.3.7.md).
 
@@ -70,13 +72,13 @@ On a normal generation, one temporary system block is inserted after preset asse
 [/scene&diary 长期记忆]
 ```
 
-Empty sections are omitted. Character growth is injected whole. Recent diaries obey their count and token budget; recalled memory groups obey both their group limit and estimated token budget. Eligible permanent memories become priority seeds and obey those same limits.
+Empty sections are omitted. Character growth is injected whole. Recent diaries obey their count and are injected in full; recalled memory groups obey both their group limit and estimated token budget. Eligible permanent memories become priority seeds and obey those same limits.
 
 ## Data and migration
 
-Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema 5 removes memory sources, source IDs, lifecycle, supersedes, mergedInto, individual revision, status and source-review fields. It removes archived, superseded and deleted entries, retains the remaining content and controls, and adds undirected `memoryLinks`. Old maintenance snapshots are discarded; old close previews retain diary/growth results but require fresh memory extraction. A separate schema-specific local backup is written before migration; migration stays read-only until save verification completes. Downgrading requires restoring the full pre-migration chat backup.
+Data remains in `chat_metadata.scene_diary`; message ownership remains in `message.extra.scene_diary`. Schema 5 removes memory sources, source IDs, lifecycle, supersedes, mergedInto, individual revision, status and source-review fields. It removes archived, superseded and deleted entries, retains the remaining content and controls, and adds undirected `memoryLinks`. Old maintenance snapshots are discarded; old close previews retain diary/growth results but require fresh memory extraction. A separate schema-specific local backup is written before migration; only backup preparation keeps the old schema read-only. Migration then uses the ordinary host save path. Downgrading requires restoring the full pre-migration chat backup.
 
-The RC is separate from stable `main`. Schema 4 facts, IDs, importance, story time and user controls are retained except for the explicitly removed archived/superseded/deleted entries. If a v0.3.1 unverified save exists, it is backed up and remains available through **恢复未完成的保存** before migration continues. Migration never overwrites that newer recovery copy with older persisted data. No stable v0.3.2 release or tag has been published.
+Schema 4 facts, IDs, importance, story time and user controls are retained except for the explicitly removed archived/superseded/deleted entries. Existing legacy recovery copies are included in the migration backup and left intact for optional manual recovery. Their presence does not stop migration, chatting or saving, and new saves never overwrite them.
 
 - v0.1–v0.2.4 handoff data is preserved but inactive.
 - A test-build `summary` object migrates to `characterGrowth`; an existing `characterGrowth` object takes precedence.
@@ -88,7 +90,9 @@ The RC is separate from stable `main`. Schema 4 facts, IDs, importance, story ti
 
 ## Content backup and retrieval
 
-The memory page exports a version 2 JSON content backup containing diaries, character growth, saved memories and associations. Version 1 imports remain supported through the schema 5 migration rules. Legacy manually saved bodies over 500 characters survive migration and backup round trips; new extraction candidates retain the 500-character limit. Importing a backup restores all three content types together after confirmation. Backups are bound to their originating chat and require the corresponding acts to exist. They do not contain chat messages or API keys, so keep a separate full SillyTavern chat backup for migration rollback. If a save cannot be verified, the local recovery button appears so the pending state can be saved again.
+The memory page exports a version 2 JSON content backup containing diaries, character growth, saved memories and associations. Version 1 imports remain supported through the schema 5 migration rules. Legacy manually saved bodies over 500 characters survive migration and backup round trips; new extraction candidates retain the 500-character limit. Importing a backup restores all three content types together after confirmation. Backups are bound to their originating chat and require the corresponding acts to exist. They do not contain chat messages or API keys, so keep a separate full SillyTavern chat backup for migration rollback.
+
+The host owns persistence and its native error reporting. The extension serializes save requests, skips queued work for a replaced chat, and reports errors the host API throws; it does not independently certify disk writes. On a reported failure, changes stay in the current page, including approved close/organization results. **重试保存** submits the latest state without repeating mutations. Retry or export before reloading or leaving: new saves no longer create an automatic local recovery copy. A legacy copy is deleted only after confirmed manual restoration and a successful host API return; cleanup failure is a warning, not a read-only state.
 
 Only memory content and story time enter recalled memory context. Titles, categories, people, aliases and association reasons remain available for user search and maintenance, but are not injected. Lexical, vector and rerank documents use content only; story time is not searched. Vector caches use a new namespace so old vectors are rebuilt. Manual deletion removes all links involving the deleted entry without linking its former neighbors.
 

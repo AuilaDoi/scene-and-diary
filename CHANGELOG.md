@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.8 — 2026-10-17
+
+- Use one serialized host save path for edits, act closing, organization, import and migration. Remove chat-file readback, JSON text/timestamp/message-ownership verification, automatic verification copies and their read-only gates.
+- Keep reported save failures editable with retry/export. Retry the latest state without repeating commits; ignore queued saves and late save errors for replaced chats. Retain old local copies for explicit, confirmed recovery without blocking normal use.
+- Remove repeated close preparation, a duplicate startup save, repeated aggregation-time organization scope checks and 250 ms freshness polling. Keep checks at asynchronous result/write boundaries, explicit cancellation, required input structure and invalid/conflicting target protection.
+- Accept harmless extra model fields and reuse memory validation for v2 backups. Keep JSON format negotiation, per-entry diagnostics, schema 6, backup v2, migration backups and auto_update=false.
+- Deliver to main as explicitly requested by the user. Audit, automated results and pending real-host acceptance: [VALIDATION-v0.3.8.md](VALIDATION-v0.3.8.md). No tag or GitHub Release.
+
 ## 0.3.7 — 2026-10-13
 
 - Remove the diary injection token budget. Inject the latest eligible diaries in full, limited only by recent diary count; preserve chronological order, zero-count disablement and source-review exclusion.

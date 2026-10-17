@@ -189,21 +189,25 @@ test('host switching chat rejects late maintenance output', async () => {
         assert.deepEqual(host.api.getState().memories.map(item => item.id), ['other']); assert.deepEqual(host.api.getState().memoryLinks, []);
     } finally { host.cleanup(); }
 });
-test('host save failure preserves recoverable close state and recovery does not duplicate memories', async () => {
+test('host save failure keeps close content editable and retry does not duplicate memories', async () => {
     const host = await hostFixture();
     try {
         await host.api.closeAct(); const save = host.context.saveMetadata;
         host.context.saveMetadata = async () => { throw new Error('disk full'); }; await host.api.confirmClose();
         assert.ok(host.notices.some(item => item.type === 'error' && item.text.includes('disk full')));
-        assert.ok([...host.local.keys()].some(key => key.startsWith('scene_diary_recovery')));
-        const count = host.api.getState().memories.length; host.context.saveMetadata = save; await host.api.recoverSave();
+        assert.equal(host.api.hostStatus().disabledReason, '');
+        assert.match(host.api.hostStatus().saveError, /disk full/);
+        assert.equal(host.local.size, 0);
+        const count = host.api.getState().memories.length; host.context.saveMetadata = save; await host.api.retrySave();
         assert.equal(host.api.getState().memories.length, count); assert.equal(host.api.getState().status, 'pending_next_act');
         assert.equal([...host.local.keys()].filter(key => key.startsWith('scene_diary_recovery')).length, 0);
+        assert.equal(host.api.hostStatus().saveError, '');
+        assert.deepEqual(host.saved.get('persisted').scene_diary, host.api.getState());
     } finally { host.cleanup(); }
 });
-test('host recovery-copy failure before commit preserves close preview and the unchanged library', async () => {
+test('host closing no longer depends on a local recovery-copy store', async () => {
     const host = await hostFixture();
-    try { await host.api.closeAct(); globalThis.SillyTavern.libs.localforage.setItem = async () => { throw new Error('storage unavailable'); }; await host.api.confirmClose(); assert.equal(host.api.getState().status, 'preview'); assert.equal(host.api.getState().memories.length, 0); assert.ok(host.notices.some(item => item.text.includes('预览仍保留'))); }
+    try { await host.api.closeAct(); globalThis.SillyTavern.libs.localforage.setItem = async () => { throw new Error('storage unavailable'); }; await host.api.confirmClose(); assert.equal(host.api.getState().status, 'pending_next_act'); assert.equal(host.api.getState().memories.length, 1); assert.equal(host.api.hostStatus().disabledReason, ''); assert.deepEqual(host.saved.get('persisted').scene_diary, host.api.getState()); }
     finally { host.cleanup(); }
 });
 test('host body-tag failures abort generation before model calls and report the floor', async () => {

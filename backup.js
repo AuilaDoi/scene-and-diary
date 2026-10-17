@@ -30,10 +30,11 @@ export function restoreContentBackup(state, backup, chatId) {
     }
     const visibleMemories = backup.memories.filter(memory => memory && !memory.deletedAt && !['archived', 'superseded'].includes(memory.lifecycle));
     for (const memory of visibleMemories) {
-        if (typeof memory?.id !== 'string' || !memory.id || memoryIds.has(memory.id) || !MEMORY_CATEGORIES.includes(memory.category) || typeof memory.title !== 'string' || !memory.title.trim() || typeof memory.content !== 'string' || !memory.content.trim() || memory.deletedAt) throw new Error('备份中的记忆无效或 ID 重复');
+        if (typeof memory?.id !== 'string' || !memory.id.trim() || memoryIds.has(memory.id)) throw new Error('备份中的记忆 ID 无效或重复');
         // v0.3.1 allowed manually saved bodies longer than the current extraction limit.
         // A content backup must round-trip those retained facts without truncation.
         if (backup.version === 2) validateMemoryFormat(memory, { extendedArrays: true, extendedContent: true });
+        else if (!MEMORY_CATEGORIES.includes(memory.category) || typeof memory.title !== 'string' || !memory.title.trim() || typeof memory.content !== 'string' || !memory.content.trim()) throw new Error('备份中的记忆无效');
         memoryIds.add(memory.id);
     }
     const restored = structuredClone(state);

@@ -184,16 +184,16 @@ test('host full initialization of an empty or singleton library needs approval b
     }
 });
 
-test('host failed initialization save retains a recoverable baseline and read-only state until restored', async () => {
+test('host failed initialization save retains its baseline without locking the library', async () => {
     const host = await hostFixture();
     try {
         host.context.chatMetadata.scene_diary.memories = ['a', 'b'].map(id => memory(id));
         await host.api.startMaintenance('full'); const save = host.context.saveMetadata;
         host.context.saveMetadata = async () => { throw new Error('disk full'); }; await host.api.confirmMaintenance();
-        assert.equal(host.api.hostStatus().saveUnverified, true); const initializedAt = host.api.getState().memoryOrganization.initializedAt;
+        assert.match(host.api.hostStatus().saveError, /disk full/); assert.equal(host.api.hostStatus().disabledReason, ''); const initializedAt = host.api.getState().memoryOrganization.initializedAt;
         await host.api.startMaintenance('incremental'); assert.equal(host.requests.length, 1);
-        host.context.saveMetadata = save; await host.api.recoverSave();
-        assert.equal(host.api.hostStatus().saveUnverified, false); assert.equal(host.api.getState().memoryOrganization.initializedAt, initializedAt);
+        host.context.saveMetadata = save; await host.api.retrySave();
+        assert.equal(host.api.hostStatus().saveError, ''); assert.equal(host.api.getState().memoryOrganization.initializedAt, initializedAt);
         assert.deepEqual(pendingOrganizationIds(host.api.getState()), []);
     } finally { host.cleanup(); }
 });

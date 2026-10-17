@@ -160,15 +160,16 @@ test('cancelling a shared-index wait leaves the shared work alive', async () => 
     await assert.rejects(wait, /cancelled/); gate.resolve('completed'); assert.equal(await gate.promise, 'completed');
 });
 
-test('cancel and memory revisions abort native analysis and prevent late proposals from being saved', async () => {
+test('explicit cancellation aborts native analysis and changed memory revisions reject late results at the response boundary', async () => {
     for (const cancel of [true, false]) {
         const started = deferred(), gate = deferred(); let signal;
         const host = await hostFixture([], async input => { signal = input.signal; started.resolve(); await gate.promise; return { operations: [link('a', 'b')] }; });
         try {
             host.api.getState().memories = [memory('a'), memory('b')];
             const run = host.api.startMaintenance('full'); await started.promise;
-            if (cancel) host.api.cancelMaintenance(); else host.api.getState().memoryRevision++;
-            await run; assert.equal(signal.aborted, true);
+            if (cancel) host.api.cancelMaintenance();
+            else { host.api.getState().memoryRevision++; gate.resolve(); }
+            await run; assert.equal(signal.aborted, cancel);
             assert.equal(host.api.getState().memoryLinks.length, 0); assert.equal(host.api.getState().memoryOrganization, null);
             if (cancel) assert.equal(host.api.getState().maintenanceTransaction, null);
             else assert.equal(host.api.getState().maintenanceTransaction.status, 'stale');

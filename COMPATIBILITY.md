@@ -1,6 +1,14 @@
 # Compatibility
 
-## v0.3.6 current version
+## v0.3.8 current version
+
+Saving relies on the host's public saveMetadata/saveChat API. No `/api/chats/get` readback, JSON text comparison, saved-message ownership scan or verification-copy gate remains. Ordinary editing, act closing, organization and content import work without a local recovery store or chat-file/avatar discovery. Reported API failures retain editable page content with retry/export; errors swallowed internally by the host remain the host's reporting responsibility. There is no independent disk verification or new automatic recovery copy.
+
+Legacy local copies remain optional and require confirmation before replacing current content. Pre-migration backups, supported-schema checks, external input validation, actual stale-result checks and invalid/conflicting target protection remain. Harmless extra model fields are accepted locally; required fields and usable types still apply. Schema 6, content backup v2 and JSON provider negotiation are unchanged. Delivered to main at the user's explicit request; this does not establish real-host acceptance. Automated and real-host acceptance boundaries are recorded in [v0.3.8 validation](VALIDATION-v0.3.8.md).
+
+The following version sections describe historical behavior; their verified-save and read-only recovery requirements are superseded by v0.3.8.
+
+## v0.3.6 accepted baseline
 
 Chat schema upgrades to 6 with a pre-migration full-chat backup and verified save. Schema 5 facts, links, initialization and close previews survive; completed old organization previews remain approvable, unfinished old runs must be restarted. Content backups remain v2. The new transaction shape requires the new runtime; restore the pre-upgrade full chat when rolling back.
 

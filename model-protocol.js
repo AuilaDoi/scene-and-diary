@@ -80,8 +80,7 @@ function validateShape(value, shape, path) {
     if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         for (const key of shape.required || []) if (!Object.hasOwn(value, key)) throw structureError(`${path}.${key} 缺少必需字段`);
         for (const key of Object.keys(value)) {
-            if (!Object.hasOwn(shape.properties || {}, key)) { if (shape.additionalProperties === false) throw structureError(`${path} 存在未约定字段`); }
-            else validateShape(value[key], shape.properties[key], `${path}.${key}`);
+            if (Object.hasOwn(shape.properties || {}, key)) validateShape(value[key], shape.properties[key], `${path}.${key}`);
         }
     }
     if (Array.isArray(value) && shape.items) value.forEach((item, index) => validateShape(item, shape.items, `${path}[${index}]`));
