@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1 — 2026-11-21
+
+- Fix extension loading in TauriTavern and other WebViews by resolving Vue's production environment flag at build time.
+- Check the distributed JavaScript entry in a subprocess with no Node process global. Chat schema 7 and content backup v3 still apply.
+
 ## 0.4.0 — 2026-11-21
 
 - Rebuild the workbench and the growth, diary, and memory pages with Vue, TypeScript, and Vite.

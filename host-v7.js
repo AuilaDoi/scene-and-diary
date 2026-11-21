@@ -8,7 +8,7 @@ import { createRetrieval, continuity, localPreview } from './recall-v7.js';
 import { VERSION, PARTS, TASKS, clean, diary, eligible, makeBackup, readBackup, migrateState, newState, writeGrowth, normalizeEdges } from './state-v7.js';
 import { applyProposals, closeOutput, summarizeDiary, rebuildGrowth, proposeGraph } from './tasks-v7.js';
 
-export const VERSION_LABEL = '0.4.0';
+export const VERSION_LABEL = '0.4.1';
 const isReviewed = item => ['confirmed', 'skipped'].includes(item?.status);
 
 export async function readHistory(live, history, from = 0, complete = false, restoreSwipes = false) {
@@ -132,7 +132,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         if (!id || context().groupId || !data) { blocker = '请选择一个单角色聊天。'; publish(); return; }
         if (environment.AutoCardUpdaterAPI) { blocker = '检测到 SP·数据库，请停用 SP 并刷新后使用本扩展。'; applyPrompt(''); publish(); return; }
         const old = data[STORAGE_KEY];
-        if (old?.version > VERSION) { blocker = '聊天数据版本高于 0.4.0，请使用对应的插件版本。'; publish(); return; }
+        if (old?.version > VERSION) { blocker = '聊天数据版本高于当前插件支持范围，请使用对应的插件版本。'; publish(); return; }
         if (old && old.version !== VERSION) {
             blocker = '正在备份旧聊天…'; publish();
             try {

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import { assignMessageToAct, createState, normalizeMemory } from '../core.js';
 import { createHost, readHistory } from '../host-v7.js';
 import { testChannel } from '../channels.js';
@@ -35,13 +36,20 @@ function fixture(old = null, options = {}) {
     return { host, context, events, local, environment, saves, notices };
 }
 
-test('manifest and bundled Vue entry are installable without resolving host code at build time', async () => {
+test('manifest points to assets and the bundle loads without a Node process global', async () => {
     const manifest = JSON.parse(await readFile(new URL('../manifest.json', import.meta.url), 'utf8'));
     const bootstrap = await readFile(new URL('../' + manifest.js, import.meta.url), 'utf8');
     assert.match(bootstrap, /from '\.\/dist\/index\.js'/);
     await access(new URL('../' + manifest.css, import.meta.url));
-    const { install } = await import('../dist/index.js');
-    assert.equal(typeof install, 'function');
+    const bundle = new URL('../dist/index.js', import.meta.url);
+    const probe = `
+        delete globalThis.process;
+        const { install } = await import(${JSON.stringify(bundle.href)});
+        if (typeof install !== 'function') throw new Error('Missing install export');
+    `;
+    const result = spawnSync(process.execPath, ['--input-type=module', '--eval', probe], { encoding: 'utf8' });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stderr);
 });
 
 test('migration backs up schema 6 before writing schema 7 and v2/v3 content round-trips', async () => {

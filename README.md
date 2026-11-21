@@ -1,4 +1,4 @@
-# scene&diary 0.4.0
+# scene&diary 0.4.1
 
 scene&diary 是 SillyTavern 和 TauriTavern 的单角色聊天扩展。用剧幕划分经历，关幕时整理第一人称日记、当前角色画像和可长期使用的客观事实。
 
