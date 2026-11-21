@@ -1,12 +1,13 @@
 # Changelog
 
-## 0.4.0
+## 0.4.0 — 2026-11-21
 
 - Rebuild the workbench and the growth, diary, and memory pages with Vue, TypeScript, and Vite.
 - Add extension-managed API channels and independently reviewed diary, facts, and diary-driven growth.
 - Store standalone diaries and editable summaries. Recall older summaries through a separate search index.
 - Compare four categories of objective facts with existing entries and add directed, typed graph links.
 - Migrate schema 6 to 7 and export v3 backups. Keep legacy untyped links in the full migration backup.
+- Install or update from main. [Upgrade and rollback](docs/UPGRADE-0.4.0.md) · [Compatibility](COMPATIBILITY.md).
 
 ## 0.3.8 — 2026-10-17
 
@@ -14,13 +15,13 @@
 - Keep reported save failures editable with retry/export. Retry the latest state without repeating commits; ignore queued saves and late save errors for replaced chats. Retain old local copies for explicit, confirmed recovery without blocking normal use.
 - Remove repeated close preparation, a duplicate startup save, repeated aggregation-time organization scope checks and 250 ms freshness polling. Keep checks at asynchronous result/write boundaries, explicit cancellation, required input structure and invalid/conflicting target protection.
 - Accept harmless extra model fields and reuse memory validation for v2 backups. Keep JSON format negotiation, per-entry diagnostics, schema 6, backup v2, migration backups and auto_update=false.
-- Deliver to main as explicitly requested by the user. Audit, automated results and pending real-host acceptance: [VALIDATION-v0.3.8.md](VALIDATION-v0.3.8.md). No tag or GitHub Release.
+- Deliver to main as explicitly requested by the user. Audit, automated results and pending real-host acceptance: [VALIDATION-v0.3.8.md](docs/archive/v0.3/VALIDATION-v0.3.8.md). No tag or GitHub Release.
 
 ## 0.3.7 — 2026-10-13
 
 - Remove the diary injection token budget. Inject the latest eligible diaries in full, limited only by recent diary count; preserve chronological order, zero-count disablement and source-review exclusion.
 - Remove the default diary budget and discard legacy `diaryTokenBudget` settings during normalization. Keep long-term memory budgets, schema 6, content backup v2 and auto_update=false.
-- Deliver v0.3.7 to main as requested. Automated coverage and real-host acceptance boundaries: [validation](VALIDATION-v0.3.7.md).
+- Deliver v0.3.7 to main as requested. Automated coverage and real-host acceptance boundaries: [validation](docs/archive/v0.3/VALIDATION-v0.3.7.md).
 
 ## 0.3.6 — 2026-10-13 (manual acceptance confirmed)
 
@@ -29,7 +30,7 @@
 - Automatically filter old-only/out-of-scope/duplicate proposals. Keep integrity-error diagnostics, partial approval and merge conflicts, with repeated candidate-scope checks at review/save.
 - Persist screening and model progress for retry/reload. Pause on enabled-service failures; retain cancellation and stale-result protection, stage logs and redacted errors without short semantic timeouts.
 - Upgrade to schema 6 with full-chat backup and verified migration, retaining existing initialization/fixed facts/close previews and completed legacy maintenance previews. Unfinished legacy maintenance needs a fresh run; content backups stay v2.
-- Keep full approval replacing old links, incremental approval preserving links, and auto_update=false. No synthetic-library validation or scale benchmark is scheduled. [Validation](VALIDATION-v0.3.6.md), [upgrade/rollback](UPGRADE-v0.3.6.md).
+- Keep full approval replacing old links, incremental approval preserving links, and auto_update=false. No synthetic-library validation or scale benchmark is scheduled. [Validation](docs/archive/v0.3/VALIDATION-v0.3.6.md), [upgrade/rollback](docs/archive/v0.3/UPGRADE-v0.3.6.md).
 
 
 ## 0.3.5 — 2026-10-08
@@ -37,12 +38,12 @@
 - Remove extension-imposed embedding/rerank deadlines for queries and background vector builds; retain cancellation for stopped, superseded and cross-chat recalls.
 - Overlap cache reads, query embedding and lexical retrieval. Coalesce identical in-flight recalls, queue vector updates, batch IndexedDB transactions and invalidate recall caches after vector updates. Skip model calls for empty/permanent-only libraries without reducing ordinary rerank candidate coverage.
 - Replace the raw diagnostic JSON with the latest recall's stage log, elapsed times, expandable redacted failure reasons, and ranked groups/member titles. Keep brief combined fallback warnings and retry failed results on the next generation.
-- Deliver v0.3.5 to main as requested; keep schema 5, content backup v2 and auto_update=false. Validation and real-host acceptance boundaries: [VALIDATION-v0.3.5.md](VALIDATION-v0.3.5.md).
+- Deliver v0.3.5 to main as requested; keep schema 5, content backup v2 and auto_update=false. Validation and real-host acceptance boundaries: [VALIDATION-v0.3.5.md](docs/archive/v0.3/VALIDATION-v0.3.5.md).
 
 ## 0.3.4 — 2026-10-06
 
 - Keep act-close previews saveable after chat setting edits. Single-part regeneration uses current saved prompts, connection and body/story-time extraction settings while preserving other previews and manual edits. Running requests retain their original input; source-message, saved-growth and chat-identity checks remain in place.
-- Keep schema 5, content backup v2 and auto_update=false. Deliver v0.3.4 to main as requested; validation and real-host acceptance boundaries are recorded in [VALIDATION-v0.3.4.md](VALIDATION-v0.3.4.md).
+- Keep schema 5, content backup v2 and auto_update=false. Deliver v0.3.4 to main as requested; validation and real-host acceptance boundaries are recorded in [VALIDATION-v0.3.4.md](docs/archive/v0.3/VALIDATION-v0.3.4.md).
 
 ## 0.3.3 — 2026-10-05
 
@@ -50,7 +51,7 @@
 - Remove early lexical/vector score cutoffs while keeping the 30-document limit per channel. Preserve channel match strength as a ceiling on normalized RRF relevance; successful rerank uses bounded service relevance directly. Weak best/equal results are no longer automatically normalized to 1. Rerank receives the unfiltered pool and can rescue local rejects; failure uses filtered local results.
 - After overlap merging, groups with more than two distinct seeds retain only seeds before budget estimation. One/two-seed groups keep one-hop neighbors. Add threshold rejection and pruned-neighbor diagnostics.
 - Keep schema 5, content backup v2 and auto_update=false; existing chats get the new setting without rewriting content. Update version declarations to 0.3.3 and deliver to main as requested, without a new tag or GitHub Release.
-- Validation and real-host acceptance boundaries: [VALIDATION-v0.3.3.md](VALIDATION-v0.3.3.md).
+- Validation and real-host acceptance boundaries: [VALIDATION-v0.3.3.md](docs/archive/v0.3/VALIDATION-v0.3.3.md).
 
 ## 2026-10-05 accepted main baseline
 

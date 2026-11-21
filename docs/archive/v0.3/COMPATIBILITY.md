@@ -1,0 +1,58 @@
+# Compatibility
+
+## v0.3.8 current version
+
+Saving relies on the host's public saveMetadata/saveChat API. No `/api/chats/get` readback, JSON text comparison, saved-message ownership scan or verification-copy gate remains. Ordinary editing, act closing, organization and content import work without a local recovery store or chat-file/avatar discovery. Reported API failures retain editable page content with retry/export; errors swallowed internally by the host remain the host's reporting responsibility. There is no independent disk verification or new automatic recovery copy.
+
+Legacy local copies remain optional and require confirmation before replacing current content. Pre-migration backups, supported-schema checks, external input validation, actual stale-result checks and invalid/conflicting target protection remain. Harmless extra model fields are accepted locally; required fields and usable types still apply. Schema 6, content backup v2 and JSON provider negotiation are unchanged. Delivered to main at the user's explicit request; this does not establish real-host acceptance. Automated and real-host acceptance boundaries are recorded in [v0.3.8 validation](VALIDATION-v0.3.8.md).
+
+The following version sections describe historical behavior; their verified-save and read-only recovery requirements are superseded by v0.3.8.
+
+## v0.3.6 accepted baseline
+
+Chat schema upgrades to 6 with a pre-migration full-chat backup and verified save. Schema 5 facts, links, initialization and close previews survive; completed old organization previews remain approvable, unfinished old runs must be restarted. Content backups remain v2. The new transaction shape requires the new runtime; restore the pre-upgrade full chat when rolling back.
+
+Organization requires a dedicated Chat Completion Connection Manager profile and uses a custom system prompt. Optional semantic endpoints and credentials are shared with recall, but screening limits/scoring are independent. Enabled-service failure pauses organization; chat recall retains its previous fallback behavior. Native and Tauri JSON host adapters retain their existing provider-specific request paths. The user confirmed manual acceptance on 2026-10-13; client versions and provider combinations were not supplied, so no broader compatibility matrix is claimed. See [v0.3.6 validation](VALIDATION-v0.3.6.md).
+
+## Historical version behavior
+
+
+v0.3.4 retains schema 5, content backup v2 and v0.3.3 recall behavior. Chat setting edits no longer invalidate close previews; regeneration uses the latest saved settings. Existing close previews, including legacy settings fingerprints, remain saveable when source messages and saved growth are unchanged. No data migration is required. See [v0.3.4 validation and rollback](VALIDATION-v0.3.4.md); real-client manual acceptance remains pending.
+
+v0.3.3 introduced `recallScoreThreshold=0.30`; custom values are preserved, invalid values use the default, and numeric values are bounded to 0–1. No facts, links, diaries or growth are migrated or rewritten for this update. Final scoring now retains actual match strength (see README), so recall can be empty or shorter than before. A merged group with more than two distinct seeds drops attached non-seed neighbors. Rerank services should supply 0–1 relevance scores; values outside that range are clamped.
+
+The user requested delivery to main; auto_update remains false. v0.3.3 automated and synthetic-browser evidence does not extend v0.3.2 manual acceptance to this update. See [validation and rollback](VALIDATION-v0.3.3.md).
+
+Organization validation tolerates individual model errors without changing schema 5: usable same-side proposals from cross-block requests are accepted; invalid proposals are excluded visibly and need explicit partial-result approval. Missing targets, self-links, locked merges, incremental old-only changes and stale saves remain protected. Existing transactions without exclusion metadata retain ordinary approval behavior.
+
+`v0.3.2` uses schema 5. Migration removes archived, superseded and deleted memories and all reference, lifecycle and individual status/revision fields. Remaining facts and locking/permanent controls survive; legacy disabled fields are removed and formerly disabled entries participate in recall. Undirected associations are stored separately. Old maintenance histories do not enter active data; old close previews retain diary/growth and require re-extraction of memory.
+
+A local pre-migration backup is isolated by chat and source/target schema. Keep a full SillyTavern chat backup too. The extension stays read-only until migration saving is verified. Downgrade to schema 4 or earlier requires restoring pre-migration data; merely changing code is unsupported. Content backup v2 preserves links; v1 imports apply the migration filters. Content backups remain tied to one chat and do not replace a full chat backup.
+
+The accepted v0.3.2 code is the `main` development baseline as of 2026-10-05. Automatic updates remain disabled. SillyTavern pulls the current extension branch; existing main installations can update directly, while RC installations should switch to main for subsequent updates. See [upgrade and rollback instructions](UPGRADE-v0.3.2.md).
+
+Migration tests use synthetic data generated by the actual v0.3.1 tagged source. They cover original-chat backup before mutation, save/readback failures, recovery-copy failure, repeated reload, retained edits/controls/settings, old close previews and v1 content backups. An existing unverified v0.3.1 recovery is backed up and requires user recovery instead of being overwritten by migration. Legacy bodies over 500 characters remain intact through migration and v2 backup round trips. These checks simulate host storage; they do not replace real SillyTavern disk and browser acceptance.
+
+Permanent groups now obey the token budget; oversized groups are skipped and reported.
+
+Memory organization has full initialization and incremental modes. This adds optional chat-level `memoryOrganization` within schema 5 and content backup v2, without reintroducing entry lifecycle fields. Earlier schema 5 RC chats and old content backups keep existing associations until a full rebuild is approved; missing initialization metadata never implies that the library has already been checked. Full approval replaces associations, incremental approval preserves and extends/redirects them. The baseline and all operations are included in verified-save recovery.
+
+## SP·数据库 / shujuku
+
+scene&diary 0.3 is intentionally incompatible with SP·数据库. Both products own long-term relationship data and prompt injection, so enabling them together can duplicate or contradict context.
+
+When the verified `AutoCardUpdaterAPI` runtime marker is found, scene&diary becomes read-only: it does not filter acts, run diary or memory requests, or inject diary/memory context. It does not alter other extensions, their settings, or their stored data. Stop SP·数据库 and reload SillyTavern to resume scene&diary.
+
+The check cannot reliably identify renamed, forked, or manually embedded copies that do not expose this marker. Those installations remain unsupported and must be disabled manually.
+
+## SillyTavern
+
+Requires SillyTavern 1.18.0 or newer and a solo character chat. Auxiliary diary and memory generation needs Chat Completion through the active connection or a Connection Manager profile. The extension has no server-side component. Optional embeddings and reranking use browser fetch and require CORS-enabled compatible endpoints. Each key is stored only when the user selects its account-local remember option; same-origin scripts can read it.
+
+## TauriTavern JSON requests — main implementation
+
+The Tauri adapter uses the existing `/api/backends/chat-completions/generate` fetch bridge with `type: quiet`, non-streaming text and explicit `response_format`. Supported routes are native DeepSeek, OpenAI Chat, and Custom `openai_compat`. Responses, Claude, Gemini, text-completion models, and other unverified sources do not enter this negotiation. OpenAI's `gpt-6-astra` Responses route is excluded according to the inspected upstream source.
+
+The adapter requires the context settings/headers/Connection Manager APIs and the documented `openai.js` exports. Missing interfaces fail before generation. Additional body settings cannot change routing, messages or request constraints; format overrides are normalized only for this auxiliary request, with a visible notice. API keys remain managed by the native host; request diagnostics are redacted and not stored in chat backups. Storage schema stays 5.
+
+Mechanisms were checked against TauriTavern source commit `a1855be4a4f8b6ee7cd0374a84dbb3709c3e5375`. Automated tests simulate the bridge and host. The user confirmed manual acceptance of this round on 2026-10-05; exact desktop/Android client versions and provider combinations were not supplied, so no broader compatibility matrix is claimed. Ordinary SillyTavern keeps its previous request path. See [implementation and acceptance plan](JSON-REQUEST-COMPATIBILITY.md).
