@@ -2,12 +2,19 @@
   "name": "scene-and-diary",
   "private": true,
   "type": "module",
-  "version": "0.3.8",
+  "version": "0.4.0",
   "scripts": {
-    "build": "node --check index.js && node --check core.js && node --check memory-system.js && node --check maintenance-flow.js && node --check semantic.js && node --check recall-diagnostics.js && node --check backup.js && node --check model-protocol.js && node --check json-host-adapter.js",
+    "build": "vue-tsc --noEmit && vite build",
     "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.11",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.8",
+    "vue-tsc": "^3.3.14",
     "yaml": "2.8.3"
+  },
+  "dependencies": {
+    "vue": "^3.5.46"
   }
 }

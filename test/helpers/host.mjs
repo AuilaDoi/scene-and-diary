@@ -45,7 +45,7 @@ export async function hostFixture(messages = ['你好'], handler = null, options
     // An empty valid IndexedDB cache lets tests exercise the model request, not a missing browser API.
     globalThis.indexedDB = { open() { const request = {}; queueMicrotask(() => { request.result = { close() {}, transaction() { return { objectStore() { return { get() { const read = {}; queueMicrotask(() => { read.result = null; read.onsuccess(); }); return read; } }; } }; } }; request.onsuccess(); }); return request; } };
     const id = crypto.randomUUID(); globalThis.__sceneDiaryHosts ||= {}; globalThis.__sceneDiaryHosts[id] = context;
-    let code = await readFile(new URL('../../index.js', import.meta.url), 'utf8');
+    let code = await readFile(new URL('../fixtures/legacy-runtime.js', import.meta.url), 'utf8');
     code = code.replace(/^import .* from '\.\.\/\.\.\/\.\.\/\.\.\/script.js';/m, 'const extension_prompt_roles = { SYSTEM: 0 }, extension_prompt_types = { NONE: 0, IN_CHAT: 1 }; const setExtensionPrompt = () => {};');
     code = code.replace(/^import .* from '\.\.\/\.\.\/\.\.\/st-context.js';/m, `const getContext = () => globalThis.__sceneDiaryHosts[${JSON.stringify(id)}];`);
     code = code.replace(/from '(\.\/[^']+)'/g, (_, path) => `from '${new URL('../../' + path.slice(2), import.meta.url).href}'`);

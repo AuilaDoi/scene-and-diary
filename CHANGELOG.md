@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Rebuild the workbench and the growth, diary, and memory pages with Vue, TypeScript, and Vite.
+- Add extension-managed API channels and independently reviewed diary, facts, and diary-driven growth.
+- Store standalone diaries and editable summaries. Recall older summaries through a separate search index.
+- Compare four categories of objective facts with existing entries and add directed, typed graph links.
+- Migrate schema 6 to 7 and export v3 backups. Keep legacy untyped links in the full migration backup.
+
 ## 0.3.8 — 2026-10-17
 
 - Use one serialized host save path for edits, act closing, organization, import and migration. Remove chat-file readback, JSON text/timestamp/message-ownership verification, automatic verification copies and their read-only gates.

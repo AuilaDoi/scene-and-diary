@@ -2,14 +2,12 @@
   "display_name": "scene&diary",
   "loading_order": 190,
   "requires": [],
-  "optional": ["connection-manager"],
   "generate_interceptor": "sceneDiaryRearrangeChat",
-  "js": "index.js",
-  "css": "style.css",
+  "js": "entry.js",
+  "css": "dist/style.css",
   "author": "scene&diary contributors",
-  "version": "0.3.8",
+  "version": "0.4.0",
   "homePage": "https://github.com/AuilaDoi/scene-and-diary",
   "auto_update": false,
   "minimum_client_version": "1.18.0"
 }
-

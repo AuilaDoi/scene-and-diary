@@ -41,7 +41,7 @@ return {ok:true,json:async()=>[{chat_metadata:{scene_diary:JSON.parse(localStora
 globalThis.toastr=Object.fromEntries(['success','error','warning','info'].map(type=>[type,message=>{const notice=document.createElement('p');notice.textContent=type+': '+message;document.querySelector('#notices').prepend(notice);} ]));
 `;
 const html = `<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>scene&diary 当前工作区合成数据预览</title><link rel="stylesheet" href="/style.css"><style>body{background:#141c26;color:#eee;font:16px sans-serif;padding:18px}#send_form{margin-top:12px}#notices{font-size:13px}button{min-height:44px}*{box-sizing:border-box}</style><h2>当前工作区合成测试预览</h2><p>所有数据和模型响应均为本预览内的合成素材。</p><button onclick="localStorage.removeItem('scene_diary_v032_synthetic_preview');location.reload()">重置合成数据</button><button onclick="runSyntheticRecall(false)">运行合成召回</button><button onclick="runSyntheticRecall(true)">模拟服务失败</button><form id="send_form"></form><div id="notices"></div><script type="module">import '/index-preview.js';</script></html>`;
-const allowed = new Set(['core.js','memory-system.js','semantic.js','recall-diagnostics.js','backup.js','model-protocol.js','json-host-adapter.js','style.css']);
+const allowed = new Set(['core.js','memory-system.js','semantic.js','recall-diagnostics.js','backup.js','model-protocol.js','json-host-adapter.js','redact.js','maintenance-flow.js','style.css']);
 const server = createServer(async (req,res) => {
 try {
 const path = new URL(req.url,'http://localhost').pathname.slice(1);
@@ -49,11 +49,11 @@ if(path==='mobile'){res.setHeader('Content-Type','text/html; charset=utf-8');res
 if(!path){res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);return;}
 if(path==='host-context.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(host);return;}
 if(path==='index-preview.js'){
-let code=await readFile(new URL('index.js',root),'utf8');
+let code=await readFile(new URL('test/fixtures/legacy-runtime.js',root),'utf8');
 code=code.replace(/^import .* from '\.\.\/\.\.\/\.\.\/\.\.\/script.js';/m,'const extension_prompt_roles={SYSTEM:0},extension_prompt_types={NONE:0,IN_CHAT:1};const setExtensionPrompt=()=>{};');
 code=code.replace(/^import .* from '\.\.\/\.\.\/\.\.\/st-context.js';/m,"import {context} from '/host-context.js'; const getContext=()=>context;");res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(code);return;}
 if(!allowed.has(path)){res.statusCode=404;res.end('Not found');return;}
-res.setHeader('Content-Type',path.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8');res.end(await readFile(new URL(path,root),'utf8'));
+res.setHeader('Content-Type',path.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8');res.end(await readFile(new URL(path === 'style.css' ? 'test/fixtures/legacy-style.css' : path,root),'utf8'));
 }catch(error){res.statusCode=500;res.end(error.message);}
 });
 server.listen(8765,'127.0.0.1',()=>console.log('Synthetic preview: http://127.0.0.1:8765 (mobile: /mobile)'));

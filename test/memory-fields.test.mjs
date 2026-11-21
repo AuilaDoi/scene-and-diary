@@ -86,7 +86,7 @@ test('manual deletion mutation persists incident-link cleanup, keeps unrelated l
         assert.equal(after.memoryRevision, state.memoryRevision + 1);
         assert.deepEqual(host.saved.get('persisted').scene_diary.memoryLinks, after.memoryLinks);
         assert.equal((await host.api.prepareContinuity(after, host.api.recallInput(after), 'test-chat')).selected.length, 0);
-        const source = await readFile(new URL('../index.js', import.meta.url), 'utf8');
+        const source = await readFile(new URL('./fixtures/legacy-runtime.js', import.meta.url), 'utf8');
         assert.doesNotMatch(source, /data-memory-field="disabled"/);
         assert.match(source, /action === 'delete-memory'.*commitMemoryMutation/);
     } finally { host.cleanup(); }

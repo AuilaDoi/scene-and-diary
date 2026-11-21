@@ -72,7 +72,7 @@ export async function loadVectors(memories, identity, config) {
         return new Map(pairs.filter(([, vector]) => Array.isArray(vector)));
     } finally { db.close(); }
 }
-async function writeVectors(memories, vectors, identity, config) {
+export async function saveVectors(memories, vectors, identity, config) {
     const db = await openDb();
     try {
         await new Promise((resolve, reject) => {
@@ -96,7 +96,7 @@ export function indexVectors(memories, identity, config, key) {
             const batch = frozen.memories.slice(i, i + 16), missing = batch.filter(memory => !result.has(memory.id));
             if (!missing.length) continue;
             const vectors = await embed(missing.map(memoryText), frozen.config, key);
-            await writeVectors(missing, vectors, frozen.identity, frozen.config);
+            await saveVectors(missing, vectors, frozen.identity, frozen.config);
             missing.forEach((memory, index) => result.set(memory.id, vectors[index]));
         }
         return result;
