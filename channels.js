@@ -1,4 +1,4 @@
-import { requestStructured } from './model-protocol.js';
+import { parseResult, taskModules, taskMessages } from './tasks-v8.js';
 import { redactJsonError } from './redact.js';
 import { newId } from './core.js';
 
@@ -63,37 +63,20 @@ export async function fetchModels(context, channel, signal) {
     const result = await proxyRequest(context, channel, 'status', {}, signal);
     const models = result?.data ?? result?.models;
     if (!Array.isArray(models)) throw new Error('代理未返回模型列表，可手动填写模型。');
-    return models.map(model => typeof model === 'string' ? model : model.id).filter(Boolean).sort();
+    return [...new Set(models.map(model => typeof model === 'string' ? model : model?.id).filter(id => typeof id === 'string' && id.trim()))].sort();
 }
 
-async function complete(context, channel, messages, tokens, format, signal) {
-    const payload = {
-        model: channel.model, messages, stream: false, type: 'quiet', response_format: format,
-        max_tokens: tokens, temperature: channel.temperature,
-        custom_include_body: JSON.stringify(format ? { response_format: format } : {}),
-    };
-    const result = await proxyRequest(context, channel, 'generate', payload, signal);
+export async function generateTask(context, channel, task, messages, signal) {
+    const result = await proxyRequest(context, channel, 'generate', {
+        model: channel.model, messages, stream: false, type: 'quiet', max_tokens: channel.maxTokens, temperature: channel.temperature,
+    }, signal);
     const choice = result?.choices?.[0];
     if (choice?.message?.refusal || choice?.finish_reason === 'content_filter') throw new Error('模型拒绝生成该内容。');
-    const content = choice?.message?.content;
-    if (typeof content !== 'string' || !content.trim()) throw new Error('渠道未返回文本。');
-    return content;
+    if (choice?.finish_reason === 'length') throw new Error('模型输出被截断，请调整渠道最大输出 token 后重试。');
+    if (typeof choice?.message?.content !== 'string') throw new Error('渠道未返回文本。');
+    return parseResult(task, choice.message.content);
 }
-
-const testSchema = { name: 'scene_diary_channel_test', value: {
-    type: 'object', additionalProperties: false, properties: { ok: { type: 'boolean' } }, required: ['ok'],
-} };
-
 export function testChannel(context, channel, signal) {
-    return structuredTask(context, validatedChannel(channel), '返回 JSON {"ok":true}。', testSchema, signal, '渠道测试', undefined, 64);
-}
-
-export function structuredTask(context, channel, prompt, schema, signal, label, onProgress, maxTokens = channel.maxTokens) {
-    const assertCurrent = () => signal?.throwIfAborted();
-    const messages = [{ role: 'system', content: '根据给出的素材与任务要求输出 JSON。' }, { role: 'user', content: prompt }];
-    return requestStructured(
-        (input, tokens, format) => complete(context, channel, input, Math.min(tokens, channel.maxTokens), format, signal),
-        messages, schema, JSON.parse, maxTokens, label,
-        { assertCurrent, onProgress, connectionLabel: redactJsonError(channel.name, [channel.key]) },
-    );
+    const modules = taskModules('test', { prompts: { test: { system: '渠道连通性测试。', description: '按规定格式确认连接。' } } }, {}, '', '');
+    return generateTask(context, validatedChannel(channel), 'test', taskMessages(modules), signal);
 }

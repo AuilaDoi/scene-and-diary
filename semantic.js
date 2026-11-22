@@ -82,28 +82,3 @@ export async function saveVectors(memories, vectors, identity, config) {
         });
     } finally { db.close(); }
 }
-const indexQueues = new Map();
-export function indexVectors(memories, identity, config, key) {
-    // One writer per namespace; repeated snapshots share work, newer ones recheck the cache after waiting.
-    const space = JSON.stringify([identity, config.endpoint, config.model, config.dimensions]), snapshot = JSON.stringify([key, memories.map(memory => [memory.id, memoryText(memory)])]);
-    let queue = indexQueues.get(space);
-    if (!queue) { queue = { tail: Promise.resolve(), pending: new Map() }; indexQueues.set(space, queue); }
-    if (queue.pending.has(snapshot)) return queue.pending.get(snapshot);
-    const frozen = structuredClone({ memories, identity, config });
-    const task = queue.tail.catch(() => {}).then(async () => {
-        const result = await loadVectors(frozen.memories, frozen.identity, frozen.config);
-        for (let i = 0; i < frozen.memories.length; i += 16) {
-            const batch = frozen.memories.slice(i, i + 16), missing = batch.filter(memory => !result.has(memory.id));
-            if (!missing.length) continue;
-            const vectors = await embed(missing.map(memoryText), frozen.config, key);
-            await saveVectors(missing, vectors, frozen.identity, frozen.config);
-            missing.forEach((memory, index) => result.set(memory.id, vectors[index]));
-        }
-        return result;
-    }).finally(() => {
-        queue.pending.delete(snapshot);
-        if (!queue.pending.size) indexQueues.delete(space);
-    });
-    queue.pending.set(snapshot, task); queue.tail = task;
-    return task;
-}

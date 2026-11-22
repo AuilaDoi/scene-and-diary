@@ -1,17 +1,17 @@
 import {
-    STORAGE_KEY, assignMessageToAct, beginNextAct, currentAct, buildCharacterContext, buildRecallQuery,
+    STORAGE_KEY, assignMessageToAct, beginNextAct, currentAct, buildCharacterContext,
     isNormalRpMessage, sourceFingerprint, filterPromptMessages, insertContinuityBeforeHistory, newId,
 } from './core.js';
-import { channels, structuredTask } from './channels.js';
+import { channels, generateTask } from './channels.js';
 import { semanticErrorDetail } from './semantic.js';
-import { createRetrieval, continuity, localPreview } from './recall-v7.js';
-import { VERSION, PARTS, TASKS, clean, diary, eligible, makeBackup, readBackup, migrateState, newState, writeGrowth, normalizeEdges } from './state-v7.js';
-import { applyProposals, closeOutput, summarizeDiary, rebuildGrowth, proposeGraph } from './tasks-v7.js';
+import { createRetrieval, continuity, localPreview, queryFor } from './recall-v8.js';
+import { VERSION, PARTS, TASKS, clean, diary, validFact, makeBackup, readBackup, migrateState, newState, writeGrowth } from './state-v8.js';
+import { applyProposals, closeOutput, growthSources, modulesFor, taskMessages } from './tasks-v8.js';
 
-export const VERSION_LABEL = '0.4.1';
+export const VERSION_LABEL = '0.5.0';
 const isReviewed = item => ['confirmed', 'skipped'].includes(item?.status);
 
-export async function readHistory(live, history, from = 0, complete = false, restoreSwipes = false) {
+export async function readHistory(live, history, from = 0, complete = false, restoreSwipes = false, hasEnough = null) {
     if (!history || (!complete && Number.isInteger(from) && live.length > from && live.slice(from).every(Boolean))) return live;
     let page = await history.tail({ limit: 100 });
     const last = page.startIndex + page.messages.length;
@@ -35,7 +35,7 @@ export async function readHistory(live, history, from = 0, complete = false, res
                 cold.delete(position);
             }
         }
-        if (!page.hasMoreBefore || page.startIndex <= from) {
+        if (!page.hasMoreBefore || page.startIndex <= from || hasEnough?.(all, page.startIndex)) {
             if (cold.size) throw new Error('无法读取完整的历史候选回复。');
             return all;
         }
@@ -59,7 +59,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         return id;
     };
     let current = null, saveQueue = Promise.resolve(), saveError = '', saved = false, pendingSaves = 0, blocker = '', trace = [], prompt = '', recallController, refreshRequest = 0;
-    let graphProgress = '', growthProgress = '', summaryProgress = '', growthPreview = null;
+    let growthProgress = '', growthPreview = null;
     const historyHandle = async () => {
         const tauri = environment.__TAURITAVERN__;
         if (!tauri) return null;
@@ -71,7 +71,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
     const contentState = () => state() || metadata()?.[STORAGE_KEY];
     const snapshot = () => ({
         state: state(), persisted: contentState(), chatId: chatId(), blocker, saveError, saved, pendingSaves, trace,
-        graphProgress, growthProgress, summaryProgress, growthPreview, busy: [...controllers.keys()],
+        growthProgress, growthPreview, busy: [...controllers.keys()],
         channels: channels(context()), messages: chat().length,
     });
     const publish = () => subscriptions.forEach(fn => fn(snapshot()));
@@ -125,7 +125,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
             recallController?.abort();
             current = { id, metadata: data, messageRevision: 0, savedMessageRevision: 0 };
             saveError = ''; saved = false; pendingSaves = 0; trace = []; prompt = '';
-            graphProgress = ''; growthProgress = ''; summaryProgress = ''; growthPreview = null;
+            growthProgress = ''; growthPreview = null;
             applyPrompt('');
         }
         const scope = current;
@@ -222,7 +222,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
             currentAct(next).status = 'closing';
             next.pendingTransaction = {
                 id: newId('close'), actId: act.id, sourceFingerprint: sourceFingerprint(messages), character: character(),
-                growthRevision: next.characterGrowth.revision, results: Object.fromEntries(PARTS.map(kind => [kind, { status: 'idle' }])),
+                results: Object.fromEntries(PARTS.map(kind => [kind, { status: 'idle' }])),
             };
         });
         await Promise.allSettled([runClose('diary'), runClose('memory')]);
@@ -239,13 +239,13 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
     }
 
     const addTrace = (scope, item) => { if (sameChat(scope)) { trace.push(item); if (trace.length > 100) trace.shift(); publish(); } };
-    function requestWith(input, signal, scope, progress) {
+    function requestWith(input, signal, scope) {
         const frozen = new Map(channels(context()).map(channel => [channel.id, structuredClone(channel)]));
-        return (task, prompt, schema) => {
+        return (task, messages) => {
             assertChat(scope); signal.throwIfAborted();
             const channel = frozen.get(input.settings.bindings[task]);
             if (!channel) throw new Error('请在设置中为「' + TASKS[task] + '」绑定自建渠道。');
-            return structuredTask(context(), channel, prompt, schema, signal, TASKS[task], progress);
+            return generateTask(context(), channel, task, messages, signal);
         };
     }
     async function rankWith(input, scope, signal, options) {
@@ -261,38 +261,29 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
     async function runClose(kind) {
         const scope = current, input = state(), transaction = input?.pendingTransaction;
         if (!transaction || !PARTS.includes(kind)) return;
-        if (kind === 'growth' && transaction.results.diary.status !== 'confirmed') return;
         const name = 'close:' + kind, controller = begin(name);
         if (!controller) return;
         const signal = controller.signal;
-        const request = requestWith(input, signal, scope, title => addTrace(scope, { stage: TASKS[kind], title }));
+        const request = requestWith(input, signal, scope);
         const previous = transaction.results[kind];
         const isCurrent = () => sameChat(scope) && state()?.pendingTransaction?.id === transaction.id && controllers.get(name) === controller;
         try {
             const messages = structuredClone(await readAct(currentAct(input), scope));
             signal.throwIfAborted();
             if (!isCurrent() || sourceFingerprint(messages) !== transaction.sourceFingerprint) throw new Error('本幕对话已经修改，请取消关幕后重开审核。');
-            if (kind === 'growth' && state().pendingTransaction.results.diary !== transaction.results.diary
-                && JSON.stringify(state().pendingTransaction.results.diary) !== JSON.stringify(transaction.results.diary)) throw new Error('已确认日记已变化，请重新评估成长。');
-            if (kind === 'diary') controllers.get('close:growth')?.abort();
             await mutate(next => {
                 next.pendingTransaction.results[kind] = { ...previous, status: 'running', error: '' };
-                if (kind === 'diary') invalidateGrowth(next.pendingTransaction);
             });
             signal.throwIfAborted();
-            const ranked = await rankWith(input, scope, signal);
-            const value = await closeOutput(kind, input, transaction, messages, request, ranked);
+            const value = await closeOutput(kind, input, transaction, messages, request);
             if (!isCurrent()) return;
             signal.throwIfAborted();
-            if (kind !== 'growth') {
-                const latest = await readAct(currentAct(state()), scope);
-                if (sourceFingerprint(latest) !== transaction.sourceFingerprint) throw new Error('本幕对话已经修改，请取消关幕后重开审核。');
-            }
+            const latest = await readAct(currentAct(state()), scope);
+            if (sourceFingerprint(latest) !== transaction.sourceFingerprint) throw new Error('本幕对话已经修改，请取消关幕后重开审核。');
             if (!isCurrent()) return;
             signal.throwIfAborted();
             await mutate(next => {
                 next.pendingTransaction.results[kind] = { status: 'draft', value };
-                if (kind === 'growth') next.pendingTransaction.growthRevision = input.characterGrowth.revision;
             }).catch(() => {});
         } catch (error) {
             if (!isCurrent()) return;
@@ -302,47 +293,28 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         } finally { end(name, controller); }
     }
 
-    function invalidateGrowth(tx) {
-        const item = tx.results.growth;
-        tx.results.growth = item.value ? { ...item, status: 'outdated' } : { status: 'idle' };
-    }
-
     async function reviewPart(kind, value, skip = false, confirm = true) {
-        if (controllers.has('close:' + kind) || !PARTS.includes(kind)) return;
-        const tx = state()?.pendingTransaction;
-        if (!tx || kind === 'growth' && tx.results.diary.status !== 'confirmed') return;
-        if (!skip && value == null) throw new Error('请填写或生成审核内容。');
-        if (confirm && !skip && kind === 'diary' && (!clean(value.body) || !clean(value.summary))) throw new Error('请填写日记正文和摘要。');
-        if (confirm && !skip && kind === 'growth' && value.changed && !clean(value.content)) throw new Error('请填写候选画像。');
-        const diaryChanged = kind === 'diary' && (skip || !confirm || tx.results.diary.status !== 'confirmed' || JSON.stringify(tx.results.diary.value) !== JSON.stringify(value));
-        if (diaryChanged) controllers.get('close:growth')?.abort();
-        if (kind === 'growth' && confirm && !skip && tx.results.growth.value && tx.growthRevision !== state().characterGrowth.revision) throw new Error('当前画像已修改，请重新评估成长。');
+        if (!PARTS.includes(kind) || controllers.has('close:' + kind) || !state()?.pendingTransaction) return;
+        if (confirm && !skip && kind === 'diary' && !clean(value?.body)) throw new Error('请填写日记正文。');
+        if (!skip && kind === 'memory' && !Array.isArray(value)) throw new Error('请先提取记忆。');
+        if (confirm && !skip && kind === 'memory' && value.some(item => item.accepted && !validFact(item.value))) throw new Error('请检查勾选记忆点的标题、内容和重要度。');
         await mutate(next => {
-            const actual = next.pendingTransaction;
-            actual.results[kind] = skip ? { status: 'skipped' } : { status: confirm ? 'confirmed' : 'draft', value };
-            if (kind === 'diary') {
-                if (skip) actual.results.growth = { status: 'skipped' };
-                else if (diaryChanged) invalidateGrowth(actual);
-            }
-            if (kind === 'growth') actual.growthRevision = next.characterGrowth.revision;
+            next.pendingTransaction.results[kind] = skip ? { status: 'skipped' } : { status: confirm ? 'confirmed' : 'draft', value };
         });
-        if (kind === 'diary' && !skip && confirm && ['idle', 'outdated'].includes(state()?.pendingTransaction?.results.growth.status)) await runClose('growth');
     }
 
     async function confirmClose() {
         const scope = current, input = state(), tx = input?.pendingTransaction;
-        if (!tx || !PARTS.every(kind => isReviewed(tx.results[kind]))) throw new Error('请先处理三项审核。');
+        if (!tx || !PARTS.every(kind => isReviewed(tx.results[kind]))) throw new Error('请先处理两项审核。');
         const messages = await readAct(currentAct(input), scope);
         assertChat(scope);
         if (state() !== input) throw new Error('审核内容已变化，请重试提交。');
         if (sourceFingerprint(messages) !== tx.sourceFingerprint) throw new Error('本幕来源已变化，请取消后重新整理。');
         await mutate(next => {
             const act = currentAct(next);
-            const { diary: reviewed, growth, memory } = tx.results;
-            if (growth.status === 'confirmed' && next.characterGrowth.revision !== tx.growthRevision) throw new Error('当前画像已修改，请重新评估成长。');
+            const { diary: reviewed, memory } = tx.results;
             if (memory.status === 'confirmed') applyProposals(next, memory.value);
             if (reviewed.status === 'confirmed') next.diaries.push(diary({ ...reviewed.value, createdAt: Date.now() }));
-            if (growth.status === 'confirmed' && growth.value.changed) writeGrowth(next, growth.value.content, { actId: act.id, edited: false });
             Object.assign(act, { status: 'closed', closedAt: Date.now(), sourceFingerprint: tx.sourceFingerprint,
                 startMessageIndex: messages[0]?.extra?.scene_diary?.messageIndex ?? act.startMessageIndex,
                 endMessageIndex: messages.at(-1)?.extra?.scene_diary?.messageIndex ?? act.endMessageIndex });
@@ -359,70 +331,57 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         return mutate(next => { currentAct(next).status = 'active'; next.status = 'active'; next.pendingTransaction = null; });
     }
 
-    async function summarizeAll(ids) {
-        const scope = current, input = state(), name = 'summary', work = input && begin(name);
-        if (!work || !input) return;
-        const request = requestWith(input, work.signal, scope);
-        const selected = input.diaries.filter(item => ids.includes(item.id));
-        try {
-            for (const item of selected) {
-                summaryProgress = '正在整理 ' + item.title; publish();
-                const summary = await summarizeDiary(item, request);
-                work.signal.throwIfAborted(); assertChat(scope);
-                await mutate(next => {
-                    const entry = next.diaries.find(d => d.id === item.id);
-                    if (entry?.body !== item.body) throw new Error('日记已编辑，请重新生成摘要。');
-                    Object.assign(entry, { summary, summaryPending: false, updatedAt: Date.now() });
-                });
-            }
-        } finally { if (sameChat(scope)) summaryProgress = ''; end(name, work); }
+    async function previewModules(task, settings, mode = 'recent') {
+        const input = state(), scope = current;
+        const messages = task === 'growth' ? [] : await readAct(currentAct(input), scope);
+        assertChat(scope);
+        return modulesFor(task, { ...input, settings }, (task !== 'growth' && input.pendingTransaction?.character) || character(), messages, mode);
     }
 
-    async function generateGrowth() {
-        const scope = current, input = state(), name = 'growth', work = input && begin(name);
-        if (!work || !input) return;
+    async function generateGrowth(mode = 'recent') {
+        const scope = current, input = state(), sources = growthSources(input, mode);
+        if (!sources.length) throw new Error('所选范围没有有效日记。');
+        const work = begin('growth');
+        if (!work) return;
         try {
-            const content = await rebuildGrowth(input, character(), requestWith(input, work.signal, scope), title => {
-                if (sameChat(scope)) { growthProgress = title; publish(); }
-            });
-            assertChat(scope); work.signal.throwIfAborted();
-            growthPreview = { content, revision: input.characterGrowth.revision, diaries: JSON.stringify(input.diaries) };
-        } finally { if (sameChat(scope)) growthProgress = ''; end(name, work); }
+            growthProgress = '正在读取 ' + sources.length + ' 篇日记…'; publish();
+            const modules = modulesFor('growth', input, character(), [], mode);
+            const result = await requestWith(input, work.signal, scope)('growth', taskMessages(modules));
+            work.signal.throwIfAborted(); assertChat(scope);
+            growthPreview = { ...result, mode, count: sources.length, revision: input.characterGrowth.revision, diaries: JSON.stringify(sources) };
+        } catch (error) {
+            if (mode === 'global' && /context|too many tokens|input.*long|上下文|上下文长度/i.test(error.message)) {
+                throw new Error(error.message + '。请更换长上下文模型后重试。');
+            }
+            throw error;
+        } finally { if (sameChat(scope)) growthProgress = ''; end('growth', work); }
     }
     async function acceptGrowth(content) {
-        if (!growthPreview) return;
-        await mutate(next => {
-            if (next.characterGrowth.revision !== growthPreview.revision || JSON.stringify(next.diaries) !== growthPreview.diaries) throw new Error('画像或日记已变化，请重新重整。');
+        const preview = growthPreview;
+        if (!preview?.changed) return;
+        if (preview.appliedRevision === state().characterGrowth.revision && content === state().characterGrowth.content) {
+            await save();
+        } else await mutate(next => {
+            if (next.characterGrowth.revision !== preview.revision || JSON.stringify(growthSources(next, preview.mode)) !== preview.diaries) throw new Error('画像或本次日记已变化，请重新生成。');
             if (!clean(content)) throw new Error('请填写候选画像。');
             writeGrowth(next, content);
+            preview.appliedRevision = next.characterGrowth.revision;
         });
-        growthPreview = null; publish();
+        if (growthPreview === preview) growthPreview = null;
+        publish();
     }
 
-    async function organize(mode) {
-        const scope = current, input = state(), name = 'graph', work = input && begin(name);
-        if (!work || !input) return;
-        const request = requestWith(input, work.signal, scope);
-        try {
-            const progress = value => { if (sameChat(scope)) { graphProgress = value; publish(); } };
-            const rank = await rankWith(input, scope, work.signal, { strict: true });
-            const preview = await proposeGraph(input, mode, request, rank, progress);
-            assertChat(scope); work.signal.throwIfAborted();
-            await mutate(next => { next.graphPreview = preview; });
-        } finally { if (sameChat(scope)) graphProgress = ''; end(name, work); }
-    }
-
-    function applyGraph(edges) {
-        return mutate(next => {
-            const preview = next.graphPreview;
-            if (!preview || next.memoryRevision !== preview.revision) throw new Error('事实库已变化，请重新整理图谱。');
-            const approved = edges.filter(item => item.accepted);
-            const valid = normalizeEdges(approved, next.memories);
-            if (valid.length !== approved.length) throw new Error('存在重复或无效关系，请检查关系端点、类型和依据。');
-            next.edges = normalizeEdges(preview.mode === 'full' ? valid : [...next.edges, ...valid], next.memories);
-            next.graphReviewed = preview.reviewed;
-            next.graphPreview = null;
-        });
+    async function recallQuery(input, scope) {
+        const live = chat();
+        const query = queryFor(live, input.settings);
+        if (query.rows.length > input.settings.queryDepth || !environment.__TAURITAVERN__) return query;
+        const handle = await historyHandle();
+        assertChat(scope);
+        if (!handle?.history) return query;
+        const enoughForQuery = (all, start) => queryFor(all.slice(start), input.settings).rows.length > input.settings.queryDepth;
+        const rows = await readHistory(live, handle.history, 0, true, false, enoughForQuery);
+        assertChat(scope);
+        return queryFor(rows, input.settings);
     }
 
     async function rearrange(promptChat, _size, abort) {
@@ -433,8 +392,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         const controller = recallController = new AbortController(), signal = controller.signal;
         trace = [];
         try {
-            const rows = chat().filter(isNormalRpMessage).slice(-input.settings.recallMessageCount);
-            const query = buildRecallQuery(rows, input.settings.extraction);
+            const query = await recallQuery(input, scope);
             if (query.errors.length) throw new Error('最近对话正文标签未匹配，请检查正文提取设置。');
             const rank = await rankWith(input, scope, signal);
             const content = await continuity(input, query.text, rank, item => addTrace(scope, item));
@@ -456,11 +414,11 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
     }
 
     async function promptReady(event) {
-        const input = state();
+        const input = state(), scope = current;
         if (!input || environment.AutoCardUpdaterAPI || !['active', 'preview'].includes(input.status) || !Array.isArray(event.chat)) return;
         const pending = prompt; prompt = '';
         if (!event.dryRun) { insertContinuityBeforeHistory(event.chat, pending); return; }
-        const query = buildRecallQuery(chat().filter(isNormalRpMessage).slice(-input.settings.recallMessageCount), input.settings.extraction);
+        const query = await recallQuery(input, scope);
         if (query.errors.length) return;
         const preview = await localPreview(input, query.text);
         if (state() === input) insertContinuityBeforeHistory(event.chat, preview);
@@ -505,8 +463,8 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
     return {
         snapshot, subscribe(fn) { subscriptions.add(fn); fn(snapshot()); return () => subscriptions.delete(fn); },
         connect, initialize, takeOver, mutate, save, getContext, rearrange, promptReady, openClose, runClose, reviewPart, confirmClose, cancelClose,
-        organize, applyGraph, generateGrowth, acceptGrowth, discardGrowth() { growthPreview = null; publish(); },
-        summarizeAll, cancel(name) { controllers.get(name)?.abort(); }, refresh: publish,
+        previewModules, generateGrowth, acceptGrowth, discardGrowth() { growthPreview = null; publish(); },
+        cancel(name) { controllers.get(name)?.abort(); }, refresh: publish,
         backup: () => makeBackup(state(), chatId()),
         import: backup => mutate(next => Object.assign(next, readBackup(next, backup, chatId()))),
         migrationBackup: async () => {

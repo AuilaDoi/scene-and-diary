@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { blankChannel, fetchModels, saveChannels, testChannel, validatedChannel } from '../../channels.js';
-import { settingsV7, TASKS } from '../../state-v7.js';
+import { settingsV8, TASKS } from '../../state-v8.js';
 import { validateTagPair } from '../../core.js';
 import { validateSemanticEndpoint } from '../../semantic.js';
+import SaveAction from '../SaveAction.vue';
 import TextField from '../TextField.vue';
 import { useWorkspace } from '../workspace';
 
 const { view, host, run, notice, select } = useWorkspace();
 const settings = ref(null), draft = ref(null), modelList = ref<string[]>([]);
+const task = ref('diary'), mode = ref('recent'), preview = ref(null), previewError = ref(''), previewOpen = ref(false);
+const modelOpen = ref(false), search = ref(''), modelStatus = ref('');
+const visibleModels = computed(() => modelList.value.filter(model => model.toLowerCase().includes(search.value.toLowerCase())));
+watch([task, mode, settings, previewOpen, () => view.value.state], async (_values, _old, onCleanup) => {
+    let current = true;
+    onCleanup(() => { current = false; });
+    if (!settings.value || !previewOpen.value) return;
+    try {
+        const value = await host.previewModules(task.value, settings.value, mode.value);
+        if (current) { preview.value = value; previewError.value = ''; }
+    } catch (error) { if (current) { preview.value = null; previewError.value = error.message; } }
+}, { deep: true });
+const settingsForm = ref<HTMLFormElement>();
 const working = ref(false);
 let request: AbortController | null = null;
 onBeforeUnmount(() => request?.abort());
@@ -32,7 +46,7 @@ watch(initial, source => {
 }, { immediate: true });
 
 function edit(channel = blankChannel()) {
-    draft.value = { ...channel }; modelList.value = [];
+    draft.value = { ...channel }; modelList.value = []; modelOpen.value = false; modelStatus.value = ''; search.value = '';
 }
 function saveChannel() {
     return run(() => {
@@ -52,17 +66,18 @@ async function channelRequest(kind: 'models' | 'test') {
     working.value = true;
     const channel = { ...draft.value };
     try {
-        await run(async () => {
-            if (kind === 'models') {
-                modelList.value = await fetchModels(context(), channel, controller.signal);
-                notice.value = '返回 ' + modelList.value.length + ' 个模型。';
-            } else {
-                const result = await testChannel(context(), channel, controller.signal);
-                if (result.ok !== true) throw new Error('渠道返回了意外的测试结果。');
-                notice.value = '结构化渠道测试通过。';
-            }
-        });
-    } finally { request = null; working.value = false; }
+        modelStatus.value = ''; modelOpen.value = false;
+        if (kind === 'models') {
+            modelList.value = await fetchModels(context(), channel, controller.signal);
+            search.value = ''; modelOpen.value = modelList.value.length > 0;
+            modelStatus.value = modelOpen.value ? '返回 ' + modelList.value.length + ' 个模型。' : '渠道未提供模型，可手动填写。';
+        } else {
+            const result = await testChannel(context(), channel, controller.signal);
+            if (result.ok !== true) throw new Error('渠道返回了意外的测试结果。');
+            modelStatus.value = '渠道测试通过。';
+        }
+    } catch (error) { modelStatus.value = controller.signal.aborted ? '请求已取消。' : error.message; }
+    finally { request = null; working.value = false; }
 }
 function tagPairs(text) {
     return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
@@ -72,30 +87,29 @@ function tagPairs(text) {
         return pair;
     });
 }
-function saveSettings() {
-    return run(async () => {
-        const value = JSON.parse(JSON.stringify(settings.value));
-        for (const role of ['user', 'character']) for (const field of ['bodyTagPairs', 'storyTimeTagPairs']) {
-            value.extraction[role][field] = tagPairs(tags.value[role][field]);
-        }
-        if (value.semantic.enabled) {
-            value.semantic.endpoint = validateSemanticEndpoint(value.semantic.endpoint);
-            if (!value.semantic.model.trim()) throw new Error('请填写 Embedding 模型。');
-        }
-        if (value.semantic.rerank) {
-            value.semantic.rerankEndpoint = validateSemanticEndpoint(value.semantic.rerankEndpoint, '重排');
-            if (!value.semantic.rerankModel.trim()) throw new Error('请填写重排模型。');
-        }
-        const validBindings = Object.fromEntries(Object.entries(value.bindings).filter(([, id]) => view.value.channels.some(item => item.id === id)));
-        const prefs = keyStore();
-        for (const [key, secret] of [['scene_diary_embedding_key', embedKey.value], ['scene_diary_rerank_key', rerankKey.value]]) {
-            if (secret.trim()) prefs?.setItem(key, secret.trim());
-            else prefs?.removeItem(key);
-        }
-        await host.mutate(next => {
-            next.settings = settingsV7({ ...value, bindings: validBindings });
-            if (Object.keys(TASKS).every(task => next.settings.bindings[task])) next.connectionSetupNeeded = false;
-        });
+async function saveSettings() {
+    if (!settingsForm.value?.reportValidity()) throw new Error('请检查设置中的数值。');
+    const value = JSON.parse(JSON.stringify(settings.value));
+    for (const role of ['user', 'character']) for (const field of ['bodyTagPairs', 'storyTimeTagPairs']) {
+        value.extraction[role][field] = tagPairs(tags.value[role][field]);
+    }
+    if (value.semantic.enabled) {
+        value.semantic.endpoint = validateSemanticEndpoint(value.semantic.endpoint);
+        if (!value.semantic.model.trim()) throw new Error('请填写 Embedding 模型。');
+    }
+    if (value.semantic.rerank) {
+        value.semantic.rerankEndpoint = validateSemanticEndpoint(value.semantic.rerankEndpoint, '重排');
+        if (!value.semantic.rerankModel.trim()) throw new Error('请填写重排模型。');
+    }
+    const validBindings = Object.fromEntries(Object.entries(value.bindings).filter(([, id]) => view.value.channels.some(item => item.id === id)));
+    const prefs = keyStore();
+    for (const [key, secret] of [['scene_diary_embedding_key', embedKey.value], ['scene_diary_rerank_key', rerankKey.value]]) {
+        if (secret.trim()) prefs?.setItem(key, secret.trim());
+        else prefs?.removeItem(key);
+    }
+    await host.mutate(next => {
+        next.settings = settingsV8({ ...value, bindings: validBindings });
+        if (Object.keys(TASKS).every(task => next.settings.bindings[task])) next.connectionSetupNeeded = false;
     });
 }
 </script>
@@ -110,10 +124,17 @@ function saveSettings() {
                 <label class="sd-field">名称<input v-model="draft.name" autocomplete="off" required></label>
                 <label class="sd-field">OpenAI 兼容 API 地址<input v-model.trim="draft.url" type="url" placeholder="https://example.com/v1" required></label>
                 <label class="sd-field">API Key<input v-model="draft.key" type="password" autocomplete="new-password"></label>
-                <label class="sd-field">模型<input v-model="draft.model" list="sd-channel-models" required><datalist id="sd-channel-models"><option v-for="model in modelList" :key="model" :value="model" /></datalist></label>
+                <label class="sd-field">模型<input v-model="draft.model" required></label>
                 <label class="sd-field">温度<input v-model.number="draft.temperature" type="number" min="0" max="2" step="0.05" required></label>
                 <label class="sd-field">最大输出 token<input v-model.number="draft.maxTokens" type="number" min="1" step="1" required></label>
             </div>
+            <p v-if="modelStatus" role="status">{{ modelStatus }}</p>
+            <section v-if="modelOpen" class="sd-subcard sd-stack">
+                <label class="sd-field">搜索模型<input v-model="search" type="search"></label>
+                <div class="sd-model-list"><button type="button" v-for="model in visibleModels" :key="model" :aria-pressed="model === draft.model"
+                    @click="draft.model = model; modelOpen = false; modelStatus = '已选择 ' + model">{{ model }} {{ model === draft.model ? '✓' : '' }}</button></div>
+                <p v-if="!visibleModels.length">没有匹配的模型。</p><button type="button" @click="modelOpen = false">收起列表</button>
+            </section>
             <div class="sd-actions">
                 <button v-if="working" type="button" @click="request?.abort()">取消请求</button>
                 <template v-else><button type="button" @click="channelRequest('models')">获取模型列表</button><button type="button" @click="channelRequest('test')">测试渠道</button></template>
@@ -124,7 +145,7 @@ function saveSettings() {
         </form>
     </section>
     <p v-if="!settings" class="sd-card">{{ view.blocker }}</p>
-    <form v-else class="sd-stack" @submit.prevent="saveSettings">
+    <form v-else ref="settingsForm" class="sd-stack" @submit.prevent>
         <section class="sd-card sd-stack">
             <h3>任务分派</h3>
             <div class="sd-form-grid">
@@ -138,17 +159,16 @@ function saveSettings() {
             <div class="sd-stack">
                 <label><input type="checkbox" v-model="settings.growthEnabled"> 注入当前画像</label>
                 <div class="sd-form-grid">
-                    <label class="sd-field">近期日记篇数<input v-model.number="settings.recentDiaryCount" type="number" min="0" max="20" required></label>
-                    <label class="sd-field">近期日记额度（留空不限）<input v-model.number="settings.recentDiaryBudget" type="number" min="0"></label>
-                    <label class="sd-field">历史摘要额度<input v-model.number="settings.historyBudget" type="number" min="0" required></label>
-                    <label class="sd-field">长期事实额度<input v-model.number="settings.memoryTokenBudget" type="number" min="0" required></label>
-                    <label class="sd-field">用于查询的近邻消息数<input v-model.number="settings.recallMessageCount" type="number" min="1" max="20" required></label>
-                    <label class="sd-field">事实条数上限<input v-model.number="settings.recallLimit" type="number" min="0" max="30" required></label>
+                    <label class="sd-field">近期日记篇数<input v-model.number="settings.recentDiaryCount" type="number" min="0" required></label>
+                    <label class="sd-field">成长追踪日记篇数<input v-model.number="settings.growthDiaryCount" type="number" min="0" required></label>
+                    <label class="sd-field">查询深度 d<input v-model.number="settings.queryDepth" type="number" min="0" required></label>
+                    <label class="sd-field">初检数量 q<input v-model.number="settings.retrievalCount" type="number" min="0" required></label>
+                    <label class="sd-field">精排候选数 r<input v-model.number="settings.candidateCount" type="number" min="0" required></label>
                     <label class="sd-field">召回分数门槛<input v-model.number="settings.recallScoreThreshold" type="number" min="0" max="1" step=".01" required></label>
-                    <label class="sd-field">图谱候选数量<input v-model.number="settings.maintenanceCandidateLimit" type="number" min="1" max="60" required></label>
-                    <label class="sd-field">整理分数门槛<input v-model.number="settings.maintenanceScoreThreshold" type="number" min="0" max="1" step=".01" required></label>
+
+
                 </div>
-                <p>额度采用估算 token。单篇或单条超出可用额度时会跳过，可在诊断中查看。</p>
+
             </div>
         </details>
         <details class="sd-card">
@@ -181,13 +201,20 @@ function saveSettings() {
                 </div>
             </div>
         </details>
-        <details class="sd-card">
+        <details class="sd-card" @toggle="previewOpen = ($event.target as HTMLDetailsElement).open">
             <summary>任务提示词</summary>
             <div class="sd-stack">
-                <label class="sd-field">日记目标长度<input v-model="settings.diaryTargetLength"></label>
-                <TextField v-for="(label, task) in { diary: '日记', growth: '角色成长', memory: '事实提取', maintenance: '图谱整理' }" :key="task" v-model="settings.prompts[task]" :label="label" :rows="3" />
+                <nav class="sd-segments"><button type="button" v-for="(label, key) in TASKS" :key="key" :aria-pressed="task === key" @click="task = key">{{ label }}</button></nav>
+                <TextField v-model="settings.prompts[task].system" label="系统提示词" />
+                <details><summary>背景参考</summary><p class="sd-prose">{{ preview?.background || '暂无背景' }}</p></details>
+                <TextField v-model="settings.prompts[task].description" label="任务描述" />
+                <details><summary>内容素材</summary>
+                    <select v-if="task === 'growth'" v-model="mode"><option value="recent">追踪最新动态</option><option value="global">全局重建</option></select>
+                    <p class="sd-prose">{{ previewError || preview?.material || '暂无素材' }}</p>
+                </details>
+                <details><summary>格式规定</summary><p class="sd-prose">{{ preview?.format }}</p></details>
             </div>
         </details>
-        <div class="sd-actions sd-sticky"><button type="button" @click="select('diagnostics')">查看诊断</button><button class="sd-primary">保存聊天设置</button></div>
+        <div class="sd-actions sd-sticky"><button type="button" @click="select('diagnostics')">查看诊断</button><SaveAction :action="saveSettings" label="保存聊天设置" success="聊天设置已保存" /></div>
     </form>
 </template>

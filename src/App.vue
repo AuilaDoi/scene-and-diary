@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useWorkspace, download, type Page } from './workspace';
 import Workbench from './pages/Workbench.vue';
 import Growth from './pages/Growth.vue';
@@ -13,15 +13,30 @@ const tabs = [
     { id: 'workbench', label: '剧幕工作台', icon: 'fa-clapperboard', component: Workbench },
     { id: 'growth', label: '角色成长', icon: 'fa-seedling', component: Growth },
     { id: 'diaries', label: '日记档案', icon: 'fa-book-open', component: Diaries },
-    { id: 'memory', label: '长期记忆', icon: 'fa-diagram-project', component: Memory },
+    { id: 'memory', label: '长期记忆', icon: 'fa-bookmark', component: Memory },
 ] as const;
 const pages = { ...Object.fromEntries(tabs.map(tab => [tab.id, tab.component])), settings: Settings, diagnostics: Diagnostics };
 const component = computed(() => pages[page.value] || Workbench);
 const readOnly = computed(() => view.value.blocker.startsWith('检测到 SP') && view.value.persisted);
 const readOnlyDiaries = computed(() => readOnly.value?.diaries || readOnly.value?.acts
-    ?.filter(act => act.diary).map(act => ({ id: act.id, title: act.title, body: act.diary, summary: '' })) || []);
+    ?.filter(act => act.diary).map(act => ({ id: act.id, title: act.title, body: act.diary })) || []);
 const rootTitle = computed(() => tabs.find(tab => tab.id === page.value)?.label || (page.value === 'settings' ? '设置' : '诊断'));
 
+const toolbarBottom = ref(0), viewportHeight = ref(window.innerHeight);
+watch(opened, (visible, _, cleanup) => {
+    if (!visible) return;
+    const bar = document.getElementById('top-settings-holder');
+    function measure() {
+        viewportHeight.value = window.visualViewport?.height || window.innerHeight;
+        toolbarBottom.value = bar && getComputedStyle(bar).visibility !== 'hidden' ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+    }
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (bar) observer.observe(bar);
+    window.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('resize', measure);
+    cleanup(() => { observer.disconnect(); window.removeEventListener('resize', measure); window.visualViewport?.removeEventListener('resize', measure); });
+});
 let opener: HTMLElement | null = null;
 watch(opened, value => {
     if (value) opener = document.activeElement as HTMLElement;
@@ -40,7 +55,7 @@ function exportContent() {
 
 <template>
     <button v-if="!hasToolbar" type="button" class="sd-floating" @click="openWorkbench" title="打开剧幕工作台" aria-label="打开剧幕工作台"><i class="fa-solid fa-clapperboard"></i></button>
-    <div v-if="opened" class="sd-backdrop" data-tt-mobile-surface="backdrop" @click.self="opened = false">
+    <div v-if="opened" class="sd-backdrop" :style="{ '--sd-toolbar-bottom': toolbarBottom + 'px', '--sd-viewport-height': viewportHeight + 'px' }" data-tt-mobile-surface="backdrop" @click.self="opened = false">
         <section class="sd-window" data-tt-mobile-surface="fullscreen-window" role="dialog" aria-modal="true" aria-labelledby="sd-title">
             <header class="sd-header">
                 <div class="sd-heading"><i class="fa-solid fa-clapperboard" aria-hidden="true"></i><h2 id="sd-title" tabindex="-1">{{ rootTitle }}</h2></div>
@@ -66,7 +81,7 @@ function exportContent() {
                     <p class="sd-status">{{ view.blocker }} 已有内容可查阅。</p>
                     <section v-if="page === 'growth'" class="sd-card sd-stack"><h3>当前角色画像</h3><p class="sd-prose">{{ readOnly.characterGrowth?.content || '尚未建立画像。' }}</p></section>
                     <article v-else-if="page === 'diaries'" v-for="item in readOnlyDiaries" :key="item.id" class="sd-card sd-stack">
-                        <h3>{{ item.title }}</h3><p class="sd-prose">{{ item.body }}</p><p v-if="item.summary" class="sd-prose">{{ item.summary }}</p>
+                        <h3>{{ item.title }}</h3><p class="sd-prose">{{ item.body }}</p>
                     </article>
                     <article v-else v-for="item in readOnly.memories || []" :key="item.id" class="sd-card sd-stack">
                         <h3>{{ item.title }}</h3><p class="sd-prose">{{ item.content }}</p>

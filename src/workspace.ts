@@ -1,5 +1,5 @@
 import { inject, nextTick, ref, shallowRef, triggerRef, type InjectionKey } from 'vue';
-import { createHost } from '../host-v7.js';
+import { createHost } from '../host-v8.js';
 import { semanticErrorDetail } from '../semantic.js';
 
 export type Page = 'workbench' | 'growth' | 'diaries' | 'memory' | 'settings' | 'diagnostics';

@@ -2,7 +2,7 @@
   "name": "scene-and-diary",
   "private": true,
   "type": "module",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "scripts": {
     "build": "vue-tsc --noEmit && vite build",
     "test": "node --test test/*.test.mjs"
@@ -11,8 +11,7 @@
     "@vitejs/plugin-vue": "^6.0.11",
     "typescript": "^6.0.3",
     "vite": "^8.3.8",
-    "vue-tsc": "^3.3.14",
-    "yaml": "2.8.3"
+    "vue-tsc": "^3.3.14"
   },
   "dependencies": {
     "vue": "^3.5.46"

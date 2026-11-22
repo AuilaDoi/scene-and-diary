@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { currentAct } from '../../core.js';
-import { PARTS, TASKS } from '../../state-v7.js';
+import { PARTS, TASKS } from '../../state-v8.js';
 import { download, useWorkspace } from '../workspace';
 import Review from './Review.vue';
 
@@ -36,8 +36,8 @@ const bound = (kind: string) => view.value.channels.some(channel => channel.id =
             <button v-else-if="transaction" class="sd-primary" @click="showReview">继续审核</button>
             <button v-else @click="select('diaries')">查看日记档案</button>
         </header>
-        <p v-if="state.connectionSetupNeeded && ['diary', 'memory', 'growth', 'summary', 'graph'].some(kind => !bound(kind))" class="sd-status">
-            旧版连接已停用。请为尚未绑定的日记、成长、事实提取、日记摘要和图谱任务配置自建渠道。 <button @click="select('settings')">打开设置</button>
+        <p v-if="state.connectionSetupNeeded && Object.keys(TASKS).some(kind => !bound(kind))" class="sd-status">
+            旧版连接已停用。请为尚未绑定的日记、记忆提取和成长任务配置自建渠道。 <button @click="select('settings')">打开设置</button>
         </p>
         <section v-if="transaction" id="sd-close-review" class="sd-stack">
             <Review v-for="kind in PARTS" :key="transaction.id + kind" :kind="kind" :part="transaction.results[kind]" :transaction="transaction" />
@@ -55,7 +55,7 @@ const bound = (kind: string) => view.value.channels.some(channel => channel.id =
                     const file = input.files?.[0]; input.value = '';
                     if (!file) return;
                     const backup = JSON.parse(await file.text());
-                    const message = backup.version === 2 ? '请保留原 v2 文件以便查阅旧关联。确认替换当前日记、成长与事实？' : '确认替换当前日记、成长、事实与图谱？';
+                    const message = '确认替换当前聊天的日记、画像和记忆点？';
                     if (confirmAction(message)) await host.import(backup);
                 })"></label>
                 <button @click="run(async () => download(await host.migrationBackup(), 'scene-diary-pre-upgrade-' + view.chatId + '.json'))">导出升级前整聊天备份</button>

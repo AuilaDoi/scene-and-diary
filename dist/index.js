@@ -8,13 +8,13 @@ function e(e) {
 var t = {}, n = [], r = () => {}, i = () => !1, a = (e) => e.charCodeAt(0) === 111 && e.charCodeAt(1) === 110 && (e.charCodeAt(2) > 122 || e.charCodeAt(2) < 97), o = (e) => e.startsWith("onUpdate:"), s = Object.assign, c = (e, t) => {
 	let n = e.indexOf(t);
 	n > -1 && e.splice(n, 1);
-}, l = Object.prototype.hasOwnProperty, u = (e, t) => l.call(e, t), d = Array.isArray, f = (e) => x(e) === "[object Map]", p = (e) => x(e) === "[object Set]", m = (e) => x(e) === "[object Date]", h = (e) => typeof e == "function", g = (e) => typeof e == "string", _ = (e) => typeof e == "symbol", v = (e) => typeof e == "object" && !!e, y = (e) => (v(e) || h(e)) && h(e.then) && h(e.catch), b = Object.prototype.toString, x = (e) => b.call(e), S = (e) => x(e).slice(8, -1), C = (e) => x(e) === "[object Object]", w = (e) => g(e) && e !== "NaN" && e[0] !== "-" && "" + parseInt(e, 10) === e, ee = /* @__PURE__ */ e(",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"), te = 1e4, T = (e) => {
+}, l = Object.prototype.hasOwnProperty, u = (e, t) => l.call(e, t), d = Array.isArray, f = (e) => x(e) === "[object Map]", p = (e) => x(e) === "[object Set]", m = (e) => x(e) === "[object Date]", h = (e) => typeof e == "function", g = (e) => typeof e == "string", _ = (e) => typeof e == "symbol", v = (e) => typeof e == "object" && !!e, y = (e) => (v(e) || h(e)) && h(e.then) && h(e.catch), b = Object.prototype.toString, x = (e) => b.call(e), S = (e) => x(e).slice(8, -1), C = (e) => x(e) === "[object Object]", w = (e) => g(e) && e !== "NaN" && e[0] !== "-" && "" + parseInt(e, 10) === e, T = /* @__PURE__ */ e(",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"), E = 1e4, ee = (e) => {
 	let t = /* @__PURE__ */ Object.create(null), n = 0;
 	return ((r) => {
 		let i = t[r];
-		return i === void 0 ? (++n > te && (t = /* @__PURE__ */ Object.create(null), n = 1), t[r] = e(r)) : i;
+		return i === void 0 ? (++n > E && (t = /* @__PURE__ */ Object.create(null), n = 1), t[r] = e(r)) : i;
 	});
-}, E = /-\w/g, D = /* @__PURE__ */ T((e) => e.replace(E, (e) => e.slice(1).toUpperCase())), O = /\B([A-Z])/g, k = /* @__PURE__ */ T((e) => e.replace(O, "-$1").toLowerCase()), A = /* @__PURE__ */ T((e) => e.charAt(0).toUpperCase() + e.slice(1)), ne = /* @__PURE__ */ T((e) => e ? `on${A(e)}` : ""), j = (e, t) => !Object.is(e, t), M = (e, ...t) => {
+}, te = /-\w/g, D = /* @__PURE__ */ ee((e) => e.replace(te, (e) => e.slice(1).toUpperCase())), O = /\B([A-Z])/g, k = /* @__PURE__ */ ee((e) => e.replace(O, "-$1").toLowerCase()), A = /* @__PURE__ */ ee((e) => e.charAt(0).toUpperCase() + e.slice(1)), ne = /* @__PURE__ */ ee((e) => e ? `on${A(e)}` : ""), j = (e, t) => !Object.is(e, t), M = (e, ...t) => {
 	for (let n = 0; n < e.length; n++) e[n](...t);
 }, re = (e, t, n, r = !1) => {
 	Object.defineProperty(e, t, {
@@ -580,9 +580,9 @@ var ht = class {
 			if (a && (e = it[t])) return e;
 			if (t === "hasOwnProperty") return mt;
 		}
-		let o = Reflect.get(e, t, /* @__PURE__ */ Kt(e) ? e : n);
+		let o = Reflect.get(e, t, /* @__PURE__ */ R(e) ? e : n);
 		if ((_(t) ? pt.has(t) : ft(t)) || (r || I(e, "get", t), i)) return o;
-		if (/* @__PURE__ */ Kt(o)) {
+		if (/* @__PURE__ */ R(o)) {
 			let e = a && w(t) ? o : o.value;
 			return r && v(e) ? /* @__PURE__ */ Lt(e) : e;
 		}
@@ -596,9 +596,9 @@ var ht = class {
 		let i = e[t], a = d(e) && w(t);
 		if (!this._isShallow) {
 			let e = /* @__PURE__ */ Bt(i);
-			if (!/* @__PURE__ */ Vt(n) && !/* @__PURE__ */ Bt(n) && (i = /* @__PURE__ */ L(i), n = /* @__PURE__ */ L(n)), !a && /* @__PURE__ */ Kt(i) && !/* @__PURE__ */ Kt(n)) return e || (i.value = n), !0;
+			if (!/* @__PURE__ */ Vt(n) && !/* @__PURE__ */ Bt(n) && (i = /* @__PURE__ */ L(i), n = /* @__PURE__ */ L(n)), !a && /* @__PURE__ */ R(i) && !/* @__PURE__ */ R(n)) return e || (i.value = n), !0;
 		}
-		let o = a ? Number(t) < e.length : u(e, t), s = Reflect.set(e, t, n, /* @__PURE__ */ Kt(e) ? e : r);
+		let o = a ? Number(t) < e.length : u(e, t), s = Reflect.set(e, t, n, /* @__PURE__ */ R(e) ? e : r);
 		return e === /* @__PURE__ */ L(r) && s && (o ? j(n, i) && et(e, "set", t, n, i) : et(e, "add", t, n)), s;
 	}
 	deleteProperty(e, t) {
@@ -765,21 +765,21 @@ function Ut(e) {
 }
 var Wt = (e) => v(e) ? /* @__PURE__ */ Ft(e) : e, Gt = (e) => v(e) ? /* @__PURE__ */ Lt(e) : e;
 // @__NO_SIDE_EFFECTS__
-function Kt(e) {
+function R(e) {
 	return e ? e.__v_isRef === !0 : !1;
 }
 // @__NO_SIDE_EFFECTS__
-function R(e) {
-	return Jt(e, !1);
+function z(e) {
+	return qt(e, !1);
 }
 // @__NO_SIDE_EFFECTS__
-function qt(e) {
-	return Jt(e, !0);
+function Kt(e) {
+	return qt(e, !0);
 }
-function Jt(e, t) {
-	return /* @__PURE__ */ Kt(e) ? e : new Yt(e, t);
+function qt(e, t) {
+	return /* @__PURE__ */ R(e) ? e : new Jt(e, t);
 }
-var Yt = class {
+var Jt = class {
 	constructor(e, t) {
 		this.dep = new Je(), this.__v_isRef = !0, this.__v_isShallow = !1, this._rawValue = t ? e : /* @__PURE__ */ L(e), this._value = t ? e : Wt(e), this.__v_isShallow = t;
 	}
@@ -791,23 +791,23 @@ var Yt = class {
 		e = n ? e : /* @__PURE__ */ L(e), j(e, t) && (this._rawValue = e, this._value = n ? e : Wt(e), this.dep.trigger());
 	}
 };
-function Xt(e) {
+function Yt(e) {
 	e.dep && e.dep.trigger();
 }
-function z(e) {
-	return /* @__PURE__ */ Kt(e) ? e.value : e;
+function B(e) {
+	return /* @__PURE__ */ R(e) ? e.value : e;
 }
-var Zt = {
-	get: (e, t, n) => t === "__v_raw" ? e : z(Reflect.get(e, t, n)),
+var Xt = {
+	get: (e, t, n) => t === "__v_raw" ? e : B(Reflect.get(e, t, n)),
 	set: (e, t, n, r) => {
 		let i = e[t];
-		return /* @__PURE__ */ Kt(i) && !/* @__PURE__ */ Kt(n) ? (i.value = n, !0) : Reflect.set(e, t, n, r);
+		return /* @__PURE__ */ R(i) && !/* @__PURE__ */ R(n) ? (i.value = n, !0) : Reflect.set(e, t, n, r);
 	}
 };
-function Qt(e) {
-	return /* @__PURE__ */ zt(e) ? e : new Proxy(e, Zt);
+function Zt(e) {
+	return /* @__PURE__ */ zt(e) ? e : new Proxy(e, Xt);
 }
-var $t = class {
+var Qt = class {
 	constructor(e) {
 		this.__v_isRef = !0, this._value = void 0;
 		let t = this.dep = new Je(), { get: n, set: r } = e(t.track.bind(t), t.trigger.bind(t));
@@ -820,10 +820,10 @@ var $t = class {
 		this._set(e);
 	}
 };
-function en(e) {
-	return new $t(e);
+function $t(e) {
+	return new Qt(e);
 }
-var tn = class {
+var en = class {
 	constructor(e, t, n) {
 		this.fn = e, this.setter = t, this._value = void 0, this.dep = new Je(this), this.__v_isRef = !0, this.deps = void 0, this.depsTail = void 0, this.flags = 16, this.globalVersion = Ke - 1, this.next = void 0, this.effect = this, this.__v_isReadonly = !t, this.isSSR = n;
 	}
@@ -839,21 +839,21 @@ var tn = class {
 	}
 };
 // @__NO_SIDE_EFFECTS__
-function nn(e, t, n = !1) {
+function tn(e, t, n = !1) {
 	let r, i;
-	return h(e) ? r = e : (r = e.get, i = e.set), new tn(r, i, n);
+	return h(e) ? r = e : (r = e.get, i = e.set), new en(r, i, n);
 }
-var rn = {}, an = /* @__PURE__ */ new WeakMap(), on = void 0;
-function sn(e, t = !1, n = on) {
+var nn = {}, rn = /* @__PURE__ */ new WeakMap(), an = void 0;
+function on(e, t = !1, n = an) {
 	if (n) {
-		let t = an.get(n);
-		t || an.set(n, t = []), t.push(e);
+		let t = rn.get(n);
+		t || rn.set(n, t = []), t.push(e);
 	}
 }
-function cn(e, n, i = t) {
-	let { immediate: a, deep: o, once: s, scheduler: l, augmentJob: u, call: f } = i, p = (e) => o ? e : /* @__PURE__ */ Vt(e) || o === !1 || o === 0 ? ln(e, 1) : ln(e), m, g, _, v, y = !1, b = !1;
-	if (/* @__PURE__ */ Kt(e) ? (g = () => e.value, y = /* @__PURE__ */ Vt(e)) : /* @__PURE__ */ zt(e) ? (g = () => p(e), y = !0) : d(e) ? (b = !0, y = e.some((e) => /* @__PURE__ */ zt(e) || /* @__PURE__ */ Vt(e)), g = () => e.map((e) => {
-		if (/* @__PURE__ */ Kt(e)) return e.value;
+function sn(e, n, i = t) {
+	let { immediate: a, deep: o, once: s, scheduler: l, augmentJob: u, call: f } = i, p = (e) => o ? e : /* @__PURE__ */ Vt(e) || o === !1 || o === 0 ? cn(e, 1) : cn(e), m, g, _, v, y = !1, b = !1;
+	if (/* @__PURE__ */ R(e) ? (g = () => e.value, y = /* @__PURE__ */ Vt(e)) : /* @__PURE__ */ zt(e) ? (g = () => p(e), y = !0) : d(e) ? (b = !0, y = e.some((e) => /* @__PURE__ */ zt(e) || /* @__PURE__ */ Vt(e)), g = () => e.map((e) => {
+		if (/* @__PURE__ */ R(e)) return e.value;
 		if (/* @__PURE__ */ zt(e)) return p(e);
 		if (h(e)) return f ? f(e, 2) : e();
 	})) : g = h(e) ? n ? f ? () => f(e, 2) : e : () => {
@@ -865,16 +865,16 @@ function cn(e, n, i = t) {
 				We();
 			}
 		}
-		let t = on;
-		on = m;
+		let t = an;
+		an = m;
 		try {
 			return f ? f(e, 3, [v]) : e(v);
 		} finally {
-			on = t;
+			an = t;
 		}
 	} : r, n && o) {
 		let e = g, t = o === !0 ? Infinity : o;
-		g = () => ln(e(), t);
+		g = () => cn(e(), t);
 	}
 	let x = Ee(), S = () => {
 		m.stop(), x && x.active && c(x.effects, m);
@@ -889,72 +889,72 @@ function cn(e, n, i = t) {
 			}
 		};
 	}
-	let C = b ? Array(e.length).fill(rn) : rn, w = (e) => {
+	let C = b ? Array(e.length).fill(nn) : nn, w = (e) => {
 		if (m.flags & 1 && (m.dirty || e)) {
 			if (n) {
 				let t = m.run();
 				if (e || o || y || (b ? t.some((e, t) => j(e, C[t])) : j(t, C))) {
-					let e = on;
+					let e = an;
 					Ue();
 					try {
-						_ && _(), on = m;
+						_ && _(), an = m;
 						let e = [
 							t,
-							C === rn ? void 0 : b && C[0] === rn ? [] : C,
+							C === nn ? void 0 : b && C[0] === nn ? [] : C,
 							v
 						];
 						C = t, f ? f(n, 3, e) : n(...e);
 					} finally {
-						on = e, We();
+						an = e, We();
 					}
 				}
 			} else m.run();
 		}
 	};
-	return u && u(w), m = new Oe(g), m.scheduler = l ? () => l(w, !1) : w, v = (e) => sn(e, !1, m), _ = m.onStop = () => {
-		let e = an.get(m);
+	return u && u(w), m = new Oe(g), m.scheduler = l ? () => l(w, !1) : w, v = (e) => on(e, !1, m), _ = m.onStop = () => {
+		let e = rn.get(m);
 		if (e) {
 			if (f) f(e, 4);
 			else for (let t of e) t();
-			an.delete(m);
+			rn.delete(m);
 		}
 	}, n ? a ? w(!0) : C = m.run() : l ? l(w.bind(null, !0), !0) : m.run(), S.pause = m.pause.bind(m), S.resume = m.resume.bind(m), S.stop = S, S;
 }
-function ln(e, t = Infinity, n) {
+function cn(e, t = Infinity, n) {
 	if (t <= 0 || !v(e) || e.__v_skip || (n ||= /* @__PURE__ */ new Map(), (n.get(e) || 0) >= t)) return e;
-	if (n.set(e, t), t--, /* @__PURE__ */ Kt(e)) ln(e.value, t, n);
-	else if (d(e)) for (let r = 0; r < e.length; r++) ln(e[r], t, n);
+	if (n.set(e, t), t--, /* @__PURE__ */ R(e)) cn(e.value, t, n);
+	else if (d(e)) for (let r = 0; r < e.length; r++) cn(e[r], t, n);
 	else if (p(e) || f(e)) e.forEach((e) => {
-		ln(e, t, n);
+		cn(e, t, n);
 	});
 	else if (C(e)) {
-		for (let r in e) ln(e[r], t, n);
-		for (let r of Object.getOwnPropertySymbols(e)) Object.prototype.propertyIsEnumerable.call(e, r) && ln(e[r], t, n);
+		for (let r in e) cn(e[r], t, n);
+		for (let r of Object.getOwnPropertySymbols(e)) Object.prototype.propertyIsEnumerable.call(e, r) && cn(e[r], t, n);
 	}
 	return e;
 }
 // node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js
-function un(e, t, n, r) {
+function ln(e, t, n, r) {
 	try {
 		return r ? e(...r) : e();
 	} catch (e) {
-		fn(e, t, n);
+		dn(e, t, n);
 	}
 }
-function dn(e, t, n, r) {
+function un(e, t, n, r) {
 	if (h(e)) {
-		let i = un(e, t, n, r);
+		let i = ln(e, t, n, r);
 		return i && y(i) && i.catch((e) => {
-			fn(e, t, n, void 0, !0);
+			dn(e, t, n, void 0, !0);
 		}), i;
 	}
 	if (d(e)) {
 		let i = [];
-		for (let a = 0; a < e.length; a++) i.push(dn(e[a], t, n, r));
+		for (let a = 0; a < e.length; a++) i.push(un(e[a], t, n, r));
 		return i;
 	}
 }
-function fn(e, n, r, i = !0, a = !1) {
+function dn(e, n, r, i = !0, a = !1) {
 	let o = n ? n.vnode : null, { errorHandler: s, throwUnhandledErrorInProduction: c } = n && n.appContext.config || t;
 	if (n) {
 		let t = n.parent, i = n.proxy, o = `https://vuejs.org/error-reference/#runtime-${r}`;
@@ -966,7 +966,7 @@ function fn(e, n, r, i = !0, a = !1) {
 			t = t.parent;
 		}
 		if (s) {
-			Ue(), un(s, null, 10, [
+			Ue(), ln(s, null, 10, [
 				e,
 				i,
 				o
@@ -974,128 +974,128 @@ function fn(e, n, r, i = !0, a = !1) {
 			return;
 		}
 	}
-	pn(e, r, o, i, c);
+	fn(e, r, o, i, c);
 }
-function pn(e, t, n, r = !0, i = !1) {
+function fn(e, t, n, r = !0, i = !1) {
 	if (i) throw e;
 	console.error(e);
 }
-var mn = [], hn = -1, gn = [], _n = null, vn = 0, yn = /* @__PURE__ */ Promise.resolve(), bn = null;
-function xn(e) {
-	let t = bn || yn;
+var pn = [], mn = -1, hn = [], gn = null, _n = 0, vn = /* @__PURE__ */ Promise.resolve(), yn = null;
+function bn(e) {
+	let t = yn || vn;
 	return e ? t.then(this ? e.bind(this) : e) : t;
 }
-function Sn(e) {
-	let t = hn + 1, n = mn.length;
+function xn(e) {
+	let t = mn + 1, n = pn.length;
 	for (; t < n;) {
-		let r = t + n >>> 1, i = mn[r], a = An(i);
+		let r = t + n >>> 1, i = pn[r], a = kn(i);
 		a < e || a === e && i.flags & 2 ? t = r + 1 : n = r;
 	}
 	return t;
 }
-function Cn(e) {
+function Sn(e) {
 	if (!(e.flags & 1)) {
-		let t = An(e), n = mn[mn.length - 1];
-		!n || !(e.flags & 2) && t >= An(n) ? mn.push(e) : mn.splice(Sn(t), 0, e), e.flags |= 1, wn();
+		let t = kn(e), n = pn[pn.length - 1];
+		!n || !(e.flags & 2) && t >= kn(n) ? pn.push(e) : pn.splice(xn(t), 0, e), e.flags |= 1, Cn();
 	}
 }
-function wn() {
-	bn ||= yn.then(jn);
+function Cn() {
+	yn ||= vn.then(An);
 }
-function Tn(e) {
-	if (!d(e)) _n && e.id === -1 ? _n.splice(vn + 1, 0, e) : e.flags & 1 || (gn.push(e), e.flags |= 1);
-	else for (let t = 0; t < e.length; t++) gn.push(e[t]);
-	wn();
+function wn(e) {
+	if (!d(e)) gn && e.id === -1 ? gn.splice(_n + 1, 0, e) : e.flags & 1 || (hn.push(e), e.flags |= 1);
+	else for (let t = 0; t < e.length; t++) hn.push(e[t]);
+	Cn();
 }
-function En(e, t, n, r = hn + 1) {
-	for (; r < mn.length; r++) {
-		let n = mn[r];
+function Tn(e, t, n, r = mn + 1) {
+	for (; r < pn.length; r++) {
+		let n = pn[r];
 		if (n && n.flags & 2) {
 			if (e && n.id !== e.uid || t !== void 0 && !(n.id >= t)) continue;
-			mn.splice(r, 1), r = e ? r - 1 : hn, n.flags & 4 && (n.flags &= -2), n(), n.flags & 4 || (n.flags &= -2);
+			pn.splice(r, 1), r = e ? r - 1 : mn, n.flags & 4 && (n.flags &= -2), n(), n.flags & 4 || (n.flags &= -2);
 		}
 	}
 }
-function Dn(e, t, n = 0) {
-	if (gn.length) {
-		let e = gn, r = 0;
+function En(e, t, n = 0) {
+	if (hn.length) {
+		let e = hn, r = 0;
 		if (t) {
 			e = [];
-			for (let i = 0; i < gn.length; i++) {
-				let a = gn[i];
-				(a.i === void 0 ? t.has(a) : !a.i || a.i.uid < n) ? gn[r++] = a : e.push(a);
+			for (let i = 0; i < hn.length; i++) {
+				let a = hn[i];
+				(a.i === void 0 ? t.has(a) : !a.i || a.i.uid < n) ? hn[r++] = a : e.push(a);
 			}
 		}
-		let i = [...new Set(e)].sort((e, t) => An(e) - An(t));
-		if (gn.length = r, _n) {
-			for (let e = 0; e < i.length; e++) _n.push(i[e]);
+		let i = [...new Set(e)].sort((e, t) => kn(e) - kn(t));
+		if (hn.length = r, gn) {
+			for (let e = 0; e < i.length; e++) gn.push(i[e]);
 			return;
 		}
-		for (_n = i, vn = 0; vn < _n.length; vn++) {
-			let e = _n[vn];
+		for (gn = i, _n = 0; _n < gn.length; _n++) {
+			let e = gn[_n];
 			e.flags & 4 && (e.flags &= -2), e.flags & 8 || e(), e.flags &= -2;
 		}
-		_n = null, vn = 0;
+		gn = null, _n = 0;
 	}
 }
-var On = !1;
-function kn(e, t) {
-	if (On) {
+var Dn = !1;
+function On(e, t) {
+	if (Dn) {
 		e();
 		return;
 	}
-	let n = t === void 0 ? void 0 : new Set(gn);
-	e(), On = !0;
+	let n = t === void 0 ? void 0 : new Set(hn);
+	e(), Dn = !0;
 	try {
-		En(void 0, t), Dn(void 0, n, t);
+		Tn(void 0, t), En(void 0, n, t);
 	} finally {
-		On = !1;
+		Dn = !1;
 	}
 }
-var An = (e) => e.id == null ? e.flags & 2 ? -1 : Infinity : e.id;
-function jn(e) {
+var kn = (e) => e.id == null ? e.flags & 2 ? -1 : Infinity : e.id;
+function An(e) {
 	try {
-		for (hn = 0; hn < mn.length; hn++) {
-			let e = mn[hn];
-			e && !(e.flags & 8) && (e.flags & 4 && (e.flags &= -2), un(e, e.i, e.i ? 15 : 14), e.flags & 4 || (e.flags &= -2));
+		for (mn = 0; mn < pn.length; mn++) {
+			let e = pn[mn];
+			e && !(e.flags & 8) && (e.flags & 4 && (e.flags &= -2), ln(e, e.i, e.i ? 15 : 14), e.flags & 4 || (e.flags &= -2));
 		}
 	} finally {
-		for (; hn < mn.length; hn++) {
-			let e = mn[hn];
+		for (; mn < pn.length; mn++) {
+			let e = pn[mn];
 			e && (e.flags &= -2);
 		}
-		hn = -1, mn.length = 0, Dn(e), bn = null, (mn.length || gn.length) && jn(e);
+		mn = -1, pn.length = 0, En(e), yn = null, (pn.length || hn.length) && An(e);
 	}
 }
-var Mn = null, Nn = null;
-function Pn(e) {
-	let t = Mn;
-	return Mn = e, Nn = e && e.type.__scopeId || null, t;
+var jn = null, Mn = null;
+function Nn(e) {
+	let t = jn;
+	return jn = e, Mn = e && e.type.__scopeId || null, t;
 }
-function Fn(e, t = Mn, n) {
+function Pn(e, t = jn, n) {
 	if (!t || e._n) return e;
 	let r = (...n) => {
 		r._d && Qi(-1);
-		let i = Pn(t), a = Ji.length, o;
+		let i = Nn(t), a = Ji.length, o;
 		try {
 			o = e(...n);
 		} finally {
 			for (let e = Ji.length; e > a; e--) Xi();
-			Pn(i), r._d && Qi(1);
+			Nn(i), r._d && Qi(1);
 		}
 		return o;
 	};
 	return r._n = !0, r._c = !0, r._d = !0, r;
 }
-function B(e, n) {
-	if (Mn === null) return e;
-	let r = Ma(Mn), i = e.dirs ||= [];
+function V(e, n) {
+	if (jn === null) return e;
+	let r = ja(jn), i = e.dirs ||= [];
 	for (let e = 0; e < n.length; e++) {
 		let [a, o, s, c = t] = n[e];
 		a && (h(a) && (a = {
 			mounted: a,
 			updated: a
-		}), a.deep && ln(o), i.push({
+		}), a.deep && cn(o), i.push({
 			dir: a,
 			instance: r,
 			value: o,
@@ -1106,7 +1106,7 @@ function B(e, n) {
 	}
 	return e;
 }
-function In(e, t, n, r) {
+function Fn(e, t, n, r) {
 	let i = e;
 	if (r === "beforeMount") e._mount = e;
 	else if (r === "beforeUpdate") {
@@ -1121,7 +1121,7 @@ function In(e, t, n, r) {
 		let l = a[c];
 		o ? l.oldValue = o[c].value : r === "mounted" && l.oldValue !== void 0 && (l = s({}, l, { oldValue: void 0 }));
 		let u = l.dir[r];
-		u && (Ue(), dn(u, n, 8, [
+		u && (Ue(), un(u, n, 8, [
 			e.el,
 			l,
 			i,
@@ -1129,58 +1129,58 @@ function In(e, t, n, r) {
 		]), We());
 	}
 }
-function Ln(e, t) {
-	if (_a) {
-		let n = _a.provides, r = _a.parent && _a.parent.provides;
-		r === n && (n = _a.provides = Object.create(r)), n[e] = t;
+function In(e, t) {
+	if (Y) {
+		let n = Y.provides, r = Y.parent && Y.parent.provides;
+		r === n && (n = Y.provides = Object.create(r)), n[e] = t;
 	}
 }
-function Rn(e, t, n = !1) {
-	let r = va();
+function Ln(e, t, n = !1) {
+	let r = _a();
 	if (r || Qr) {
 		let i = Qr ? Qr._context.provides : r ? r.parent == null || r.ce ? r.vnode.appContext && r.vnode.appContext.provides : r.parent.provides : void 0;
 		if (i && e in i) return i[e];
 		if (arguments.length > 1) return n && h(t) ? t.call(r && r.proxy) : t;
 	}
 }
-var zn = /* @__PURE__ */ Symbol.for("v-scx"), Bn = () => Rn(zn);
-function Vn(e, t) {
-	return Un(e, null, { flush: "sync" });
+var Rn = /* @__PURE__ */ Symbol.for("v-scx"), zn = () => Ln(Rn);
+function Bn(e, t) {
+	return Hn(e, null, { flush: "sync" });
 }
-function Hn(e, t, n) {
-	return Un(e, t, n);
+function Vn(e, t, n) {
+	return Hn(e, t, n);
 }
-function Un(e, n, i = t) {
+function Hn(e, n, i = t) {
 	let { immediate: a, deep: o, flush: c, once: l } = i, u = s({}, i), d = n && a || !n && c !== "post", f;
-	if (wa) {
+	if (Ca) {
 		if (c === "sync") {
-			let e = Bn();
+			let e = zn();
 			f = e.__watcherHandles ||= [];
 		} else if (!d) {
 			let e = () => {};
 			return e.stop = r, e.resume = r, e.pause = r, e;
 		}
 	}
-	let p = _a;
-	u.call = (e, t, n) => dn(e, p, t, n);
+	let p = Y;
+	u.call = (e, t, n) => un(e, p, t, n);
 	let m = !1;
 	c === "post" ? u.scheduler = (e) => {
 		e.i = p, ji(e, p && p.suspense);
 	} : c !== "sync" && (m = !0, u.scheduler = (e, t) => {
-		t ? e() : Cn(e);
+		t ? e() : Sn(e);
 	}), u.augmentJob = (e) => {
 		n && (e.flags |= 4), m && (e.flags |= 2, p && (e.id = p.uid, e.i = p));
 	};
-	let h = cn(e, n, u);
-	return wa && (f ? f.push(h) : d && h()), h;
+	let h = sn(e, n, u);
+	return Ca && (f ? f.push(h) : d && h()), h;
 }
-function Wn(e, t, n) {
-	let r = this.proxy, i = g(e) ? e.includes(".") ? Gn(r, e) : () => r[e] : e.bind(r, r), a;
+function Un(e, t, n) {
+	let r = this.proxy, i = g(e) ? e.includes(".") ? Wn(r, e) : () => r[e] : e.bind(r, r), a;
 	h(t) ? a = t : (a = t.handler, n = t);
-	let o = xa(this), s = Un(i, a.bind(r), n);
+	let o = ba(this), s = Hn(i, a.bind(r), n);
 	return o(), s;
 }
-function Gn(e, t) {
+function Wn(e, t) {
 	let n = t.split(".");
 	return () => {
 		let t = e;
@@ -1188,8 +1188,8 @@ function Gn(e, t) {
 		return t;
 	};
 }
-var Kn = /* @__PURE__ */ Symbol("_vte"), qn = (e) => e.__isTeleport, Jn = /* @__PURE__ */ Symbol("_leaveCb");
-function Yn(e) {
+var Gn = /* @__PURE__ */ Symbol("_vte"), Kn = (e) => e.__isTeleport, qn = /* @__PURE__ */ Symbol("_leaveCb");
+function Jn(e) {
 	let t = e[0];
 	if (e.length > 1) {
 		for (let n of e) if (n.type !== Ki) {
@@ -1199,8 +1199,8 @@ function Yn(e) {
 	}
 	return t;
 }
-function Xn(e) {
-	if (!or(e)) return qn(e.type) && e.children ? Yn(e.children) : e;
+function Yn(e) {
+	if (!ar(e)) return Kn(e.type) && e.children ? Jn(e.children) : e;
 	if (e.component) return e.component.subTree;
 	let { shapeFlag: t, children: n } = e;
 	if (n) {
@@ -1208,66 +1208,66 @@ function Xn(e) {
 		if (t & 32 && h(n.default)) return n.default();
 	}
 }
-function Zn(e, t) {
+function Xn(e, t) {
 	if (e.shapeFlag & 6 && e.component) {
 		e.transition = t;
 		let n = e.component.subTree;
-		Zn(qn(n.type) && Xn(n) || n, t);
+		Xn(Kn(n.type) && Yn(n) || n, t);
 	} else if (e.shapeFlag & 128) {
 		let n = e.suspense;
 		if (n) {
 			let e = n.isHydrating ? n.pendingBranch : n.activeBranch;
-			e && Zn(e, t.clone(e));
+			e && Xn(e, t.clone(e));
 		} else e.ssContent.transition = t.clone(e.ssContent), e.ssFallback.transition = t.clone(e.ssFallback);
 	} else if (e.transition = t, e.type === H && d(e.children)) {
 		let n = oi(e.children, !1);
-		n && Zn(n, t);
+		n && Xn(n, t);
 	}
 }
-function Qn(e) {
-	if (e.component) return Qn(e.component.subTree);
+function Zn(e) {
+	if (e.component) return Zn(e.component.subTree);
 	if (e.type === H) {
 		let t = d(e.children) && oi(e.children, !1);
-		return t ? Qn(t) : void 0;
+		return t ? Zn(t) : void 0;
 	}
 	if (e.type !== Ki) return e;
 }
 // @__NO_SIDE_EFFECTS__
-function $n(e, t) {
+function Qn(e, t) {
 	return h(e) ? /* @__PURE__ */ s({ name: e.name }, t, { setup: e }) : e;
 }
-function er(e) {
+function $n(e) {
 	e.ids = [
 		e.ids[0] + e.ids[2]++ + "-",
 		0,
 		0
 	];
 }
-function tr(e, t) {
+function er(e, t) {
 	let n;
 	return !!((n = Object.getOwnPropertyDescriptor(e, t)) && !n.configurable);
 }
-var nr = /* @__PURE__ */ new WeakMap();
-function rr(e, n, r, a, o = !1) {
+var tr = /* @__PURE__ */ new WeakMap();
+function nr(e, n, r, a, o = !1) {
 	if (d(e)) {
-		e.forEach((e, t) => rr(e, n && (d(n) ? n[t] : n), r, a, o));
+		e.forEach((e, t) => nr(e, n && (d(n) ? n[t] : n), r, a, o));
 		return;
 	}
-	if (ar(a) && !o) {
-		a.shapeFlag & 512 && a.type.__asyncResolved && a.component.subTree.component && rr(e, n, r, a.component.subTree);
+	if (ir(a) && !o) {
+		a.shapeFlag & 512 && a.type.__asyncResolved && a.component.subTree.component && nr(e, n, r, a.component.subTree);
 		return;
 	}
-	let s = a.shapeFlag & 4 ? Ma(a.component) : a.el, l = o ? null : s, { i: f, r: p } = e, m = n && n.r, _ = f.refs === t ? f.refs = {} : f.refs, v = f.setupState, y = /* @__PURE__ */ L(v), b = v === t ? i : (e) => !tr(_, e) && u(y, e), x = (e, t) => !(t && tr(_, t));
+	let s = a.shapeFlag & 4 ? ja(a.component) : a.el, l = o ? null : s, { i: f, r: p } = e, m = n && n.r, _ = f.refs === t ? f.refs = {} : f.refs, v = f.setupState, y = /* @__PURE__ */ L(v), b = v === t ? i : (e) => !er(_, e) && u(y, e), x = (e, t) => !(t && er(_, t));
 	if (m != null && m !== p) {
-		if (ir(n), g(m)) _[m] = null, b(m) && (v[m] = null);
-		else if (/* @__PURE__ */ Kt(m)) {
+		if (rr(n), g(m)) _[m] = null, b(m) && (v[m] = null);
+		else if (/* @__PURE__ */ R(m)) {
 			let e = n;
 			x(m, e.k) && (m.value = null), e.k && (_[e.k] = null);
 		}
 	}
-	if (h(p)) un(p, f, 12, [l, _]);
+	if (h(p)) ln(p, f, 12, [l, _]);
 	else {
-		let t = g(p), n = /* @__PURE__ */ Kt(p);
+		let t = g(p), n = /* @__PURE__ */ R(p);
 		if (t || n) {
 			let i = () => {
 				if (e.f) {
@@ -1283,26 +1283,26 @@ function rr(e, n, r, a, o = !1) {
 			};
 			if (l) {
 				let t = () => {
-					i(), nr.delete(e);
+					i(), tr.delete(e);
 				};
-				t.id = -1, nr.set(e, t), ji(t, r);
-			} else ir(e), i();
+				t.id = -1, tr.set(e, t), ji(t, r);
+			} else rr(e), i();
 		}
 	}
 }
-function ir(e) {
-	let t = nr.get(e);
-	t && (t.flags |= 8, nr.delete(e));
+function rr(e) {
+	let t = tr.get(e);
+	t && (t.flags |= 8, tr.delete(e));
 }
 oe().requestIdleCallback, oe().cancelIdleCallback;
-var ar = (e) => !!e.type.__asyncLoader, or = (e) => e.type.__isKeepAlive;
+var ir = (e) => !!e.type.__asyncLoader, ar = (e) => e.type.__isKeepAlive;
+function or(e, t) {
+	cr(e, "a", t);
+}
 function sr(e, t) {
-	lr(e, "a", t);
+	cr(e, "da", t);
 }
-function cr(e, t) {
-	lr(e, "da", t);
-}
-function lr(e, t, n = _a) {
+function cr(e, t, n = Y) {
 	let r = e.__wdc ||= () => {
 		let t = n;
 		for (; t;) {
@@ -1311,51 +1311,51 @@ function lr(e, t, n = _a) {
 		}
 		return e();
 	};
-	if (dr(t, r, n), n) {
+	if (ur(t, r, n), n) {
 		let e = n.parent;
-		for (; e && e.parent;) or(e.parent.vnode) && ur(r, t, n, e), e = e.parent;
+		for (; e && e.parent;) ar(e.parent.vnode) && lr(r, t, n, e), e = e.parent;
 	}
 }
-function ur(e, t, n, r) {
-	let i = dr(t, e, r, !0), a = dr("um", () => c(r[t], i), n);
+function lr(e, t, n, r) {
+	let i = ur(t, e, r, !0), a = ur("um", () => c(r[t], i), n);
 	a.flags = 16;
 }
-function dr(e, t, n = _a, r = !1) {
+function ur(e, t, n = Y, r = !1) {
 	if (n) {
 		let i = n[e] || (n[e] = []), a = t.__weh ||= (...r) => {
 			Ue();
-			let i = xa(n), a = dn(t, n, e, r);
+			let i = ba(n), a = un(t, n, e, r);
 			return i(), We(), a;
 		};
 		return r ? i.unshift(a) : i.push(a), a;
 	}
 }
-var fr = (e) => (t, n = _a) => {
-	wa && e !== "sp" || dr(e, (...e) => t(...e), n);
-}, pr = fr("bm"), mr = fr("m"), hr = fr("bu"), gr = fr("u"), _r = fr("bum"), vr = fr("um"), yr = fr("sp"), br = fr("rtg"), xr = fr("rtc");
-function Sr(e, t = _a) {
-	dr("ec", e, t);
+var dr = (e) => (t, n = Y) => {
+	Ca && e !== "sp" || ur(e, (...e) => t(...e), n);
+}, fr = dr("bm"), pr = dr("m"), mr = dr("bu"), hr = dr("u"), gr = dr("bum"), _r = dr("um"), vr = dr("sp"), yr = dr("rtg"), br = dr("rtc");
+function xr(e, t = Y) {
+	ur("ec", e, t);
 }
-var Cr = "components", wr = /* @__PURE__ */ Symbol.for("v-ndc");
-function Tr(e) {
-	return g(e) ? Er(Cr, e, !1) || e : e || wr;
+var Sr = "components", Cr = /* @__PURE__ */ Symbol.for("v-ndc");
+function wr(e) {
+	return g(e) ? Tr(Sr, e, !1) || e : e || Cr;
 }
-function Er(e, t, n = !0, r = !1) {
-	let i = Mn || _a;
+function Tr(e, t, n = !0, r = !1) {
+	let i = jn || Y;
 	if (i) {
 		let n = i.type;
-		if (e === Cr) {
-			let e = Na(n, !1);
+		if (e === Sr) {
+			let e = Ma(n, !1);
 			if (e && (e === t || e === D(t) || e === A(D(t)))) return n;
 		}
-		let a = Dr(i[e] || n[e], t) || Dr(i.appContext[e], t);
+		let a = Er(i[e] || n[e], t) || Er(i.appContext[e], t);
 		return !a && r ? n : a;
 	}
 }
-function Dr(e, t) {
+function Er(e, t) {
 	return e && (e[t] || e[D(t)] || e[A(D(t))]);
 }
-function V(e, t, n, r) {
+function Dr(e, t, n, r) {
 	let i, a = n && n[r], o = d(e);
 	if (o || g(e)) {
 		let n = o && /* @__PURE__ */ zt(e), r = !1, s = !1;
@@ -1380,7 +1380,7 @@ function V(e, t, n, r) {
 	} else i = [];
 	return n && (n[r] = i), i;
 }
-var Or = (e) => e ? Ca(e) ? Ma(e) : Or(e.parent) : null, kr = /* @__PURE__ */ s(/* @__PURE__ */ Object.create(null), {
+var Or = (e) => e ? Sa(e) ? ja(e) : Or(e.parent) : null, kr = /* @__PURE__ */ s(/* @__PURE__ */ Object.create(null), {
 	$: (e) => e,
 	$el: (e) => e.vnode.el,
 	$data: (e) => e.data,
@@ -1394,10 +1394,10 @@ var Or = (e) => e ? Ca(e) ? Ma(e) : Or(e.parent) : null, kr = /* @__PURE__ */ s(
 	$emit: (e) => e.emit,
 	$options: (e) => zr(e),
 	$forceUpdate: (e) => e.f ||= () => {
-		Cn(e.update);
+		Sn(e.update);
 	},
-	$nextTick: (e) => e.n ||= xn.bind(e.proxy),
-	$watch: (e) => Wn.bind(e)
+	$nextTick: (e) => e.n ||= bn.bind(e.proxy),
+	$watch: (e) => Un.bind(e)
 }), Ar = (e, n) => e !== t && !e.__isScriptSetup && u(e, n), jr = {
 	get({ _: e }, n) {
 		if (n === "__v_skip") return !0;
@@ -1444,7 +1444,7 @@ var Pr = !0;
 function Fr(e) {
 	let t = zr(e), n = e.proxy, i = e.ctx;
 	Pr = !1, t.beforeCreate && Lr(t.beforeCreate, e, "bc");
-	let { data: a, computed: o, methods: s, watch: c, provide: l, inject: u, created: f, beforeMount: p, mounted: m, beforeUpdate: g, updated: _, activated: y, deactivated: b, beforeDestroy: x, beforeUnmount: S, destroyed: C, unmounted: w, render: ee, renderTracked: te, renderTriggered: T, errorCaptured: E, serverPrefetch: D, expose: O, inheritAttrs: k, components: A, directives: ne, filters: j } = t;
+	let { data: a, computed: o, methods: s, watch: c, provide: l, inject: u, created: f, beforeMount: p, mounted: m, beforeUpdate: g, updated: _, activated: y, deactivated: b, beforeDestroy: x, beforeUnmount: S, destroyed: C, unmounted: w, render: T, renderTracked: E, renderTriggered: ee, errorCaptured: te, serverPrefetch: D, expose: O, inheritAttrs: k, components: A, directives: ne, filters: j } = t;
 	if (u && Ir(u, i, null), s) for (let e in s) {
 		let t = s[e];
 		h(t) && (i[e] = t.bind(n));
@@ -1454,7 +1454,7 @@ function Fr(e) {
 		v(t) && (e.data = /* @__PURE__ */ Ft(t));
 	}
 	if (Pr = !0, o) for (let e in o) {
-		let t = o[e], a = Y({
+		let t = o[e], a = X({
 			get: h(t) ? t.bind(n, n) : h(t.get) ? t.get.bind(n, n) : r,
 			set: !h(t) && h(t.set) ? t.set.bind(n) : r
 		});
@@ -1469,14 +1469,14 @@ function Fr(e) {
 	if (l) {
 		let e = h(l) ? l.call(n) : l;
 		Reflect.ownKeys(e).forEach((t) => {
-			Ln(t, e[t]);
+			In(t, e[t]);
 		});
 	}
 	f && Lr(f, e, "c");
 	function M(e, t) {
 		d(t) ? t.forEach((t) => e(t.bind(n))) : t && e(t.bind(n));
 	}
-	if (M(pr, p), M(mr, m), M(hr, g), M(gr, _), M(sr, y), M(cr, b), M(Sr, E), M(xr, te), M(br, T), M(_r, S), M(vr, w), M(yr, D), d(O)) {
+	if (M(fr, p), M(pr, m), M(mr, g), M(hr, _), M(or, y), M(sr, b), M(xr, te), M(br, E), M(yr, ee), M(gr, S), M(_r, w), M(vr, D), d(O)) {
 		if (O.length) {
 			let t = e.exposed ||= {};
 			O.forEach((e) => {
@@ -1488,13 +1488,13 @@ function Fr(e) {
 			});
 		} else e.exposed ||= {};
 	}
-	ee && e.render === r && (e.render = ee), k != null && (e.inheritAttrs = k), A && (e.components = A), ne && (e.directives = ne), D && er(e);
+	T && e.render === r && (e.render = T), k != null && (e.inheritAttrs = k), A && (e.components = A), ne && (e.directives = ne), D && $n(e);
 }
 function Ir(e, t, n = r) {
 	d(e) && (e = Wr(e));
 	for (let n in e) {
 		let r = e[n], i;
-		i = v(r) ? "default" in r ? Rn(r.from || n, r.default, !0) : Rn(r.from || n) : Rn(r), /* @__PURE__ */ Kt(i) ? Object.defineProperty(t, n, {
+		i = v(r) ? "default" in r ? Ln(r.from || n, r.default, !0) : Ln(r.from || n) : Ln(r), /* @__PURE__ */ R(i) ? Object.defineProperty(t, n, {
 			enumerable: !0,
 			configurable: !0,
 			get: () => i.value,
@@ -1503,19 +1503,19 @@ function Ir(e, t, n = r) {
 	}
 }
 function Lr(e, t, n) {
-	dn(d(e) ? e.map((e) => e.bind(t.proxy)) : e.bind(t.proxy), t, n);
+	un(d(e) ? e.map((e) => e.bind(t.proxy)) : e.bind(t.proxy), t, n);
 }
 function Rr(e, t, n, r) {
-	let i = r.includes(".") ? Gn(n, r) : () => n[r];
+	let i = r.includes(".") ? Wn(n, r) : () => n[r];
 	if (g(e)) {
 		let n = t[e];
-		h(n) && Hn(i, n);
-	} else if (h(e)) Hn(i, e.bind(n));
+		h(n) && Vn(i, n);
+	} else if (h(e)) Vn(i, e.bind(n));
 	else if (v(e)) {
 		if (d(e)) e.forEach((e) => Rr(e, t, n, r));
 		else {
 			let r = h(e.handler) ? e.handler.bind(n) : t[e.handler];
-			h(r) && Hn(i, r, e);
+			h(r) && Vn(i, r, e);
 		}
 	}
 }
@@ -1622,7 +1622,7 @@ function Zr(e, t) {
 			_container: null,
 			_context: i,
 			_instance: null,
-			version: Fa,
+			version: Pa,
 			get config() {
 				return i.config;
 			},
@@ -1642,14 +1642,14 @@ function Zr(e, t) {
 			mount(a, o, s) {
 				if (!c) {
 					let u = l._ceVNode || K(n, r);
-					return u.appContext = i, s === !0 ? s = "svg" : s === !1 && (s = void 0), o && t ? t(u, a) : e(u, a, s), c = !0, l._container = a, a.__vue_app__ = l, Ma(u.component);
+					return u.appContext = i, s === !0 ? s = "svg" : s === !1 && (s = void 0), o && t ? t(u, a) : e(u, a, s), c = !0, l._container = a, a.__vue_app__ = l, ja(u.component);
 				}
 			},
 			onUnmount(e) {
 				o.push(e);
 			},
 			unmount() {
-				c && (dn(o, l._instance, 16), e(null, l._container), delete l._container.__vue_app__);
+				c && (un(o, l._instance, 16), e(null, l._container), delete l._container.__vue_app__);
 			},
 			provide(e, t) {
 				return i.provides[e] = t, l;
@@ -1669,9 +1669,9 @@ function Zr(e, t) {
 }
 var Qr = null;
 function $r(e, n, r = t) {
-	let i = va(), a = D(n), o = k(n), s = ei(e, a), c = en((s, c) => {
+	let i = _a(), a = D(n), o = k(n), s = ei(e, a), c = $t((s, c) => {
 		let l, u = t, d;
-		return Vn(() => {
+		return Bn(() => {
 			let t = e[a];
 			j(l, t) && (l = t, c());
 		}), {
@@ -1702,12 +1702,12 @@ function ti(e, n, ...r) {
 	let i = e.vnode.props || t, a = r, o = n.startsWith("update:"), s = o && ei(i, n.slice(7));
 	s && (s.trim && (a = r.map((e) => g(e) ? e.trim() : e)), s.number && (a = a.map(ie)));
 	let c, l = i[c = ne(n)] || i[c = ne(D(n))];
-	!l && o && (l = i[c = ne(k(n))]), l && dn(l, e, 6, a);
+	!l && o && (l = i[c = ne(k(n))]), l && un(l, e, 6, a);
 	let u = i[c + "Once"];
 	if (u) {
 		if (!e.emitted) e.emitted = {};
 		else if (e.emitted[c]) return;
-		e.emitted[c] = !0, dn(u, e, 6, a);
+		e.emitted[c] = !0, un(u, e, 6, a);
 	}
 }
 var ni = /* @__PURE__ */ new WeakMap();
@@ -1728,7 +1728,7 @@ function ii(e, t) {
 	return !e || !a(t) ? !1 : (t = t.slice(2), t = t === "Once" ? t : t.replace(/Once$/, ""), u(e, t[0].toLowerCase() + t.slice(1)) || u(e, k(t)) || u(e, t));
 }
 function ai(e) {
-	let { type: t, vnode: n, proxy: r, withProxy: i, propsOptions: [a], slots: s, attrs: c, emit: l, render: u, renderCache: d, props: f, data: p, setupState: m, ctx: h, inheritAttrs: g } = e, _ = Pn(e), v, y;
+	let { type: t, vnode: n, proxy: r, withProxy: i, propsOptions: [a], slots: s, attrs: c, emit: l, render: u, renderCache: d, props: f, data: p, setupState: m, ctx: h, inheritAttrs: g } = e, _ = Nn(e), v, y;
 	try {
 		if (n.shapeFlag & 4) {
 			let e = i || r, t = e;
@@ -1742,14 +1742,14 @@ function ai(e) {
 			}) : e(f, null)), y = t.props ? c : si(c);
 		}
 	} catch (t) {
-		Ji.length = 0, fn(t, e, 1), v = K(Ki);
+		Ji.length = 0, dn(t, e, 1), v = K(Ki);
 	}
 	let b = v;
 	if (y && g !== !1) {
 		let e = Object.keys(y), { shapeFlag: t } = b;
 		e.length && t & 7 && (a && e.some(o) && (y = ci(y, a)), b = sa(b, y, !1, !0));
 	}
-	return n.dirs && (b = sa(b, null, !1, !0), b.dirs = b.dirs ? b.dirs.concat(n.dirs) : n.dirs), n.transition && Zn(qn(b.type) && Xn(b) || b, n.transition), v = b, Pn(_), v;
+	return n.dirs && (b = sa(b, null, !1, !0), b.dirs = b.dirs ? b.dirs.concat(n.dirs) : n.dirs), n.transition && Xn(Kn(b.type) && Yn(b) || b, n.transition), v = b, Nn(_), v;
 }
 function oi(e, t = !0) {
 	let n;
@@ -1846,7 +1846,7 @@ function _i(e, t, n, r) {
 function vi(e, n, r, i) {
 	let [a, o] = e.propsOptions, s = !1, c;
 	if (n) for (let t in n) {
-		if (ee(t)) continue;
+		if (T(t)) continue;
 		let l = n[t], d;
 		a && u(a, d = D(t)) ? !o || !o.includes(d) ? r[d] = l : (c ||= {})[d] = l : ii(e.emitsOptions, t) || t in i && l === i[t] || (i[t] = l, s = !0);
 	}
@@ -1869,7 +1869,7 @@ function yi(e, t, n, r, i, a) {
 				let { propsDefaults: a } = i;
 				if (n in a) r = a[n];
 				else {
-					let o = xa(i);
+					let o = ba(i);
 					r = a[n] = e.call(null, t), o();
 				}
 			} else r = e;
@@ -1917,11 +1917,11 @@ function xi(e, r, i = !1) {
 	return v(e) && a.set(e, m), m;
 }
 function Si(e) {
-	return e[0] !== "$" && !ee(e);
+	return e[0] !== "$" && !T(e);
 }
 var Ci = (e) => e === "_" || e === "_ctx" || e === "$stable", wi = (e) => d(e) ? e.map(ca) : [ca(e)], Ti = (e, t, n) => {
 	if (t._n) return t;
-	let r = Fn((...e) => wi(t(...e)), n);
+	let r = Pn((...e) => wi(t(...e)), n);
 	return r._c = !1, r;
 }, Ei = (e, t, n) => {
 	let r = e._ctx;
@@ -1978,7 +1978,7 @@ function Ni(e, i) {
 				break;
 			default: f & 1 ? w(e, t, r, i, a, o, s, c, l) : f & 6 ? ne(e, t, r, i, a, o, s, c, l) : (f & 64 || f & 128) && u.process(e, t, r, i, a, o, s, c, l, ve);
 		}
-		d != null && a ? rr(d, e && e.ref, o, t || e, !t) : d == null && e && e.ref != null && rr(e.ref, null, o, e, !0);
+		d != null && a ? nr(d, e && e.ref, o, t || e, !t) : d == null && e && e.ref != null && nr(e.ref, null, o, e, !0);
 	}, y = (e, t, n, r) => {
 		if (e == null) o(t.el = u(t.children), n, r);
 		else {
@@ -1998,7 +1998,7 @@ function Ni(e, i) {
 		for (; e && e !== t;) n = h(e), s(e), e = n;
 		s(t);
 	}, w = (e, t, n, r, i, a, o, s, c) => {
-		if (t.type === "svg" ? o = "svg" : t.type === "math" && (o = "mathml"), e == null) te(t, n, r, i, a, o, s, c);
+		if (t.type === "svg" ? o = "svg" : t.type === "math" && (o = "mathml"), e == null) E(t, n, r, i, a, o, s, c);
 		else {
 			let n = e.el && e.el._isVueCE ? e.el : null;
 			try {
@@ -2007,29 +2007,29 @@ function Ni(e, i) {
 				n && n._endPatch();
 			}
 		}
-	}, te = (e, t, n, r, i, a, s, u) => {
+	}, E = (e, t, n, r, i, a, s, u) => {
 		let d, f, { props: m, shapeFlag: h, transition: g, dirs: _ } = e;
-		if (d = e.el = l(e.type, a, m && m.is, m), h & 8 ? p(d, e.children) : h & 16 && E(e.children, d, null, r, i, Pi(e, a), s, u), _ && In(e, null, r, "created"), T(d, e, e.scopeId, s, r), m) {
-			for (let e in m) e !== "value" && !ee(e) && c(d, e, null, m[e], a, r);
+		if (d = e.el = l(e.type, a, m && m.is, m), h & 8 ? p(d, e.children) : h & 16 && te(e.children, d, null, r, i, Pi(e, a), s, u), _ && Fn(e, null, r, "created"), ee(d, e, e.scopeId, s, r), m) {
+			for (let e in m) e !== "value" && !T(e) && c(d, e, null, m[e], a, r);
 			"value" in m && c(d, "value", null, m.value, a), (f = m.onVnodeBeforeMount) && fa(f, r, e);
 		}
-		_ && In(e, null, r, "beforeMount");
+		_ && Fn(e, null, r, "beforeMount");
 		let v = Ii(i, g);
 		v ? g.beforeEnter(d) : g && !g.persisted && (d[Ui] = !0), o(d, t, n), ((f = m && m.onVnodeMounted) || v || _) && ji(() => {
 			try {
-				f && fa(f, r, e), v && g.enter(d), _ && In(e, null, r, "mounted");
+				f && fa(f, r, e), v && g.enter(d), _ && Fn(e, null, r, "mounted");
 			} finally {}
 		}, i);
-	}, T = (e, t, n, r, i) => {
+	}, ee = (e, t, n, r, i) => {
 		if (n && g(e, n), r) for (let t = 0; t < r.length; t++) g(e, r[t]);
 		if (i) {
 			let n = i.subTree;
 			if (t === n || Hi(n.type) && (n.ssContent === t || n.ssFallback === t)) {
 				let t = i.vnode;
-				T(e, t, t.scopeId, t.slotScopeIds, i.parent);
+				ee(e, t, t.scopeId, t.slotScopeIds, i.parent);
 			}
 		}
-	}, E = (e, t, n, r, i, a, o, s, c = 0) => {
+	}, te = (e, t, n, r, i, a, o, s, c = 0) => {
 		for (let l = c; l < e.length; l++) {
 			let c = e[l] = s ? la(e[l]) : ca(e[l]);
 			v(null, c, t, n, r, i, a, o, s);
@@ -2038,7 +2038,7 @@ function Ni(e, i) {
 		let l = n.el = e.el, { patchFlag: u, dynamicChildren: d, dirs: f } = n;
 		u |= e.patchFlag & 16;
 		let m = e.props || t, h = n.props || t, g;
-		if (r && Fi(r, !1), (g = h.onVnodeBeforeUpdate) && fa(g, r, n, e), f && In(n, e, r, "beforeUpdate"), r && Fi(r, !0), d && (!e.dynamicChildren || e.dynamicChildren.length !== d.length) && (u = 0, s = !1, d = null), (m.innerHTML && h.innerHTML == null || m.textContent && h.textContent == null) && p(l, ""), d ? O(e.dynamicChildren, d, l, r, i, Pi(n, a), o) : s || se(e, n, l, null, r, i, Pi(n, a), o, !1), u > 0) {
+		if (r && Fi(r, !1), (g = h.onVnodeBeforeUpdate) && fa(g, r, n, e), f && Fn(n, e, r, "beforeUpdate"), r && Fi(r, !0), d && (!e.dynamicChildren || e.dynamicChildren.length !== d.length) && (u = 0, s = !1, d = null), (m.innerHTML && h.innerHTML == null || m.textContent && h.textContent == null) && p(l, ""), d ? O(e.dynamicChildren, d, l, r, i, Pi(n, a), o) : s || se(e, n, l, null, r, i, Pi(n, a), o, !1), u > 0) {
 			if (u & 16) k(l, m, h, r, a);
 			else if (u & 2 && m.class !== h.class && c(l, "class", null, h.class, a), u & 4 && c(l, "style", m.style, h.style, a), u & 8) {
 				let e = n.dynamicProps;
@@ -2050,7 +2050,7 @@ function Ni(e, i) {
 			u & 1 && e.children !== n.children && p(l, n.children);
 		} else !s && d == null && k(l, m, h, r, a);
 		((g = h.onVnodeUpdated) || f) && ji(() => {
-			g && fa(g, r, n, e), f && In(n, e, r, "updated");
+			g && fa(g, r, n, e), f && Fn(n, e, r, "updated");
 		}, i);
 	}, O = (e, t, n, r, i, a, o) => {
 		for (let s = 0; s < t.length; s++) {
@@ -2059,9 +2059,9 @@ function Ni(e, i) {
 		}
 	}, k = (e, n, r, i, a) => {
 		if (n !== r) {
-			if (n !== t) for (let t in n) !ee(t) && !(t in r) && c(e, t, n[t], null, a, i);
+			if (n !== t) for (let t in n) !T(t) && !(t in r) && c(e, t, n[t], null, a, i);
 			for (let t in r) {
-				if (ee(t)) continue;
+				if (T(t)) continue;
 				let o = r[t], s = n[t];
 				o !== s && t !== "value" && c(e, t, s, o, a, i);
 			}
@@ -2069,12 +2069,12 @@ function Ni(e, i) {
 		}
 	}, A = (e, t, n, r, i, a, s, c, l) => {
 		let d = t.el = e ? e.el : u(""), f = t.anchor = e ? e.anchor : u(""), { patchFlag: p, dynamicChildren: m, slotScopeIds: h } = t;
-		h && (c = c ? c.concat(h) : h), e == null ? (o(d, n, r), o(f, n, r), E(t.children || [], n, f, i, a, s, c, l)) : p > 0 && p & 64 && m && e.dynamicChildren && e.dynamicChildren.length === m.length ? (O(e.dynamicChildren, m, n, i, a, s, c), (t.key != null || i && t === i.subTree) && Li(e, t, !0)) : se(e, t, n, f, i, a, s, c, l);
+		h && (c = c ? c.concat(h) : h), e == null ? (o(d, n, r), o(f, n, r), te(t.children || [], n, f, i, a, s, c, l)) : p > 0 && p & 64 && m && e.dynamicChildren && e.dynamicChildren.length === m.length ? (O(e.dynamicChildren, m, n, i, a, s, c), (t.key != null || i && t === i.subTree) && Li(e, t, !0)) : se(e, t, n, f, i, a, s, c, l);
 	}, ne = (e, t, n, r, i, a, o, s, c) => {
 		t.slotScopeIds = s, e == null ? t.shapeFlag & 512 ? i.ctx.activate(t, n, r, o, c) : j(t, n, r, i, a, o, c) : re(e, t, c);
 	}, j = (e, t, n, r, i, a, o) => {
 		let s = e.component = ga(e, r, i);
-		if (or(e) && (s.ctx.renderer = ve), Ta(s, !1, o), s.asyncDep) {
+		if (ar(e) && (s.ctx.renderer = ve), wa(s, !1, o), s.asyncDep) {
 			if (i && i.registerDep(s, ie, o, a), !e.el) {
 				let r = s.subTree = K(Ki);
 				b(null, r, t, n), e.placeholder = r.el;
@@ -2110,7 +2110,7 @@ function Ni(e, i) {
 				let f = ai(e), p = e.subTree;
 				e.subTree = f, v(p, f, m(p.el || Vi(p)), ge(p), e, i, a), t.el = f.el, u === null && fi(e, f.el), r && ji(r, i), (d = t.props && t.props.onVnodeUpdated) && ji(() => fa(d, s, t, c), i);
 			} else {
-				let o, { el: s, props: c } = t, { bm: l, m: u, parent: d, root: f, type: p } = e, m = ar(t);
+				let o, { el: s, props: c } = t, { bm: l, m: u, parent: d, root: f, type: p } = e, m = ir(t);
 				if (Fi(e, !1), l && M(l), !m && (o = c && c.onVnodeBeforeMount) && fa(o, d, t), Fi(e, !0), s && be) {
 					let t = () => {
 						e.subTree = ai(e), be(s, e.subTree, e, i, null);
@@ -2125,18 +2125,18 @@ function Ni(e, i) {
 					let e = t;
 					ji(() => fa(o, d, e), i);
 				}
-				(t.shapeFlag & 256 || d && ar(d.vnode) && d.vnode.shapeFlag & 256) && e.a && ji(e.a, i), e.isMounted = !0, t = n = r = null;
+				(t.shapeFlag & 256 || d && ir(d.vnode) && d.vnode.shapeFlag & 256) && e.a && ji(e.a, i), e.isMounted = !0, t = n = r = null;
 			}
 		};
 		e.scope.on();
 		let c = e.effect = new Oe(s);
 		e.scope.off();
 		let l = e.update = c.run.bind(c), u = e.job = c.runIfDirty.bind(c);
-		u.i = e, u.id = e.uid, c.scheduler = () => Cn(u), Fi(e, !0), l();
+		u.i = e, u.id = e.uid, c.scheduler = () => Sn(u), Fi(e, !0), l();
 	}, ae = (e, t, n) => {
 		t.component = e;
 		let r = e.vnode.props;
-		e.vnode = t, e.next = null, _i(e, t.props, r, n), Ai(e, t.children, n), Ue(), En(e), We();
+		e.vnode = t, e.next = null, _i(e, t.props, r, n), Ai(e, t.children, n), Ue(), Tn(e), We();
 	}, se = (e, t, n, r, i, a, o, s, c = !1) => {
 		let l = e && e.children, u = e ? e.shapeFlag : 0, d = t.children, { patchFlag: f, shapeFlag: m } = t;
 		if (f > 0) {
@@ -2149,7 +2149,7 @@ function Ni(e, i) {
 				return;
 			}
 		}
-		m & 8 ? (u & 16 && he(l, i, a), d !== l && p(n, d)) : u & 16 ? m & 16 ? le(l, d, n, r, i, a, o, s, c) : he(l, i, a, !0) : (u & 8 && p(n, ""), m & 16 && E(d, n, r, i, a, o, s, c));
+		m & 8 ? (u & 16 && he(l, i, a), d !== l && p(n, d)) : u & 16 ? m & 16 ? le(l, d, n, r, i, a, o, s, c) : he(l, i, a, !0) : (u & 8 && p(n, ""), m & 16 && te(d, n, r, i, a, o, s, c));
 	}, ce = (e, t, r, i, a, o, s, c, l) => {
 		e ||= n, t ||= n;
 		let u = e.length, d = t.length, f = Math.min(u, d), p = 0;
@@ -2157,7 +2157,7 @@ function Ni(e, i) {
 			let n = t[p] = l ? la(t[p]) : ca(t[p]);
 			v(e[p], n, r, null, a, o, s, c, l);
 		}
-		u > d ? he(e, a, o, !0, !1, f) : E(t, r, i, a, o, s, c, l, f);
+		u > d ? he(e, a, o, !0, !1, f) : te(t, r, i, a, o, s, c, l, f);
 	}, le = (e, t, r, i, a, o, s, c, l) => {
 		let u = 0, d = t.length, f = e.length - 1, p = d - 1;
 		for (; u <= f && u <= p;) {
@@ -2217,13 +2217,13 @@ function Ni(e, i) {
 			o(e.anchor, t, n);
 		} else if (c === qi) S(e, t, n);
 		else if (r !== 2 && d & 1 && l) {
-			if (r === 0) l.persisted && !a[Jn] ? o(a, t, n) : (l.beforeEnter(a), o(a, t, n), ji(() => l.enter(a), i));
+			if (r === 0) l.persisted && !a[qn] ? o(a, t, n) : (l.beforeEnter(a), o(a, t, n), ji(() => l.enter(a), i));
 			else {
 				let { leave: r, delayLeave: i, afterLeave: c } = l, u = () => {
 					e.ctx.isUnmounted ? s(a) : o(a, t, n);
 				}, d = () => {
-					let e = a._isLeaving || !!a[Jn];
-					a._isLeaving && a[Jn](!0), l.persisted && !e ? u() : r(a, () => {
+					let e = a._isLeaving || !!a[qn];
+					a._isLeaving && a[qn](!0), l.persisted && !e ? u() : r(a, () => {
 						u(), c && c();
 					});
 				};
@@ -2232,19 +2232,19 @@ function Ni(e, i) {
 		} else o(a, t, n);
 	}, de = (e, t, n, r = !1, i = !1) => {
 		let { type: a, props: o, ref: s, children: c, dynamicChildren: l, shapeFlag: u, patchFlag: d, dirs: f, cacheIndex: p, memo: m } = e;
-		if ((d === -2 || l && l.hasOnce) && (i = !1), s != null && (Ue(), rr(s, null, n, e, !0), We()), p == null || e.ctx && e.ctx !== t || (t.renderCache[p] = void 0), u & 256 && t.ctx.deactivate(e)) return;
-		let h = u & 1 && f, g = !ar(e), _;
+		if ((d === -2 || l && l.hasOnce) && (i = !1), s != null && (Ue(), nr(s, null, n, e, !0), We()), p == null || e.ctx && e.ctx !== t || (t.renderCache[p] = void 0), u & 256 && t.ctx.deactivate(e)) return;
+		let h = u & 1 && f, g = !ir(e), _;
 		if (g && (_ = o && o.onVnodeBeforeUnmount) && fa(_, t, e), u & 6) me(e.component, n, r);
 		else {
 			if (u & 128) {
 				e.suspense.unmount(n, r);
 				return;
 			}
-			h && In(e, null, t, "beforeUnmount"), u & 64 ? e.type.remove(e, t, n, ve, r) : l && !l.hasOnce && (a !== H || d > 0 && d & 64) ? he(l, t, n, !1, !0) : (a === H && d & 384 || !i && u & 16) && he(c, t, n), r && fe(e);
+			h && Fn(e, null, t, "beforeUnmount"), u & 64 ? e.type.remove(e, t, n, ve, r) : l && !l.hasOnce && (a !== H || d > 0 && d & 64) ? he(l, t, n, !1, !0) : (a === H && d & 384 || !i && u & 16) && he(c, t, n), r && fe(e);
 		}
 		let v = m != null && p == null;
 		(g && (_ = o && o.onVnodeUnmounted) || h || v) && ji(() => {
-			_ && fa(_, t, e), h && In(e, null, t, "unmounted"), v && (e.el = null);
+			_ && fa(_, t, e), h && Fn(e, null, t, "unmounted"), v && (e.el = null);
 		}, n);
 	}, fe = (e) => {
 		let { type: t, el: n, anchor: r, transition: i } = e, a = t === H;
@@ -2256,7 +2256,7 @@ function Ni(e, i) {
 			C(e), i && !i.persisted && i.afterLeave && i.afterLeave();
 			return;
 		}
-		let o = a ? Qn(e) : e, c = () => {
+		let o = a ? Zn(e) : e, c = () => {
 			a ? m(n) && pe(n, r) : s(n), i && !i.persisted && i.afterLeave && i.afterLeave();
 		};
 		if (o && o.shapeFlag & 1 && i && !i.persisted) {
@@ -2279,10 +2279,10 @@ function Ni(e, i) {
 	}, ge = (e) => {
 		if (e.shapeFlag & 6) return ge(e.component.subTree);
 		if (e.shapeFlag & 128) return e.suspense.next();
-		let t = h(e.anchor || e.el), n = t && t[Kn];
+		let t = h(e.anchor || e.el), n = t && t[Gn];
 		return n ? h(n) : t;
 	}, _e = (e, t, n) => {
-		kn(() => {
+		On(() => {
 			e == null ? t._vnode && de(t._vnode, null, null, !0) : v(t._vnode || null, e, t, null, null, null, n), t._vnode = e;
 		}, e && t._vnode ? void 0 : e && e.component ? e.component.uid : ha());
 	}, ve = {
@@ -2291,7 +2291,7 @@ function Ni(e, i) {
 		m: ue,
 		r: fe,
 		mt: j,
-		mc: E,
+		mc: te,
 		pc: se,
 		pbc: O,
 		n: ge,
@@ -2351,7 +2351,7 @@ function Vi(e) {
 }
 var Hi = (e) => e.__isSuspense, Ui = /* @__PURE__ */ Symbol("_deferredEnter");
 function Wi(e, t) {
-	t && t.pendingBranch ? d(e) ? t.effects.push(...e) : t.effects.push(e) : Tn(e);
+	t && t.pendingBranch ? d(e) ? t.effects.push(...e) : t.effects.push(e) : wn(e);
 }
 var H = /* @__PURE__ */ Symbol.for("v-fgt"), Gi = /* @__PURE__ */ Symbol.for("v-txt"), Ki = /* @__PURE__ */ Symbol.for("v-cmt"), qi = /* @__PURE__ */ Symbol.for("v-stc"), Ji = [], Yi = null;
 function U(e = !1) {
@@ -2379,8 +2379,8 @@ function ta(e) {
 function na(e, t) {
 	return e.type === t.type && e.key === t.key;
 }
-var ra = ({ key: e }) => e ?? null, ia = ({ ref: e, ref_key: t, ref_for: n }) => (typeof e == "number" && (e = "" + e), e == null ? null : g(e) || /* @__PURE__ */ Kt(e) || h(e) ? {
-	i: Mn,
+var ra = ({ key: e }) => e ?? null, ia = ({ ref: e, ref_key: t, ref_for: n }) => (typeof e == "number" && (e = "" + e), e == null ? null : g(e) || /* @__PURE__ */ R(e) || h(e) ? {
+	i: jn,
 	r: e,
 	k: t,
 	f: !!n
@@ -2393,7 +2393,7 @@ function G(e, t = null, n = null, r = 0, i = null, a = e === H ? 0 : 1, o = !1, 
 		props: t,
 		key: t && ra(t),
 		ref: t && ia(t),
-		scopeId: Nn,
+		scopeId: Mn,
 		slotScopeIds: null,
 		children: n,
 		component: null,
@@ -2413,26 +2413,26 @@ function G(e, t = null, n = null, r = 0, i = null, a = e === H ? 0 : 1, o = !1, 
 		dynamicProps: i,
 		dynamicChildren: null,
 		appContext: null,
-		ctx: Mn
+		ctx: jn
 	};
 	return s ? (ua(c, n), a & 128 && e.normalize(c)) : n && (c.shapeFlag |= g(n) ? 8 : 16), Zi > 0 && !o && Yi && (c.patchFlag > 0 || a & 6) && c.patchFlag !== 32 && Yi.push(c), c;
 }
 var K = aa;
 function aa(e, t = null, n = null, r = 0, i = null, a = !1) {
-	if (e && e !== wr || (e = Ki), ta(e)) {
+	if (e && e !== Cr || (e = Ki), ta(e)) {
 		let r = sa(e, t, !0);
 		return n && ua(r, n), Zi > 0 && !a && Yi && (r.shapeFlag & 6 ? Yi[Yi.indexOf(e)] = r : Yi.push(r)), r.patchFlag = -2, r;
 	}
-	if (Pa(e) && (e = e.__vccOpts), t) {
+	if (Na(e) && (e = e.__vccOpts), t) {
 		t = oa(t);
 		let { class: e, style: n } = t;
 		e && !g(e) && (t.class = fe(e)), v(n) && (/* @__PURE__ */ Ht(n) && !d(n) && (n = s({}, n)), t.style = se(n));
 	}
-	let o = g(e) ? 1 : Hi(e) ? 128 : qn(e) ? 64 : v(e) ? 4 : h(e) ? 2 : 0;
+	let o = g(e) ? 1 : Hi(e) ? 128 : Kn(e) ? 64 : v(e) ? 4 : h(e) ? 2 : 0;
 	return G(e, t, n, r, i, o, a, !0);
 }
 function oa(e) {
-	return e ? /* @__PURE__ */ Ht(e) ? s({}, e) : hi(e) ? s({}, e[ka] || e) : e : null;
+	return e ? /* @__PURE__ */ Ht(e) ? s({}, e) : hi(e) ? s({}, e[Oa] || e) : e : null;
 }
 function sa(e, t, n = !1, r = !1) {
 	let { props: i, ref: a, patchFlag: o, children: s, transition: c } = e, l = t ? da(i || {}, t) : i, u = {
@@ -2467,7 +2467,7 @@ function sa(e, t, n = !1, r = !1) {
 		ce: e.ce,
 		cacheIndex: e.cacheIndex
 	};
-	return c && r && Zn(u, c.clone(u)), u;
+	return c && r && Xn(u, c.clone(u)), u;
 }
 function q(e = " ", t = 0) {
 	return K(Gi, null, e, t);
@@ -2494,7 +2494,7 @@ function ua(e, t) {
 		{
 			n = 32;
 			let r = t._;
-			!r && !hi(t) ? t._ctx = Mn : r === 3 && Mn && (Mn.slots._ === 1 ? t._ = 1 : (t._ = 2, e.patchFlag |= 1024));
+			!r && !hi(t) ? t._ctx = jn : r === 3 && jn && (jn.slots._ === 1 ? t._ = 1 : (t._ = 2, e.patchFlag |= 1024));
 		}
 	} else if (h(t)) {
 		if (r & 65) {
@@ -2503,7 +2503,7 @@ function ua(e, t) {
 		}
 		t = {
 			default: t,
-			_ctx: Mn
+			_ctx: jn
 		}, n = 32;
 	} else t = String(t), r & 64 ? (n = 16, t = [q(t)]) : n = 8;
 	e.children = t, e.shapeFlag |= n;
@@ -2522,7 +2522,7 @@ function da(...e) {
 	return t;
 }
 function fa(e, t, n, r = null) {
-	dn(e, t, 7, [n, r]);
+	un(e, t, 7, [n, r]);
 }
 var pa = /* @__PURE__ */ Yr(), ma = 0;
 function ha() {
@@ -2595,7 +2595,7 @@ function ga(e, n, r) {
 	};
 	return o.ctx = { _: o }, o.root = n ? n.root : o, o.emit = ti.bind(null, o), e.ce && e.ce(o), o;
 }
-var _a = null, va = () => _a || Mn, ya, ba;
+var Y = null, _a = () => Y || jn, va, ya;
 {
 	let e = oe(), t = (t, n) => {
 		let r;
@@ -2603,57 +2603,57 @@ var _a = null, va = () => _a || Mn, ya, ba;
 			r.length > 1 ? r.forEach((t) => t(e)) : r[0](e);
 		};
 	};
-	ya = t("__VUE_INSTANCE_SETTERS__", (e) => _a = e), ba = t("__VUE_SSR_SETTERS__", (e) => wa = e);
+	va = t("__VUE_INSTANCE_SETTERS__", (e) => Y = e), ya = t("__VUE_SSR_SETTERS__", (e) => Ca = e);
 }
-var xa = (e) => {
-	let t = _a;
-	return ya(e), e.scope.on(), () => {
-		e.scope.off(), ya(t);
+var ba = (e) => {
+	let t = Y;
+	return va(e), e.scope.on(), () => {
+		e.scope.off(), va(t);
 	};
-}, Sa = () => {
-	_a && _a.scope.off(), ya(null);
+}, xa = () => {
+	Y && Y.scope.off(), va(null);
 };
-function Ca(e) {
+function Sa(e) {
 	return e.vnode.shapeFlag & 4;
 }
-var wa = !1;
-function Ta(e, t = !1, n = !1) {
-	t && ba(t);
-	let { props: r, children: i } = e.vnode, a = Ca(e);
+var Ca = !1;
+function wa(e, t = !1, n = !1) {
+	t && ya(t);
+	let { props: r, children: i } = e.vnode, a = Sa(e);
 	gi(e, r, a, t), ki(e, i, n || t);
-	let o = a ? Ea(e, t) : void 0;
-	return t && ba(!1), o;
+	let o = a ? Ta(e, t) : void 0;
+	return t && ya(!1), o;
 }
-function Ea(e, t) {
+function Ta(e, t) {
 	let n = e.type;
 	e.accessCache = /* @__PURE__ */ Object.create(null), e.proxy = new Proxy(e.ctx, jr);
 	let { setup: r } = n;
 	if (r) {
 		Ue();
-		let n = e.setupContext = r.length > 1 ? ja(e) : null, i = xa(e), a = un(r, e, 0, [e.props, n]), o = y(a);
-		if (We(), i(), (o || e.sp) && !ar(e) && er(e), o) {
-			if (a.then(Sa, Sa), t) return a.then((n) => {
-				ba(!0);
+		let n = e.setupContext = r.length > 1 ? Aa(e) : null, i = ba(e), a = ln(r, e, 0, [e.props, n]), o = y(a);
+		if (We(), i(), (o || e.sp) && !ir(e) && $n(e), o) {
+			if (a.then(xa, xa), t) return a.then((n) => {
+				ya(!0);
 				try {
-					Da(e, n, t);
+					Ea(e, n, t);
 				} finally {
-					ba(!1);
+					ya(!1);
 				}
 			}).catch((t) => {
-				fn(t, e, 0, void 0, !0), e.ssrRender = (e, t) => t("<!---->");
+				dn(t, e, 0, void 0, !0), e.ssrRender = (e, t) => t("<!---->");
 			});
 			e.asyncDep = a;
-		} else Da(e, a, t);
-	} else Oa(e, t);
+		} else Ea(e, a, t);
+	} else Da(e, t);
+}
+function Ea(e, t, n) {
+	h(t) ? e.type.__ssrInlineRender ? e.ssrRender = t : e.render = t : v(t) && (e.setupState = Zt(t)), Da(e, n);
 }
 function Da(e, t, n) {
-	h(t) ? e.type.__ssrInlineRender ? e.ssrRender = t : e.render = t : v(t) && (e.setupState = Qt(t)), Oa(e, n);
-}
-function Oa(e, t, n) {
 	let i = e.type;
 	e.render ||= i.render || r;
 	{
-		let t = xa(e);
+		let t = ba(e);
 		Ue();
 		try {
 			Fr(e);
@@ -2662,12 +2662,12 @@ function Oa(e, t, n) {
 		}
 	}
 }
-var ka = /* @__PURE__ */ Symbol(), Aa = { get(e, t) {
-	return I(e, "get", ""), t === ka ? e : e[t];
+var Oa = /* @__PURE__ */ Symbol(), ka = { get(e, t) {
+	return I(e, "get", ""), t === Oa ? e : e[t];
 } };
-function ja(e) {
+function Aa(e) {
 	return {
-		attrs: new Proxy(e.attrs, Aa),
+		attrs: new Proxy(e.attrs, ka),
 		slots: e.slots,
 		emit: e.emit,
 		expose: (t) => {
@@ -2675,8 +2675,8 @@ function ja(e) {
 		}
 	};
 }
-function Ma(e) {
-	return e.exposed ? e.exposeProxy ||= new Proxy(Qt(Ut(e.exposed)), {
+function ja(e) {
+	return e.exposed ? e.exposeProxy ||= new Proxy(Zt(Ut(e.exposed)), {
 		get(t, n) {
 			if (n in t) return t[n];
 			if (n in kr) return kr[n](e);
@@ -2686,17 +2686,17 @@ function Ma(e) {
 		}
 	}) : e.proxy;
 }
-function Na(e, t = !0) {
+function Ma(e, t = !0) {
 	return h(e) ? e.displayName || e.name : e.name || t && e.__name;
 }
-function Pa(e) {
+function Na(e) {
 	return h(e) && "__vccOpts" in e;
 }
-var Y = (e, t) => /* @__PURE__ */ nn(e, t, wa), Fa = "3.5.46", Ia = void 0, La = typeof window < "u" && window.trustedTypes;
-if (La) try {
-	Ia = /* @__PURE__ */ La.createPolicy("vue", { createHTML: (e) => e });
+var X = (e, t) => /* @__PURE__ */ tn(e, t, Ca), Pa = "3.5.46", Fa = void 0, Ia = typeof window < "u" && window.trustedTypes;
+if (Ia) try {
+	Fa = /* @__PURE__ */ Ia.createPolicy("vue", { createHTML: (e) => e });
 } catch {}
-var Ra = Ia ? (e) => Ia.createHTML(e) : (e) => e, za = "http://www.w3.org/2000/svg", Ba = "http://www.w3.org/1998/Math/MathML", Va = typeof document < "u" ? document : null, Ha = Va && /* @__PURE__ */ Va.createElement("template"), Ua = {
+var La = Fa ? (e) => Fa.createHTML(e) : (e) => e, Ra = "http://www.w3.org/2000/svg", za = "http://www.w3.org/1998/Math/MathML", Ba = typeof document < "u" ? document : null, Va = Ba && /* @__PURE__ */ Ba.createElement("template"), Ha = {
 	insert: (e, t, n) => {
 		t.insertBefore(e, n || null);
 	},
@@ -2705,11 +2705,11 @@ var Ra = Ia ? (e) => Ia.createHTML(e) : (e) => e, za = "http://www.w3.org/2000/s
 		t && t.removeChild(e);
 	},
 	createElement: (e, t, n, r) => {
-		let i = t === "svg" ? Va.createElementNS(za, e) : t === "mathml" ? Va.createElementNS(Ba, e) : n ? Va.createElement(e, { is: n }) : Va.createElement(e);
+		let i = t === "svg" ? Ba.createElementNS(Ra, e) : t === "mathml" ? Ba.createElementNS(za, e) : n ? Ba.createElement(e, { is: n }) : Ba.createElement(e);
 		return e === "select" && r && r.multiple != null && i.setAttribute("multiple", r.multiple), i;
 	},
-	createText: (e) => Va.createTextNode(e),
-	createComment: (e) => Va.createComment(e),
+	createText: (e) => Ba.createTextNode(e),
+	createComment: (e) => Ba.createComment(e),
 	setText: (e, t) => {
 		e.nodeValue = t;
 	},
@@ -2718,7 +2718,7 @@ var Ra = Ia ? (e) => Ia.createHTML(e) : (e) => e, za = "http://www.w3.org/2000/s
 	},
 	parentNode: (e) => e.parentNode,
 	nextSibling: (e) => e.nextSibling,
-	querySelector: (e) => Va.querySelector(e),
+	querySelector: (e) => Ba.querySelector(e),
 	setScopeId(e, t) {
 		e.setAttribute(t, "");
 	},
@@ -2726,8 +2726,8 @@ var Ra = Ia ? (e) => Ia.createHTML(e) : (e) => e, za = "http://www.w3.org/2000/s
 		let o = n ? n.previousSibling : t.lastChild;
 		if (i && (i === a || i.nextSibling)) for (; t.insertBefore(i.cloneNode(!0), n), i !== a && (i = i.nextSibling););
 		else {
-			Ha.innerHTML = Ra(r === "svg" ? `<svg>${e}</svg>` : r === "mathml" ? `<math>${e}</math>` : e);
-			let i = Ha.content;
+			Va.innerHTML = La(r === "svg" ? `<svg>${e}</svg>` : r === "mathml" ? `<math>${e}</math>` : e);
+			let i = Va.content;
 			if (r === "svg" || r === "mathml") {
 				let e = i.firstChild;
 				for (; e.firstChild;) i.appendChild(e.firstChild);
@@ -2737,71 +2737,91 @@ var Ra = Ia ? (e) => Ia.createHTML(e) : (e) => e, za = "http://www.w3.org/2000/s
 		}
 		return [o ? o.nextSibling : t.firstChild, n ? n.previousSibling : t.lastChild];
 	}
-}, Wa = /* @__PURE__ */ Symbol("_vtc");
-function Ga(e, t, n) {
-	let r = e[Wa];
+}, Ua = /* @__PURE__ */ Symbol("_vtc");
+function Wa(e, t, n) {
+	let r = e[Ua];
 	r && (t = (t ? [t, ...r] : [...r]).join(" ")), t == null ? e.removeAttribute("class") : n ? e.setAttribute("class", t) : e.className = t;
 }
-var Ka = /* @__PURE__ */ Symbol("_vod"), qa = /* @__PURE__ */ Symbol("_vsh"), Ja = /* @__PURE__ */ Symbol(""), Ya = /(?:^|;)\s*display\s*:/;
-function Xa(e, t, n) {
+var Ga = /* @__PURE__ */ Symbol("_vod"), Ka = /* @__PURE__ */ Symbol("_vsh"), qa = {
+	name: "show",
+	beforeMount(e, { value: t }, { transition: n }) {
+		e[Ga] = e.style.display === "none" ? "" : e.style.display, n && t ? n.beforeEnter(e) : Ja(e, t);
+	},
+	mounted(e, { value: t }, { transition: n }) {
+		n && t && n.enter(e);
+	},
+	updated(e, { value: t, oldValue: n }, { transition: r }) {
+		!t != !n && (r ? t ? (r.beforeEnter(e), Ja(e, !0), r.enter(e)) : r.leave(e, () => {
+			Ja(e, !1);
+		}) : Ja(e, t));
+	},
+	beforeUnmount(e, { value: t }) {
+		Ja(e, t);
+	}
+};
+function Ja(e, t) {
+	e.style.display = t ? e[Ga] : "none", e[Ka] = !t;
+}
+var Ya = /* @__PURE__ */ Symbol(""), Xa = /(?:^|;)\s*display\s*:/;
+function Za(e, t, n) {
 	let r = e.style, i = g(n), a = !1;
 	if (n && !i) {
 		if (t) {
 			if (g(t)) for (let e of t.split(";")) {
 				let t = e.slice(0, e.indexOf(":")).trim();
-				n[t] ?? Qa(r, t, "");
+				n[t] ?? $a(r, t, "");
 			}
-			else for (let e in t) n[e] ?? Qa(r, e, "");
+			else for (let e in t) n[e] ?? $a(r, e, "");
 		}
 		for (let i in n) {
 			i === "display" && (a = !0);
 			let o = n[i];
-			o == null ? Qa(r, i, "") : no(e, i, !g(t) && t ? t[i] : void 0, o) || Qa(r, i, o);
+			o == null ? $a(r, i, "") : ro(e, i, !g(t) && t ? t[i] : void 0, o) || $a(r, i, o);
 		}
 	} else if (i) {
 		if (t !== n) {
-			let e = r[Ja];
-			e && (n += ";" + e), r.cssText = n, a = Ya.test(n);
+			let e = r[Ya];
+			e && (n += ";" + e), r.cssText = n, a = Xa.test(n);
 		}
 	} else t && e.removeAttribute("style");
-	Ka in e && (i && t === n || (e[Ka] = a ? r.display : ""), e[qa] && (r.display = "none"));
+	Ga in e && (i && t === n || (e[Ga] = a ? r.display : ""), e[Ka] && (r.display = "none"));
 }
-var Za = /\s*!important$/;
-function Qa(e, t, n) {
-	if (d(n)) n.forEach((n) => Qa(e, t, n));
-	else if (n ??= "", t.startsWith("--")) Za.test(n) ? e.setProperty(t, n.replace(Za, ""), "important") : e.setProperty(t, n);
+var Qa = /\s*!important$/;
+function $a(e, t, n) {
+	if (d(n)) n.forEach((n) => $a(e, t, n));
+	else if (n ??= "", t.startsWith("--")) Qa.test(n) ? e.setProperty(t, n.replace(Qa, ""), "important") : e.setProperty(t, n);
 	else {
-		let r = to(e, t);
-		Za.test(n) ? e.setProperty(k(r), n.replace(Za, ""), "important") : e[r] = n;
+		let r = no(e, t);
+		Qa.test(n) ? e.setProperty(k(r), n.replace(Qa, ""), "important") : e[r] = n;
 	}
 }
-var $a = [
+var eo = [
 	"Webkit",
 	"Moz",
 	"ms"
-], eo = {};
-function to(e, t) {
-	let n = eo[t];
+], to = {};
+function no(e, t) {
+	let n = to[t];
 	if (n) return n;
 	let r = D(t);
-	if (r !== "filter" && r in e) return eo[t] = r;
+	if (r !== "filter" && r in e) return to[t] = r;
 	r = A(r);
-	for (let n = 0; n < $a.length; n++) {
-		let i = $a[n] + r;
-		if (i in e) return eo[t] = i;
+	for (let n = 0; n < eo.length; n++) {
+		let i = eo[n] + r;
+		if (i in e) return to[t] = i;
 	}
 	return t;
 }
-function no(e, t, n, r) {
+function ro(e, t, n, r) {
 	return e.tagName === "TEXTAREA" && (t === "width" || t === "height") && g(r) && n === r;
 }
-var ro = "http://www.w3.org/1999/xlink";
-function io(e, t, n, r, i, a = pe(t)) {
-	r && t.startsWith("xlink:") ? n == null ? e.removeAttributeNS(ro, t.slice(6, t.length)) : e.setAttributeNS(ro, t, n) : n == null || a && !me(n) ? e.removeAttribute(t) : e.setAttribute(t, a ? "" : _(n) ? String(n) : n);
+var io = "http://www.w3.org/1999/xlink";
+function ao(e, t, n, r, i, a = pe(t)) {
+	r && t.startsWith("xlink:") ? n == null ? e.removeAttributeNS(io, t.slice(6, t.length)) : e.setAttributeNS(io, t, n) : n == null || a && !me(n) ? e.removeAttribute(t) : e.setAttribute(t, a ? "" : _(n) ? String(n) : n);
 }
-function ao(e, t, n, r, i) {
+function oo(e, t, n, r, i) {
 	if (t === "innerHTML" || t === "textContent") {
-		n != null && (e[t] = t === "innerHTML" ? Ra(n) : n);
+		n != null && (e[t] = t === "innerHTML" ? La(n) : n);
 		return;
 	}
 	let a = e.tagName;
@@ -2820,29 +2840,29 @@ function ao(e, t, n, r, i) {
 	} catch {}
 	o && e.removeAttribute(i || t);
 }
-function oo(e, t, n, r) {
+function so(e, t, n, r) {
 	e.addEventListener(t, n, r);
 }
-function so(e, t, n, r) {
+function co(e, t, n, r) {
 	e.removeEventListener(t, n, r);
 }
-var co = /* @__PURE__ */ Symbol("_vei");
-function lo(e, t, n, r, i = null) {
-	let a = e[co] || (e[co] = {}), o = a[t];
+var lo = /* @__PURE__ */ Symbol("_vei");
+function uo(e, t, n, r, i = null) {
+	let a = e[lo] || (e[lo] = {}), o = a[t];
 	if (r && o) o.value = r;
 	else {
-		let [n, s] = po(t);
-		r ? oo(e, n, a[t] = _o(r, i), s) : o && (so(e, n, o, s), a[t] = void 0);
+		let [n, s] = mo(t);
+		r ? so(e, n, a[t] = vo(r, i), s) : o && (co(e, n, o, s), a[t] = void 0);
 	}
 }
-var uo = /(Once|Passive|Capture)$/, fo = /^on:?(?:Once|Passive|Capture)$/;
-function po(e) {
+var fo = /(Once|Passive|Capture)$/, po = /^on:?(?:Once|Passive|Capture)$/;
+function mo(e) {
 	let t, n;
-	for (; (n = e.match(uo)) && !fo.test(e);) t ||= {}, e = e.slice(0, e.length - n[1].length), t[n[1].toLowerCase()] = !0;
+	for (; (n = e.match(fo)) && !po.test(e);) t ||= {}, e = e.slice(0, e.length - n[1].length), t[n[1].toLowerCase()] = !0;
 	return [e[2] === ":" ? e.slice(3) : k(e.slice(2)), t];
 }
-var mo = 0, ho = /* @__PURE__ */ Promise.resolve(), go = () => mo ||= (ho.then(() => mo = 0), Date.now());
-function _o(e, t) {
+var ho = 0, go = /* @__PURE__ */ Promise.resolve(), _o = () => ho ||= (go.then(() => ho = 0), Date.now());
+function vo(e, t) {
 	let n = (e) => {
 		if (!e._vts) e._vts = Date.now();
 		else if (e._vts <= n.attached) return;
@@ -2855,72 +2875,72 @@ function _o(e, t) {
 			let i = r.slice(), a = [e];
 			for (let n = 0; n < i.length && !e._stopped; n++) {
 				let e = i[n];
-				e && dn(e, t, 5, a);
+				e && un(e, t, 5, a);
 			}
-		} else dn(r, t, 5, [e]);
+		} else un(r, t, 5, [e]);
 	};
-	return n.value = e, n.attached = go(), n;
+	return n.value = e, n.attached = _o(), n;
 }
-var vo = (e) => e.charCodeAt(0) === 111 && e.charCodeAt(1) === 110 && e.charCodeAt(2) > 96 && e.charCodeAt(2) < 123, yo = (e, t, n, r, i, s) => {
+var yo = (e) => e.charCodeAt(0) === 111 && e.charCodeAt(1) === 110 && e.charCodeAt(2) > 96 && e.charCodeAt(2) < 123, bo = (e, t, n, r, i, s) => {
 	let c = i === "svg";
-	t === "class" ? Ga(e, r, c) : t === "style" ? Xa(e, n, r) : a(t) ? o(t) || lo(e, t, n, r, s) : (t[0] === "." ? (t = t.slice(1), 1) : t[0] === "^" ? (t = t.slice(1), 0) : bo(e, t, r, c)) ? (ao(e, t, r), e.tagName.includes("-") || t !== "value" && t !== "checked" && t !== "selected" || io(e, t, r, c, s, t !== "value")) : e._isVueCE && (xo(e, t) || e._def.__asyncLoader && (/[A-Z]/.test(t) || !g(r))) ? ao(e, D(t), r, s, t) : (t === "true-value" ? e._trueValue = r : t === "false-value" && (e._falseValue = r), io(e, t, r, c));
+	t === "class" ? Wa(e, r, c) : t === "style" ? Za(e, n, r) : a(t) ? o(t) || uo(e, t, n, r, s) : (t[0] === "." ? (t = t.slice(1), 1) : t[0] === "^" ? (t = t.slice(1), 0) : xo(e, t, r, c)) ? (oo(e, t, r), e.tagName.includes("-") || t !== "value" && t !== "checked" && t !== "selected" || ao(e, t, r, c, s, t !== "value")) : e._isVueCE && (So(e, t) || e._def.__asyncLoader && (/[A-Z]/.test(t) || !g(r))) ? oo(e, D(t), r, s, t) : (t === "true-value" ? e._trueValue = r : t === "false-value" && (e._falseValue = r), ao(e, t, r, c));
 };
-function bo(e, t, n, r) {
-	if (r) return !!(t === "innerHTML" || t === "textContent" || t in e && vo(t) && h(n));
+function xo(e, t, n, r) {
+	if (r) return !!(t === "innerHTML" || t === "textContent" || t in e && yo(t) && h(n));
 	if (t === "spellcheck" || t === "draggable" || t === "translate" || t === "autocorrect" || t === "sandbox" && e.tagName === "IFRAME" || t === "form" || t === "list" && e.tagName === "INPUT" || t === "type" && e.tagName === "TEXTAREA") return !1;
 	if (t === "width" || t === "height") {
 		let t = e.tagName;
 		if (t === "IMG" || t === "VIDEO" || t === "CANVAS" || t === "SOURCE") return !1;
 	}
-	return vo(t) && g(n) ? !1 : t in e;
+	return yo(t) && g(n) ? !1 : t in e;
 }
-function xo(e, t) {
+function So(e, t) {
 	let n = e._def.props;
 	if (!n) return !1;
 	let r = D(t);
 	return Array.isArray(n) ? n.some((e) => D(e) === r) : Object.keys(n).some((e) => D(e) === r);
 }
-var So = (e) => {
+var Co = (e) => {
 	let t = e.props["onUpdate:modelValue"] || !1;
 	return d(t) ? (e) => M(t, e) : t;
 };
-function Co(e) {
+function wo(e) {
 	e.target.composing = !0;
 }
-function wo(e) {
+function To(e) {
 	let t = e.target;
 	t.composing && (t.composing = !1, t.dispatchEvent(new Event("input")));
 }
-var To = /* @__PURE__ */ Symbol("_assign"), Eo = /* @__PURE__ */ Symbol("_initialValue");
-function Do(e, t, n) {
+var Eo = /* @__PURE__ */ Symbol("_assign"), Do = /* @__PURE__ */ Symbol("_initialValue");
+function Oo(e, t, n) {
 	return t && (e = e.trim()), n && (e = ie(e)), e;
 }
-var X = {
+var Z = {
 	created(e, { modifiers: { lazy: t, trim: n, number: r } }, i) {
-		e.parentNode && (e.type === "text" ? e[Eo] = e.defaultValue.replace(/[\r\n]/g, "") : e.type === "textarea" && (e[Eo] = e.defaultValue.replace(/\r\n?/g, "\n"))), e[To] = So(i);
+		e.parentNode && (e.type === "text" ? e[Do] = e.defaultValue.replace(/[\r\n]/g, "") : e.type === "textarea" && (e[Do] = e.defaultValue.replace(/\r\n?/g, "\n"))), e[Eo] = Co(i);
 		let a = r || i.props && i.props.type === "number";
-		oo(e, t ? "change" : "input", (t) => {
-			t.target.composing || e[To](Do(e.value, n, a));
-		}), (n || a) && oo(e, "change", () => {
-			e.value = Do(e.value, n, a);
-		}), t || (oo(e, "compositionstart", Co), oo(e, "compositionend", wo), oo(e, "change", wo));
+		so(e, t ? "change" : "input", (t) => {
+			t.target.composing || e[Eo](Oo(e.value, n, a));
+		}), (n || a) && so(e, "change", () => {
+			e.value = Oo(e.value, n, a);
+		}), t || (so(e, "compositionstart", wo), so(e, "compositionend", To), so(e, "change", To));
 	},
 	mounted(e, { value: t, modifiers: { trim: n, number: r } }) {
-		let i = t ?? "", a = e[Eo];
-		delete e[Eo], a !== void 0 && (e.type === "text" || e.type === "textarea") && e.value !== a ? e[To](Do(e.value, n, r)) : e.value = i;
+		let i = t ?? "", a = e[Do];
+		delete e[Do], a !== void 0 && (e.type === "text" || e.type === "textarea") && e.value !== a ? e[Eo](Oo(e.value, n, r)) : e.value = i;
 	},
 	beforeUpdate(e, { value: t, oldValue: n, modifiers: { lazy: r, trim: i, number: a } }, o) {
-		if (e[To] = So(o), e.composing) return;
+		if (e[Eo] = Co(o), e.composing) return;
 		let s = (a || e.type === "number") && !/^0\d/.test(e.value) ? ie(e.value) : e.value, c = t ?? "";
 		if (s === c) return;
 		let l = e.getRootNode();
 		(l instanceof Document || l instanceof ShadowRoot) && l.activeElement === e && e.type !== "range" && (r && t === n || i && e.value.trim() === c) || (e.value = c);
 	}
-}, Oo = {
+}, ko = {
 	deep: !0,
 	created(e, t, n) {
-		e[To] = So(n), oo(e, "change", () => {
-			let t = e._modelValue, n = No(e), r = e.checked, i = e[To];
+		e[Eo] = Co(n), so(e, "change", () => {
+			let t = e._modelValue, n = Po(e), r = e.checked, i = e[Eo];
 			if (d(t)) {
 				let e = be(t, n), a = e !== -1;
 				if (r && !a) i(t.concat(n));
@@ -2931,51 +2951,51 @@ var X = {
 			} else if (p(t)) {
 				let e = new Set(t);
 				r ? e.add(n) : e.delete(n), i(e);
-			} else i(Po(e, r));
+			} else i(Fo(e, r));
 		});
 	},
-	mounted: ko,
+	mounted: Ao,
 	beforeUpdate(e, t, n) {
-		e[To] = So(n), ko(e, t, n);
+		e[Eo] = Co(n), Ao(e, t, n);
 	}
 };
-function ko(e, { value: t, oldValue: n }, r) {
+function Ao(e, { value: t, oldValue: n }, r) {
 	e._modelValue = t;
 	let i;
 	if (d(t)) i = be(t, r.props.value) > -1;
 	else if (p(t)) i = t.has(r.props.value);
 	else {
 		if (t === n) return;
-		i = ye(t, Po(e, !0));
+		i = ye(t, Fo(e, !0));
 	}
 	e.checked !== i && (e.checked = i);
 }
-var Ao = {
+var jo = {
 	deep: !0,
 	created(e, { value: t, modifiers: { number: n } }, r) {
-		e._modelValue = t, oo(e, "change", () => {
-			let t = Array.prototype.filter.call(e.options, (e) => e.selected).map((e) => n ? ie(No(e)) : No(e)), r = e.multiple, i = r ? p(e._modelValue) ? new Set(t) : t : t[0], a = e._pendingValue = [r, r ? d(i) ? t.slice() : t : i];
+		e._modelValue = t, so(e, "change", () => {
+			let t = Array.prototype.filter.call(e.options, (e) => e.selected).map((e) => n ? ie(Po(e)) : Po(e)), r = e.multiple, i = r ? p(e._modelValue) ? new Set(t) : t : t[0], a = e._pendingValue = [r, r ? d(i) ? t.slice() : t : i];
 			try {
-				e[To](i);
+				e[Eo](i);
 			} finally {
-				xn(() => {
+				bn(() => {
 					e._pendingValue === a && (e._pendingValue = void 0);
 				});
 			}
-		}), e[To] = So(r);
+		}), e[Eo] = Co(r);
 	},
 	mounted(e, { value: t, modifiers: { number: n } }) {
-		Mo(e, t, n);
+		No(e, t, n);
 	},
 	beforeUpdate(e, { value: t }, n) {
-		e._modelValue = t, e[To] = So(n);
+		e._modelValue = t, e[Eo] = Co(n);
 	},
 	updated(e, { value: t, modifiers: { number: n } }) {
 		let r = e._pendingValue;
-		e._pendingValue = void 0, r && r[0] === e.multiple && jo(t, r[1], r[0]) || Mo(e, t, n);
+		e._pendingValue = void 0, r && r[0] === e.multiple && Mo(t, r[1], r[0]) || No(e, t, n);
 	}
 };
-function jo(e, t, n) {
+function Mo(e, t, n) {
 	if (!n || d(e)) return ye(e, t);
 	if (p(e)) {
 		if (e.size !== t.length) return !1;
@@ -2984,17 +3004,17 @@ function jo(e, t, n) {
 	}
 	return !1;
 }
-function Mo(e, t, n = !1) {
+function No(e, t, n = !1) {
 	let r = e.multiple, i = d(t);
 	if (!r || i || p(t)) {
 		for (let a = 0, o = e.options.length; a < o; a++) {
-			let o = e.options[a], s = No(o);
+			let o = e.options[a], s = Po(o);
 			if (r) {
 				if (i) {
 					let e = typeof s;
 					o.selected = e === "string" || e === "number" ? t.some((e) => String(e) === String(s)) : be(t, s) > -1;
 				} else o.selected = t.has(s) || n && typeof s == "string" && t.has(ie(s));
-			} else if (ye(No(o), t)) {
+			} else if (ye(Po(o), t)) {
 				e.selectedIndex !== a && (e.selectedIndex = a);
 				return;
 			}
@@ -3002,19 +3022,19 @@ function Mo(e, t, n = !1) {
 		!r && e.selectedIndex !== -1 && (e.selectedIndex = -1);
 	}
 }
-function No(e) {
+function Po(e) {
 	return "_value" in e ? e._value : e.value;
 }
-function Po(e, t) {
+function Fo(e, t) {
 	let n = t ? "_trueValue" : "_falseValue";
 	return n in e ? e[n] : t;
 }
-var Fo = [
+var Io = [
 	"ctrl",
 	"shift",
 	"alt",
 	"meta"
-], Io = {
+], Lo = {
 	stop: (e) => e.stopPropagation(),
 	prevent: (e) => e.preventDefault(),
 	self: (e) => e.target !== e.currentTarget,
@@ -3025,47 +3045,47 @@ var Fo = [
 	left: (e) => "button" in e && e.button !== 0,
 	middle: (e) => "button" in e && e.button !== 1,
 	right: (e) => "button" in e && e.button !== 2,
-	exact: (e, t) => Fo.some((n) => e[`${n}Key`] && !t.includes(n))
-}, Lo = (e, t) => {
+	exact: (e, t) => Io.some((n) => e[`${n}Key`] && !t.includes(n))
+}, Ro = (e, t) => {
 	if (!e) return e;
 	let n = e._withMods ||= {}, r = t.join(".");
 	return n[r] || (n[r] = ((n, ...r) => {
 		for (let e = 0; e < t.length; e++) {
-			let r = Io[t[e]];
+			let r = Lo[t[e]];
 			if (r && r(n, t)) return;
 		}
 		return e(n, ...r);
 	}));
-}, Ro = /* @__PURE__ */ s({ patchProp: yo }, Ua), zo;
-function Bo() {
-	return zo ||= Mi(Ro);
+}, zo = /* @__PURE__ */ s({ patchProp: bo }, Ha), Bo;
+function Vo() {
+	return Bo ||= Mi(zo);
 }
-var Vo = ((...e) => {
-	let t = Bo().createApp(...e), { mount: n } = t;
+var Ho = ((...e) => {
+	let t = Vo().createApp(...e), { mount: n } = t;
 	return t.mount = (e) => {
-		let r = Uo(e);
+		let r = Wo(e);
 		if (!r) return;
 		let i = t._component;
 		h(i) || i.render || i.template || (i.template = r.innerHTML), r.nodeType === 1 && (r.textContent = "");
-		let a = n(r, !1, Ho(r));
+		let a = n(r, !1, Uo(r));
 		return r instanceof Element && (r.removeAttribute("v-cloak"), r.setAttribute("data-v-app", "")), a;
 	}, t;
 });
-function Ho(e) {
+function Uo(e) {
 	if (e instanceof SVGElement) return "svg";
 	if (typeof MathMLElement == "function" && e instanceof MathMLElement) return "mathml";
 }
-function Uo(e) {
+function Wo(e) {
 	return g(e) ? document.querySelector(e) : e;
 }
-var Wo = "scene_diary", Go = [
+var Go = "scene_diary", Ko = [
 	"preference",
 	"habit",
 	"promise",
 	"relationship",
 	"event",
 	"item_place"
-], Ko = Object.freeze({
+], qo = "你是 {{char}} 的恋爱陪伴日记整理器。只依据角色设定与 [本幕对话]，以第一人称写日记；不要补写事实。", Jo = Object.freeze({
 	recentDiaryCount: 2,
 	recallMessageCount: 3,
 	recallLimit: 8,
@@ -3101,26 +3121,26 @@ var Wo = "scene_diary", Go = [
 		}
 	},
 	prompts: {
-		diary: "你是 {{char}} 的恋爱陪伴日记整理器。只依据角色设定与 [本幕对话]，以第一人称写日记；不要补写事实。",
+		diary: qo,
 		memory: "你是恋爱陪伴记忆提取器。只依据 [本幕对话] 提取已发生或已明确确认的事实。承诺已经作出可以记录，但承诺内容未发生时不得写成已经完成。不要补写事实。",
 		growth: "你是 {{char}} 的角色成长与恋爱关系发展整理器。根据 [当前角色成长] 和 [本幕对话]，重写截至本幕结束的完整角色成长记录。重点维护 {{char}} 的性格成长、情感变化、生活状态变化，以及 {{char}} 与 {{user}} 从相识至今的关系发展路径。说明重要经历如何影响角色及双方关系，但不要逐条复述剧情，不要补写未发生或未确认的变化，也不要假定下一幕与本幕在时间、地点或事件上连续。",
 		maintenance: "你是记忆库语义整理器。素材只有提供的已保存记忆及关联，不读取或补写外部事实。寻找同一事实的重复表达并建议合并；不同时间分别成立、发展、兑现、取消的事实保持独立并建议关联。仅人物或地点相同不足以关联。所有结果只是供用户批准的建议。"
 	}
-}), Z = (e) => Array.isArray(e) ? e : [], Q = (e) => e == null ? "" : String(e).trim(), qo = (e, t, n, r) => Math.min(n, Math.max(t, Number.isFinite(+e) ? +e : r));
-function Jo(e) {
-	return (typeof e == "number" || typeof e == "string" && e.trim()) && Number.isFinite(+e) ? qo(e, 0, 1, Ko.recallScoreThreshold) : Ko.recallScoreThreshold;
+}), Yo = (e) => Array.isArray(e) ? e : [], Q = (e) => e == null ? "" : String(e).trim(), Xo = (e, t, n, r) => Math.min(n, Math.max(t, Number.isFinite(+e) ? +e : r));
+function Zo(e) {
+	return (typeof e == "number" || typeof e == "string" && e.trim()) && Number.isFinite(+e) ? Xo(e, 0, 1, Jo.recallScoreThreshold) : Jo.recallScoreThreshold;
 }
-var Yo = () => Date.now();
-function Xo(e = "sd") {
+var Qo = () => Date.now();
+function $o(e = "sd") {
 	return `${e}_${crypto?.randomUUID?.() || `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`}`;
 }
-function Zo() {
+function es() {
 	return {
-		timestamp: Yo(),
+		timestamp: Qo(),
 		timezoneOffset: (/* @__PURE__ */ new Date()).getTimezoneOffset()
 	};
 }
-function Qo() {
+function ts() {
 	return {
 		content: "",
 		createdAt: null,
@@ -3132,10 +3152,10 @@ function Qo() {
 		reviewRecommended: !1
 	};
 }
-function $o(e = {}) {
+function ns(e = {}) {
 	let t = e && typeof e == "object" ? e : {};
 	return {
-		...Qo(),
+		...ts(),
 		content: Q(t.content ?? t.text),
 		createdAt: Number.isFinite(+t.createdAt) && +t.createdAt > 0 ? +t.createdAt : null,
 		updatedAt: Number.isFinite(+t.updatedAt) && +t.updatedAt > 0 ? +t.updatedAt : null,
@@ -3146,7 +3166,7 @@ function $o(e = {}) {
 		reviewRecommended: !!t.reviewRecommended
 	};
 }
-function es(e = 1, t = Yo()) {
+function rs(e = 1, t = Qo()) {
 	return {
 		id: e,
 		status: "active",
@@ -3165,53 +3185,53 @@ function es(e = 1, t = Yo()) {
 		sourceFingerprint: ""
 	};
 }
-function ts(e = Yo()) {
+function is(e = Qo()) {
 	return {
 		version: 6,
 		currentActId: 1,
 		status: "active",
-		acts: [es(1, e)],
+		acts: [rs(1, e)],
 		memories: [],
 		memoryRevision: 0,
-		memorySpaceId: Xo("space"),
+		memorySpaceId: $o("space"),
 		memoryLinks: [],
 		memoryOrganization: null,
 		maintenanceTransaction: null,
-		characterGrowth: Qo(),
+		characterGrowth: ts(),
 		pendingTransaction: null,
 		drafts: [],
-		settings: structuredClone(Ko),
+		settings: structuredClone(Jo),
 		lastUpdatedAt: e
 	};
 }
-function ns(e) {
+function as(e) {
 	let t = Q(e?.open), n = Q(e?.close), r = t.match(/^<([A-Za-z][A-Za-z0-9:_-]*)>$/), i = n.match(/^<\/([A-Za-z][A-Za-z0-9:_-]*)>$/);
 	return r && i && r[1] === i[1] ? {
 		open: t,
 		close: n
 	} : null;
 }
-var rs = (e) => Z(e).map((e) => ({
+var os = (e) => Yo(e).map((e) => ({
 	open: `<${Q(e).replace(/^<|>$/g, "")}>`,
 	close: `</${Q(e).replace(/^<|>$/g, "")}>`
-})), is = (e, t) => Z(e).length ? Z(e).map(ns).filter(Boolean) : rs(t).map(ns).filter(Boolean), as = (e) => ({
-	bodyTagPairs: is(e?.bodyTagPairs, e?.bodyTags),
-	storyTimeTagPairs: is(e?.storyTimeTagPairs, e?.storyTimeTags),
+})), ss = (e, t) => Yo(e).length ? Yo(e).map(as).filter(Boolean) : os(t).map(as).filter(Boolean), cs = (e) => ({
+	bodyTagPairs: ss(e?.bodyTagPairs, e?.bodyTags),
+	storyTimeTagPairs: ss(e?.storyTimeTagPairs, e?.storyTimeTags),
 	requiredStoryTime: !!e?.requiredStoryTime
 });
-function os(e = {}) {
+function ls(e = {}) {
 	let { growthTargetLength: t, diaryTokenBudget: n, ...r } = e;
 	return {
-		...Ko,
+		...Jo,
 		...r,
-		recentDiaryCount: qo(e.recentDiaryCount, 0, 20, 2),
-		recallMessageCount: qo(e.recallMessageCount, 1, 20, 3),
-		recallLimit: qo(e.recallLimit, 0, 30, 8),
-		recallScoreThreshold: Jo(e.recallScoreThreshold),
+		recentDiaryCount: Xo(e.recentDiaryCount, 0, 20, 2),
+		recallMessageCount: Xo(e.recallMessageCount, 1, 20, 3),
+		recallLimit: Xo(e.recallLimit, 0, 30, 8),
+		recallScoreThreshold: Zo(e.recallScoreThreshold),
 		maintenanceConnectionProfile: Q(e.maintenanceConnectionProfile),
-		maintenanceCandidateLimit: Math.trunc(qo(e.maintenanceCandidateLimit, 1, 60, 20)),
-		maintenanceScoreThreshold: (typeof e.maintenanceScoreThreshold == "number" || typeof e.maintenanceScoreThreshold == "string" && e.maintenanceScoreThreshold.trim()) && Number.isFinite(+e.maintenanceScoreThreshold) ? qo(e.maintenanceScoreThreshold, 0, 1, .15) : .15,
-		maxGrowthChars: Ko.maxGrowthChars,
+		maintenanceCandidateLimit: Math.trunc(Xo(e.maintenanceCandidateLimit, 1, 60, 20)),
+		maintenanceScoreThreshold: (typeof e.maintenanceScoreThreshold == "number" || typeof e.maintenanceScoreThreshold == "string" && e.maintenanceScoreThreshold.trim()) && Number.isFinite(+e.maintenanceScoreThreshold) ? Xo(e.maintenanceScoreThreshold, 0, 1, .15) : .15,
+		maxGrowthChars: Jo.maxGrowthChars,
 		semantic: {
 			enabled: !!e.semantic?.enabled,
 			endpoint: Q(e.semantic?.endpoint),
@@ -3222,8 +3242,8 @@ function os(e = {}) {
 			rerankModel: Q(e.semantic?.rerankModel)
 		},
 		extraction: {
-			user: as(e.extraction?.user || Ko.extraction.user),
-			character: as(e.extraction?.character || Ko.extraction.character)
+			user: cs(e.extraction?.user || Jo.extraction.user),
+			character: cs(e.extraction?.character || Jo.extraction.character)
 		},
 		prompts: {
 			diary: Q(e.prompts?.diary) || "你是 {{char}} 的恋爱陪伴日记整理器。只依据角色设定与 [本幕对话]，以第一人称写日记；不要补写事实。",
@@ -3233,17 +3253,17 @@ function os(e = {}) {
 		}
 	};
 }
-function ss(e = {}) {
-	let { sources: t, sourceActId: n, sourceMessageIds: r, lifecycle: i, supersedes: a, mergedInto: o, revision: s, status: c, dirty: l, reviewRecommended: u, sourceFingerprint: d, accepted: f, disabled: p, ...m } = e, h = Zo();
+function us(e = {}) {
+	let { sources: t, sourceActId: n, sourceMessageIds: r, lifecycle: i, supersedes: a, mergedInto: o, revision: s, status: c, dirty: l, reviewRecommended: u, sourceFingerprint: d, accepted: f, disabled: p, ...m } = e, h = es();
 	return {
 		...m,
-		id: Q(e.id) || Xo("memory"),
-		category: Go.includes(e.category) ? e.category : "event",
+		id: Q(e.id) || $o("memory"),
+		category: Ko.includes(e.category) ? e.category : "event",
 		title: Q(e.title).slice(0, 120),
 		content: Q(e.content),
-		people: [...new Set(Z(e.people).map(Q).filter(Boolean))],
-		aliases: [...new Set(Z(e.aliases).map(Q).filter(Boolean))],
-		importance: Math.round(qo(e.importance, 1, 5, 3)),
+		people: [...new Set(Yo(e.people).map(Q).filter(Boolean))],
+		aliases: [...new Set(Yo(e.aliases).map(Q).filter(Boolean))],
+		importance: Math.round(Xo(e.importance, 1, 5, 3)),
 		storyTime: Q(e.storyTime) || null,
 		createdAt: +e.createdAt || h.timestamp,
 		updatedAt: +e.updatedAt || h.timestamp,
@@ -3254,47 +3274,20 @@ function ss(e = {}) {
 		edited: !!e.edited
 	};
 }
-function cs(e, t) {
-	let n = new Set(t.filter((e) => !e.deletedAt).map((e) => e.id)), r = /* @__PURE__ */ new Set();
-	return Z(e).flatMap((e) => {
-		let [t, i] = [Q(e?.a), Q(e?.b)].sort(), a = JSON.stringify([t, i]);
-		return !t || t === i || !n.has(t) || !n.has(i) || r.has(a) ? [] : (r.add(a), [{
-			a: t,
-			b: i,
-			reason: Q(e.reason).slice(0, 300)
-		}]);
-	});
-}
-function ls(e, t) {
-	if (e?.version !== 1 || !Number.isFinite(e.initializedAt) || e.initializedAt <= 0 || !e.reviewed || typeof e.reviewed != "object" || Array.isArray(e.reviewed)) return null;
-	let n = Object.fromEntries(t.filter((t) => Object.hasOwn(e.reviewed, t.id) && typeof e.reviewed[t.id] == "string").map((t) => [t.id, e.reviewed[t.id]]));
-	return {
-		version: 1,
-		initializedAt: e.initializedAt,
-		lastOrganizedAt: Number.isFinite(e.lastOrganizedAt) && e.lastOrganizedAt > 0 ? e.lastOrganizedAt : e.initializedAt,
-		reviewed: n
-	};
-}
-function us(e) {
-	if (!e) return null;
-	if (e.version === 2 || e.status === "preview" || e.status === "legacy") return e;
-	let t = structuredClone(e);
-	return t.version !== 2 && t.status !== "preview" && (t.status = "legacy", t.error = "旧版未完成整理需要重新发起；可查看已完成批次或取消。"), t;
-}
 function ds(e) {
-	let t = ts(), n = e && typeof e == "object" ? e : {}, r = Number.isFinite(+n.version) ? +n.version : 0;
+	let t = is(), n = e && typeof e == "object" ? e : {}, r = Number.isFinite(+n.version) ? +n.version : 0;
 	if (r > 6) throw Error(`聊天数据版本 ${n.version} 高于支持版本 6`);
-	let { maintenanceHistory: i, ...a } = n, o = Z(n.acts).map((e, t) => ({
-		...es(+e?.id || t + 1, +e?.createdAt || Yo()),
+	let { maintenanceHistory: i, ...a } = n, o = Yo(n.acts).map((e, t) => ({
+		...rs(+e?.id || t + 1, +e?.createdAt || Qo()),
 		...e,
 		id: +e?.id || t + 1,
-		messageIds: Z(e?.messageIds).map(String),
+		messageIds: Yo(e?.messageIds).map(String),
 		status: [
 			"active",
 			"closing",
 			"closed"
 		].includes(e?.status) ? e.status : "active"
-	})), s = o.length ? o : t.acts, c = s.some((e) => e.id === +n.currentActId) ? +n.currentActId : s.at(-1).id, l = Z(n.memories).filter((e) => e && !e.deletedAt && !["archived", "superseded"].includes(e.lifecycle)).map(ss), u = n.pendingTransaction ? structuredClone(n.pendingTransaction) : null;
+	})), s = o.length ? o : t.acts, c = s.some((e) => e.id === +n.currentActId) ? +n.currentActId : s.at(-1).id, l = Yo(n.memories).filter((e) => e && !e.deletedAt && !["archived", "superseded"].includes(e.lifecycle)).map(us), u = n.pendingTransaction ? structuredClone(n.pendingTransaction) : null;
 	return r < 5 && u && (delete u.memoryCandidates, delete u.memoryRejected, u.results ||= {}, u.results.memory = {
 		status: "error",
 		error: "记忆协议已升级，请重新提取本幕记忆。"
@@ -3311,30 +3304,27 @@ function ds(e) {
 			"pending_next_act"
 		].includes(n.status) ? n.status : "active",
 		memories: l,
-		memoryLinks: cs(n.memoryLinks, l),
-		memoryOrganization: r < 5 ? null : ls(n.memoryOrganization, l),
 		memoryRevision: +n.memoryRevision || 0,
 		memorySpaceId: Q(n.memorySpaceId) || t.memorySpaceId,
 		pendingTransaction: u,
-		maintenanceTransaction: r < 5 ? null : us(n.maintenanceTransaction),
-		characterGrowth: $o(n.characterGrowth && typeof n.characterGrowth == "object" ? n.characterGrowth : n.summary),
-		settings: os(n.settings),
-		drafts: Z(n.drafts)
+		characterGrowth: ns(n.characterGrowth && typeof n.characterGrowth == "object" ? n.characterGrowth : n.summary),
+		settings: ls(n.settings),
+		drafts: Yo(n.drafts)
 	};
 }
-var fs = (e) => Z(e?.acts).find((t) => t.id === e.currentActId) || Z(e?.acts).at(-1) || null, ps = (e, t) => Z(e?.acts).find((e) => e.id === +t) || null;
+var fs = (e) => Yo(e?.acts).find((t) => t.id === e.currentActId) || Yo(e?.acts).at(-1) || null, ps = (e, t) => Yo(e?.acts).find((e) => e.id === +t) || null;
 function ms(e) {
 	let t = 2166136261;
 	for (let n of String(e ?? "")) t ^= n.charCodeAt(0), t = Math.imul(t, 16777619);
 	return (t >>> 0).toString(16);
 }
 function hs(e) {
-	return ms(Z(e).map((e) => `${e?.extra?.scene_diary?.messageId || ""}:${e?.mes || ""}`).join("\n"));
+	return ms(Yo(e).map((e) => `${e?.extra?.scene_diary?.messageId || ""}:${e?.mes || ""}`).join("\n"));
 }
 function gs(e, t, n = null) {
 	e.extra ||= {}, e.extra.scene_diary ||= {};
 	let r = e.extra.scene_diary;
-	return r.messageId ||= Xo("msg"), t != null && (r.actId = +t), n != null && (r.messageIndex = +n), r;
+	return r.messageId ||= $o("msg"), t != null && (r.actId = +t), n != null && (r.messageIndex = +n), r;
 }
 function _s(e) {
 	return !!e && !e.is_system && e.extra?.type !== "narrator" && !e.extra?.tool_invocations && !e.extra?.scene_diary?.injected && !e.is_hidden;
@@ -3344,11 +3334,11 @@ function vs(e, t, n, r = null) {
 	return a && !a.messageIds.includes(i) && a.messageIds.push(i), i;
 }
 function ys(e, t, n = null) {
-	let r = fs(e), i = es(Math.max(...e.acts.map((e) => e.id), 0) + 1);
+	let r = fs(e), i = rs(Math.max(...e.acts.map((e) => e.id), 0) + 1);
 	return i.startMessageIndex = n, e.acts.push(i), e.currentActId = i.id, e.status = "active", r && (r.status = "closed"), t && vs(e, t, i.id, n), i;
 }
 function bs(e, t) {
-	return Z(e).filter((e) => !_s(e) || +e.extra?.scene_diary?.actId == +t);
+	return Yo(e).filter((e) => !_s(e) || +e.extra?.scene_diary?.actId == +t);
 }
 function xs(e, t) {
 	let n = String(e || ""), r = [], i = 0;
@@ -3365,7 +3355,7 @@ function xs(e, t) {
 	return r;
 }
 function Ss(e, t, n) {
-	return is(e?.[t], e?.[n]);
+	return ss(e?.[t], e?.[n]);
 }
 function Cs(e, t) {
 	let n = String(e || ""), r = Ss(t, "bodyTagPairs", "bodyTags"), i = r.flatMap((e) => xs(n, e)).sort((e, t) => e.index - t.index), a = r.length ? i.map((e) => e.value.trim()).filter(Boolean).filter((e, t, n) => !n.slice(0, t).some((t) => t.includes(e))).join("\n\n") : n.trim(), o = Ss(t, "storyTimeTagPairs", "storyTimeTags").flatMap((e) => xs(n, e)).sort((e, t) => e.index - t.index).map((e) => e.value.replace(/<[^>]*>/g, " ").trim()).find(Boolean) || null, s = [];
@@ -3377,7 +3367,7 @@ function Cs(e, t) {
 }
 function ws(e, t, n, r) {
 	let i = [], a = [];
-	for (let o of Z(e)) {
+	for (let o of Yo(e)) {
 		let e = Cs(o.mes, o.is_user ? t.user : t.character), s = o.extra?.scene_diary?.messageId || "";
 		e.errors.length && a.push({
 			id: s,
@@ -3397,7 +3387,7 @@ function ws(e, t, n, r) {
 }
 function Ts(e, t) {
 	let n = [], r = [];
-	for (let i of Z(e)) {
+	for (let i of Yo(e)) {
 		if (!_s(i) || !Q(i.mes)) continue;
 		let e = Cs(i.mes, i.is_user ? t.user : t.character), a = i.extra?.scene_diary?.messageId || "";
 		e.errors.length && r.push({
@@ -3427,8 +3417,7 @@ function Ds(e = {}) {
 		["当前场景", e.scenario]
 	].filter(([, e]) => Q(e)).map(([e, t]) => `[${e}]\n${Q(t)}`).join("\n\n");
 }
-var Os = (e) => Math.ceil(String(e || "").length / 2);
-function ks(e) {
+function Os(e) {
 	let t = String(e || "").toLocaleLowerCase(), n = [];
 	try {
 		if (Intl.Segmenter) for (let e of new Intl.Segmenter("zh", { granularity: "word" }).segment(t)) e.isWordLike && e.segment.trim() && n.push(e.segment);
@@ -3436,8 +3425,8 @@ function ks(e) {
 	for (let e of t.match(/[\u4e00-\u9fff]{2,}/g) || []) for (let t = 0; t < e.length - 1; t++) n.push(e.slice(t, t + 2));
 	return [.../* @__PURE__ */ new Set([...n, ...t.split(/[^\p{L}\p{N}_-]+/u).filter((e) => e.length > 1)])];
 }
-var As = (e) => `${e.content}${e.storyTime ? `（故事时间：${e.storyTime}）` : ""}`;
-function js(e, t) {
+var ks = (e) => `${e.content}${e.storyTime ? `（故事时间：${e.storyTime}）` : ""}`;
+function As(e, t) {
 	if (!Array.isArray(e) || !Q(t)) return -1;
 	let n = e.findIndex((e) => [
 		"user",
@@ -3450,12 +3439,12 @@ function js(e, t) {
 	}), r;
 }
 // memory-system.js
-var Ms = (e) => String(e ?? "").trim(), Ns = (e) => e && !e.deletedAt, Ps = (e) => Ms(e.content), Fs = /* @__PURE__ */ new Map();
-function Is(e, t) {
-	let n = `${t}:${ms(e.map((e) => `${e.id}\u0000${Ps(e)}`).join(""))}`;
-	if (Fs.has(n)) return Fs.get(n);
+var js = (e) => String(e ?? "").trim(), Ms = (e) => js(e.content), Ns = /* @__PURE__ */ new Map();
+function Ps(e, t) {
+	let n = `${t}:${ms(e.map((e) => `${e.id}\u0000${Ms(e)}`).join(""))}`;
+	if (Ns.has(n)) return Ns.get(n);
 	let r = e.map((e) => {
-		let t = ks(Ps(e)), n = /* @__PURE__ */ new Map();
+		let t = Os(Ms(e)), n = /* @__PURE__ */ new Map();
 		for (let e of t) n.set(e, (n.get(e) || 0) + 1);
 		return {
 			memory: e,
@@ -3469,53 +3458,48 @@ function Is(e, t) {
 		df: i,
 		average: r.reduce((e, t) => e + t.length, 0) / Math.max(1, r.length)
 	};
-	return Fs.set(n, a), Fs.size > 3 && Fs.delete(Fs.keys().next().value), a;
+	return Ns.set(n, a), Ns.size > 3 && Ns.delete(Ns.keys().next().value), a;
 }
-function Ls(e, t = e.map((e) => e.relevanceScore ?? e.score), { absolute: n = !1, useImportance: r = !0 } = {}) {
-	let i = Math.min(...t), a = Math.max(...t);
-	return e.map((e, o) => {
-		let s = a === i ? +(a > 0) : i >= 0 ? t[o] / Math.max(a, 2 ** -52) : (t[o] - i) / (a - i), c = n ? Math.max(0, Math.min(1, t[o])) : Math.min(s, e.evidenceRelevance ?? 1), l = ((e.memory.importance || 3) - 1) / 4;
-		return {
-			...e,
-			relevanceScore: t[o],
-			relevance: c,
-			importanceWeight: r ? l : 0,
-			score: r ? .95 * c + .05 * l : c
-		};
-	}).sort((e, t) => t.score - e.score || e.memory.id.localeCompare(t.memory.id));
+function Fs(e) {
+	let t = e[0]?.score || 1;
+	return e.map((e) => ({
+		...e,
+		relevance: Math.min(e.score / t, e.evidenceRelevance)
+	}));
 }
-var Rs = (e, t) => {
+var Is = (e, t) => {
 	if (!e || !t || e.length !== t.length) return 0;
 	let n = 0, r = 0, i = 0;
 	for (let a = 0; a < e.length; a++) n += e[a] * t[a], r += e[a] ** 2, i += t[a] ** 2;
 	return r && i ? n / Math.sqrt(r * i) : 0;
 };
-function zs(e, t = null, { includePermanent: n = !1 } = {}) {
-	let r = e.filter((e) => Ns(e) && (n || !e.permanent)), i = Is(r, t);
-	return (e, { vectors: t = /* @__PURE__ */ new Map(), queryVector: n = null, excludeId: a = null, useImportance: o = !0 } = {}) => {
-		let s = ks(e), c = i.docs.filter((e) => e.memory.id !== a).map((t) => {
-			let n = s.filter((e) => t.tf.has(e)), a = Ms(t.memory.content) && e.toLowerCase().includes(Ms(t.memory.content).toLowerCase()), o = n.reduce((e, n) => {
+function Ls(e, t = null, { poolSize: n = 30 } = {}) {
+	let r = e.filter((e) => e && !e.deletedAt && !e.permanent), i = Ps(r, t), a = new Map(r.map((e) => [e.id, e]));
+	return (e, { vectors: t = /* @__PURE__ */ new Map(), queryVector: o = null } = {}) => {
+		let s = Os(e), c = i.docs.map((t) => {
+			let n = s.filter((e) => t.tf.has(e)), o = js(t.memory.content) && e.toLowerCase().includes(js(t.memory.content).toLowerCase()), c = n.reduce((e, n) => {
 				let a = t.tf.get(n), o = i.df.get(n);
 				return e + Math.log(1 + (r.length - o + .5) / (o + .5)) * a * 2.2 / (a + 1.2 * (.25 + .75 * t.length / Math.max(1, i.average)));
-			}, 0) + (a ? 2 : 0);
+			}, 0) + (o ? 2 : 0);
 			return {
-				memory: t.memory,
-				score: o,
-				evidenceRelevance: o / (o + .5),
+				memory: a.get(t.memory.id),
+				score: c,
+				evidenceRelevance: c / (c + .5),
 				hits: n,
-				source: a ? "exact" : "lexical"
+				source: o ? "exact" : "lexical"
 			};
-		}).sort((e, t) => t.score - e.score || e.memory.id.localeCompare(t.memory.id)).slice(0, 30), l = n ? r.filter((e) => e.id !== a && t.has(e.id)).map((e) => {
-			let r = Rs(n, t.get(e.id));
+		}).sort((e, t) => t.score - e.score || e.memory.id.localeCompare(t.memory.id)).slice(0, n), l = o ? r.filter((e) => t.has(e.id)).map((e) => {
+			let n = Is(o, t.get(e.id));
 			return {
 				memory: e,
-				score: r,
-				evidenceRelevance: Math.max(0, Math.min(1, r)),
+				score: n,
+				evidenceRelevance: Math.max(0, Math.min(1, n)),
 				hits: [],
 				source: "vector"
 			};
-		}).sort((e, t) => t.score - e.score || e.memory.id.localeCompare(t.memory.id)).slice(0, 30) : [], u = /* @__PURE__ */ new Map();
+		}).sort((e, t) => t.score - e.score || e.memory.id.localeCompare(t.memory.id)).slice(0, n) : [], u = /* @__PURE__ */ new Map();
 		for (let [e, t] of [["lexical", c], ["vector", l]]) t.forEach((t, n) => {
+			if (t.evidenceRelevance <= 0) return;
 			let r = u.get(t.memory.id) || {
 				...t,
 				score: 0,
@@ -3524,14 +3508,14 @@ function zs(e, t = null, { includePermanent: n = !1 } = {}) {
 			};
 			r.score += 1 / (60 + n + 1), r.evidenceRelevance = Math.max(r.evidenceRelevance, t.evidenceRelevance), r.channels.push(e), u.set(t.memory.id, r);
 		});
-		return Ls([...u.values()], void 0, { useImportance: o });
+		return Fs([...u.values()].sort((e, t) => t.score - e.score || e.memory.id.localeCompare(t.memory.id)).slice(0, n));
 	};
 }
 // semantic.js
-var Bs = "scene_diary_vectors_v1", Vs = "vectors", Hs = () => new Promise((e, t) => {
-	let n = indexedDB.open(Bs, 1);
-	n.onupgradeneeded = () => n.result.createObjectStore(Vs), n.onsuccess = () => e(n.result), n.onerror = () => t(n.error);
-}), Us = (e, t, n) => [
+var Rs = "scene_diary_vectors_v1", zs = "vectors", Bs = () => new Promise((e, t) => {
+	let n = indexedDB.open(Rs, 1);
+	n.onupgradeneeded = () => n.result.createObjectStore(zs), n.onsuccess = () => e(n.result), n.onerror = () => t(n.error);
+}), Vs = (e, t, n) => [
 	"content-only-v1",
 	e.account,
 	e.chat,
@@ -3540,9 +3524,9 @@ var Bs = "scene_diary_vectors_v1", Vs = "vectors", Hs = () => new Promise((e, t)
 	t.model,
 	t.dimensions || "",
 	n.id,
-	ms(Ps(n))
+	ms(Ms(n))
 ].join("|");
-function Ws(e, t = "向量") {
+function Hs(e, t = "向量") {
 	let n;
 	try {
 		n = new URL(e);
@@ -3553,7 +3537,7 @@ function Ws(e, t = "向量") {
 	if (n.username || n.password || [...n.searchParams.keys()].some((e) => /key|secret|token|password|auth/i.test(e))) throw Error(`请不要把密钥放在${t}接口地址中`);
 	return n.href;
 }
-function Gs(e, t = []) {
+function Us(e, t = []) {
 	let n = [], r = /* @__PURE__ */ new Set();
 	for (let t = e; t && !r.has(t) && r.size < 3; t = t.cause) {
 		r.add(t);
@@ -3564,7 +3548,7 @@ function Gs(e, t = []) {
 	for (let e of t.filter(Boolean)) i = i.split(e).join("[已隐藏]");
 	return i.replace(/Bearer\s+[^\s"']+/gi, "Bearer [已隐藏]").replace(/((?:api[_-]?key|token|secret|password|authorization)["']?\s*[:=]\s*["']?)[^\s"'&,}]+/gi, "$1[已隐藏]").slice(0, 1200);
 }
-async function Ks(e, t, n) {
+async function Ws(e, t, n) {
 	if (!e.ok) {
 		let r;
 		try {
@@ -3576,19 +3560,19 @@ async function Ks(e, t, n) {
 			r = { message: r };
 		}
 		let i = r?.error?.message || r?.message || (typeof r?.error == "string" ? r.error : ""), a = r?.error?.code || r?.code;
-		throw Error(Gs(`${t}服务返回 HTTP ${e.status}${a ? `（${a}）` : ""}${i ? `：${i}` : ""}`, [n]));
+		throw Error(Us(`${t}服务返回 HTTP ${e.status}${a ? `（${a}）` : ""}${i ? `：${i}` : ""}`, [n]));
 	}
 	try {
 		return await e.json();
 	} catch (e) {
-		throw e?.name === "AbortError" ? e : Error(`${t}响应不是有效 JSON：${Gs(e, [n])}`);
+		throw e?.name === "AbortError" ? e : Error(`${t}响应不是有效 JSON：${Us(e, [n])}`);
 	}
 }
-async function qs(e, t, n, r, { signal: i } = {}) {
-	let a = Ws(n.rerankEndpoint, "重排");
+async function Gs(e, t, n, r, { signal: i } = {}) {
+	let a = Hs(n.rerankEndpoint, "重排");
 	if (!n.rerankModel) throw Error("未设置重排模型");
 	if (!t.length) return [];
-	let o = (await Ks(await fetch(a, {
+	let o = (await Ws(await fetch(a, {
 		method: "POST",
 		mode: "cors",
 		headers: {
@@ -3610,10 +3594,10 @@ async function qs(e, t, n, r, { signal: i } = {}) {
 	if (o.some((e) => !Number.isFinite(e.relevance_score))) throw Error("重排服务返回的数据无效：相关性分数不是有限数值");
 	return o.slice().sort((e, t) => e.index - t.index).map((e) => e.relevance_score);
 }
-async function Js(e, t, n, { signal: r } = {}) {
-	let i = Ws(t.endpoint);
+async function Ks(e, t, n, { signal: r } = {}) {
+	let i = Hs(t.endpoint);
 	if (!t.model) throw Error("未设置向量模型");
-	let a = await Ks(await fetch(i, {
+	let a = await Ws(await fetch(i, {
 		method: "POST",
 		mode: "cors",
 		headers: {
@@ -3634,12 +3618,12 @@ async function Js(e, t, n, { signal: r } = {}) {
 	if (o.some((e) => e.length !== s) || t.dimensions && s !== t.dimensions) throw Error("向量维度不匹配");
 	return o;
 }
-async function Ys(e, t, n) {
+async function qs(e, t, n) {
 	if (!e.length) return /* @__PURE__ */ new Map();
-	let r = await Hs();
+	let r = await Bs();
 	try {
-		let i = r.transaction(Vs).objectStore(Vs), a = await Promise.all(e.map((e) => new Promise((r, a) => {
-			let o = i.get(Us(t, n, e));
+		let i = r.transaction(zs).objectStore(zs), a = await Promise.all(e.map((e) => new Promise((r, a) => {
+			let o = i.get(Vs(t, n, e));
 			o.onsuccess = () => r([e.id, o.result]), o.onerror = () => a(o.error);
 		})));
 		return new Map(a.filter(([, e]) => Array.isArray(e)));
@@ -3647,22 +3631,22 @@ async function Ys(e, t, n) {
 		r.close();
 	}
 }
-async function Xs(e, t, n, r) {
-	let i = await Hs();
+async function Js(e, t, n, r) {
+	let i = await Bs();
 	try {
 		await new Promise((a, o) => {
-			let s = i.transaction(Vs, "readwrite"), c = s.objectStore(Vs);
-			s.oncomplete = a, s.onerror = s.onabort = () => o(s.error || /* @__PURE__ */ Error("向量缓存写入中止")), e.forEach((e, i) => c.put(t[i], Us(n, r, e)));
+			let s = i.transaction(zs, "readwrite"), c = s.objectStore(zs);
+			s.oncomplete = a, s.onerror = s.onabort = () => o(s.error || /* @__PURE__ */ Error("向量缓存写入中止")), e.forEach((e, i) => c.put(t[i], Vs(n, r, e)));
 		});
 	} finally {
 		i.close();
 	}
 }
 // src/workspace.ts
-function Zs(e) {
-	let t = /* @__PURE__ */ qt(e.snapshot()), n = /* @__PURE__ */ R(!1), r = /* @__PURE__ */ R(!1), i = /* @__PURE__ */ R("workbench"), a = /* @__PURE__ */ R(""), o = /* @__PURE__ */ R(""), s = t.value.chatId;
+function Ys(e) {
+	let t = /* @__PURE__ */ Kt(e.snapshot()), n = /* @__PURE__ */ z(!1), r = /* @__PURE__ */ z(!1), i = /* @__PURE__ */ z("workbench"), a = /* @__PURE__ */ z(""), o = /* @__PURE__ */ z(""), s = t.value.chatId;
 	e.subscribe((e) => {
-		t.value = e, Xt(t), e.chatId !== s && (s = e.chatId, i.value = "workbench", a.value = "", o.value = "");
+		t.value = e, Yt(t), e.chatId !== s && (s = e.chatId, i.value = "workbench", a.value = "", o.value = "");
 	});
 	async function c(n) {
 		a.value = "", o.value = "";
@@ -3672,7 +3656,7 @@ function Zs(e) {
 		} catch (n) {
 			if (r === s && n?.name !== "AbortError" && !t.value.saveError) {
 				let r = t.value.channels.map((e) => e.key), i = e.getContext().accountStorage;
-				a.value = Gs(n, [
+				a.value = Us(n, [
 					...r,
 					i?.getItem("scene_diary_embedding_key"),
 					i?.getItem("scene_diary_rerank_key")
@@ -3690,80 +3674,44 @@ function Zs(e) {
 		notice: o,
 		run: c,
 		openWorkbench: () => {
-			i.value = "workbench", n.value = !0, xn(() => document.getElementById("sd-title")?.focus());
+			i.value = "workbench", n.value = !0, bn(() => document.getElementById("sd-title")?.focus());
 		},
 		select: (e) => {
 			i.value = e, a.value = "", o.value = "";
 		}
 	};
 }
-var Qs = Symbol("scene-diary"), $s = () => Rn(Qs);
-function ec(e, t) {
+var Xs = Symbol("scene-diary"), Zs = () => Ln(Xs);
+function Qs(e, t) {
 	let n = URL.createObjectURL(new Blob([JSON.stringify(e, null, 2)], { type: "application/json" })), r = document.createElement("a");
 	r.href = n, r.download = t, r.click(), setTimeout(() => URL.revokeObjectURL(n), 1e3);
 }
-var tc = {
+var $s = {
 	preference: "偏好",
 	npc_relationship: "NPC 关系",
 	item: "重要物品",
 	place: "地点"
-}, nc = {
-	stored_at: {
-		label: "存放于",
-		meaning: "物品 → 明确存放该物品的地点事实",
-		reverse: !0
-	},
-	part_of: {
-		label: "属于／组成于",
-		meaning: "组成部分 → 所属整体或范围",
-		reverse: !0
-	},
-	used_for: {
-		label: "用于",
-		meaning: "物品或地点 → 明确用途涉及的事实",
-		reverse: !1
-	},
-	depends_on: {
-		label: "依赖",
-		meaning: "受条件约束的事实 → 明确的条件",
-		reverse: !1
-	},
-	causes: {
-		label: "导致",
-		meaning: "直接原因 → 明确结果",
-		reverse: !1
-	}
-}, rc = {
-	diary: "日记",
-	growth: "成长",
-	memory: "事实提取",
-	summary: "日记摘要",
-	graph: "图谱整理"
-}, ic = [
-	"diary",
-	"memory",
-	"growth"
-], ac = (e) => !!e && !e.deletedAt && Object.hasOwn(tc, e.category) && !e.needsClassification, $ = (e) => typeof e == "string" ? e.trim() : "";
-function oc(e) {
+}, ec = (e) => typeof e == "string" ? e.trim() : "";
+function tc(e) {
 	return {
-		...ss(e),
+		...us(e),
 		category: e.category,
-		needsClassification: !Object.hasOwn(tc, e.category)
+		needsClassification: !Object.hasOwn($s, e.category)
 	};
 }
-function sc(e) {
+function nc(e) {
 	return {
-		id: e.id || Xo("diary"),
-		title: $(e.title) || "未命名日记",
+		id: e.id || $o("diary"),
+		title: ec(e.title) || "未命名日记",
 		body: typeof e.body == "string" ? e.body : "",
-		summary: $(e.summary),
-		summaryPending: !!e.summaryPending || !$(e.summary),
+		summary: ec(e.summary),
+		summaryPending: !!e.summaryPending || !ec(e.summary),
 		needsReview: !!e.needsReview,
 		createdAt: Number(e.createdAt) || Date.now(),
 		updatedAt: Number(e.updatedAt) || Date.now()
 	};
 }
-function cc(e = {}) {
+function rc(e = {}) {
 	let { diaryConnectionProfile: t, memoryConnectionProfile: n, maintenanceConnectionProfile: r, maxGrowthChars: i, ...a } = e, o = (e, t) => e != null && e !== "" && Number.isFinite(+e) ? Math.max(0, Math.trunc(+e)) : t;
 	return {
 		...a,
@@ -3774,15 +3722,9 @@ function cc(e = {}) {
 		growthEnabled: a.growthEnabled !== !1
 	};
 }
-function lc() {
-	return {
-		...uc(ts()),
-		connectionSetupNeeded: !1
-	};
-}
-function uc(e) {
+function ic(e) {
 	if (e.version === 7) return e;
-	let t = ds(e), { memoryLinks: n, memoryOrganization: r, maintenanceTransaction: i, ...a } = t, o = t.acts.filter((e) => $(e.diary)).map((e) => sc({
+	let t = ds(e), { memoryLinks: n, memoryOrganization: r, maintenanceTransaction: i, ...a } = t, o = t.acts.filter((e) => ec(e.diary)).map((e) => nc({
 		title: e.title,
 		body: e.diary,
 		needsReview: e.dirty,
@@ -3812,10 +3754,10 @@ function uc(e) {
 				memory: Array.isArray(r) ? {
 					status: "draft",
 					value: r.map((e) => ({
-						id: e.id || Xo("proposal"),
+						id: e.id || $o("proposal"),
 						action: "new",
 						targetId: null,
-						value: oc(e),
+						value: tc(e),
 						accepted: !1
 					}))
 				} : { status: "idle" }
@@ -3827,13 +3769,13 @@ function uc(e) {
 		version: 7,
 		acts: s,
 		diaries: o,
-		memories: t.memories.map(oc),
+		memories: t.memories.map(tc),
 		edges: [],
 		graphReviewed: {},
 		graphPreview: null,
 		pendingTransaction: l,
 		status: l ? "preview" : t.status === "pending_next_act" ? t.status : "active",
-		settings: cc({
+		settings: rc({
 			...t.settings,
 			prompts: {
 				...t.settings.prompts,
@@ -3845,11 +3787,11 @@ function uc(e) {
 		connectionSetupNeeded: !0
 	};
 }
-function dc(e, t, { actId: n = e.characterGrowth.lastIncludedActId, edited: r = !0 } = {}) {
-	let i = Zo();
+function ac(e, t, { actId: n = e.characterGrowth.lastIncludedActId, edited: r = !0 } = {}) {
+	let i = es();
 	e.characterGrowth = {
 		...e.characterGrowth,
-		content: $(t),
+		content: ec(t),
 		edited: r,
 		lastIncludedActId: n,
 		createdAt: e.characterGrowth.createdAt || i.timestamp,
@@ -3859,95 +3801,154 @@ function dc(e, t, { actId: n = e.characterGrowth.lastIncludedActId, edited: r = 
 		reviewRecommended: !1
 	};
 }
-function fc(e) {
-	return JSON.stringify([
-		e.from,
-		e.type,
-		e.to
-	]);
+var oc = {
+	diary: "日记",
+	memory: "记忆提取",
+	growth: "角色成长"
+}, sc = ["diary", "memory"], $ = (e) => typeof e == "string" ? e.trim() : "", cc = (e) => !!e && !e.deletedAt && !!$(e.content), lc = {
+	diary: ["你是 {{char}} 的日记整理助手。", "以角色第一人称写下本幕经历、关键互动与当时感受，只使用给定素材。"],
+	memory: ["你是独立记忆点整理助手。", "提取对未来对话有价值且能独立理解的事实。只依据已发生或已确认的内容，故事时间无依据时留空。"],
+	growth: ["你是 {{char}} 的角色画像整理助手。", "结合角色设定和日记维护完整的当前画像，保留有依据的人格、关系与生活状态变化。没有实质变化时如实说明。"]
+}, uc = {
+	diary: qo,
+	memory: "抽取对未来对话有直接价值的客观事实。",
+	growth: "保持人物当前状态和长期连续性，仅采纳已确认的实质变化。"
+}, dc = (e, t) => Number.isSafeInteger(e) && e >= 0 ? e : t;
+function fc(e = {}) {
+	let t = ls(e), n = {}, r = {};
+	for (let t of Object.keys(oc)) {
+		let i = e.prompts?.[t], [a, o] = lc[t];
+		n[t] = {
+			system: i?.system ?? a,
+			description: i?.description ?? (typeof i == "string" && i !== uc[t] ? i : o)
+		}, e.bindings?.[t] && (r[t] = e.bindings[t]);
+	}
+	return {
+		prompts: n,
+		bindings: r,
+		extraction: t.extraction,
+		semantic: t.semantic,
+		growthEnabled: e.growthEnabled !== !1,
+		recentDiaryCount: dc(e.recentDiaryCount, 2),
+		growthDiaryCount: dc(e.growthDiaryCount, 3),
+		queryDepth: dc(e.queryDepth, dc(e.recallMessageCount - 1, 2)),
+		retrievalCount: dc(e.retrievalCount, 30),
+		candidateCount: dc(e.candidateCount, e.recallLimit === 8 ? 10 : dc(e.recallLimit, 10)),
+		recallScoreThreshold: t.recallScoreThreshold
+	};
 }
-function pc(e, t) {
-	let n = new Set(t.filter(ac).map((e) => e.id)), r = /* @__PURE__ */ new Map();
-	for (let t of e || []) t && n.has(t.from) && n.has(t.to) && t.from !== t.to && Object.hasOwn(nc, t.type) && $(t.reason) && r.set(fc(t), {
-		from: t.from,
-		to: t.to,
-		type: t.type,
-		reason: $(t.reason)
-	});
-	return [...r.values()];
+function pc(e = {}) {
+	return {
+		id: e.id || $o("fact"),
+		title: $(e.title),
+		content: $(e.content),
+		storyTime: $(e.storyTime) || null,
+		importance: e.importance ?? 3,
+		locked: !!e.locked,
+		permanent: !!e.permanent,
+		updatedAt: e.updatedAt ?? Date.now()
+	};
 }
 function mc(e) {
-	return ac(e) && $(e.title) && $(e.content) && Number.isInteger(e.importance) && e.importance >= 1 && e.importance <= 5;
+	return {
+		...pc(e),
+		title: e.title,
+		content: e.content
+	};
 }
-function hc(e, t, n = null) {
-	let r = e.memories.find((e) => e.id === n);
-	if (n && !r) throw Error("事实已删除，请重新选择。");
-	if (r?.locked) throw Error("请先解锁这条事实。");
-	let i = oc({
-		...r,
+var hc = (e) => cc(e) && !!$(e.title) && Number.isInteger(e.importance) && e.importance >= 1 && e.importance <= 5;
+function gc(e = {}) {
+	return {
+		id: e.id || $o("diary"),
+		title: $(e.title) || "未命名日记",
+		body: e.body ?? "",
+		needsReview: !!e.needsReview,
+		createdAt: e.createdAt ?? Date.now(),
+		updatedAt: e.updatedAt ?? Date.now()
+	};
+}
+function _c(e) {
+	if (e.version === 8) return e;
+	let t = ic(e), { edges: n, graphReviewed: r, graphPreview: i, ...a } = t, o = t.pendingTransaction, s = o?.results?.growth?.value, c = null;
+	if (o) {
+		let { growthRevision: e, results: t, ...n } = o, r = { ...t.memory }, i = { ...t.diary };
+		i.value &&= {
+			title: i.value.title,
+			body: i.value.body
+		}, Array.isArray(r.value) && (r.value.some((e) => e.targetId && e.accepted) && (r.status = "draft"), r.value = r.value.map((e) => ({
+			id: e.id,
+			value: pc(e.value),
+			accepted: !!e.accepted && !e.targetId && e.action !== "duplicate"
+		})));
+		for (let e of [i, r]) e.status === "running" && Object.assign(e, {
+			status: "error",
+			error: "上次生成已中断，可单独重试本项。"
+		});
+		c = {
+			...n,
+			results: {
+				diary: i,
+				memory: r
+			}
+		};
+	}
+	return {
+		...a,
+		version: 8,
+		settings: fc(t.settings),
+		diaries: t.diaries.map(gc),
+		memories: t.memories.filter(cc).map(mc),
+		pendingTransaction: c,
+		legacyGrowthDraft: s?.changed && $(s.content) ? s.content : null
+	};
+}
+var vc = () => ({
+	..._c(is()),
+	connectionSetupNeeded: !1
+});
+function yc(e, t, n = null) {
+	let r = n ? e.memories.findIndex((e) => e.id === n) : -1;
+	if (n && r < 0) throw Error("记忆点已删除。");
+	if (e.memories[r]?.locked) throw Error("请先解锁记忆点。");
+	let i = pc({
 		...t,
-		id: r?.id || Xo("fact"),
+		id: n || t.id,
 		updatedAt: Date.now()
 	});
-	if (!mc(i)) throw Error("请选择类别，填写标题与正文，并设置 1–5 的重要度。");
-	return r ? e.memories[e.memories.indexOf(r)] = i : e.memories.push(i), e.memoryRevision++, i;
+	if (!hc(i)) throw Error("请填写标题、内容和 1–5 的整数重要度。");
+	return r < 0 ? e.memories.push(i) : e.memories[r] = i, e.memoryRevision++, i;
 }
-function gc(e, t) {
-	if (e.memories.find((e) => e.id === t)?.locked) throw Error("请先解锁这条事实。");
-	e.memories = e.memories.filter((e) => e.id !== t), e.edges = pc(e.edges, e.memories), delete e.graphReviewed[t], e.memoryRevision++;
-}
-function _c(e, t, n, r) {
-	let i = e.memories.find((e) => e.id === t), a = [...new Set(n)].filter((e) => e !== t).map((t) => e.memories.find((e) => e.id === t));
-	if (!ac(i) || !a.length || a.some((e) => !ac(e) || e.locked) || i.locked) throw Error("请选择有效且已解锁的事实。");
-	let o = [i, ...a], s = [...new Set(o.map((e) => e.storyTime).filter(Boolean))];
-	if (s.length > 1) throw Error("故事时间不同，请先在事实编辑器中核对。");
-	hc(e, {
-		content: r,
-		permanent: o.some((e) => e.permanent),
-		importance: Math.max(...o.map((e) => e.importance)),
-		storyTime: s[0] || null,
-		people: o.flatMap((e) => e.people),
-		aliases: o.flatMap((e) => e.aliases)
-	}, t);
-	let c = new Set(a.map((e) => e.id));
-	e.memories = e.memories.filter((e) => !c.has(e.id)), e.edges = pc(e.edges.map((e) => ({
-		...e,
-		from: c.has(e.from) ? t : e.from,
-		to: c.has(e.to) ? t : e.to
-	})), e.memories);
-	for (let t of c) delete e.graphReviewed[t];
-}
-function vc(e, t) {
+function bc(e, t) {
 	return {
 		format: "scene-diary-content",
-		version: 3,
+		version: 4,
 		chatId: String(t),
 		createdAt: (/* @__PURE__ */ new Date()).toISOString(),
 		diaries: structuredClone(e.diaries),
-		characterGrowth: structuredClone(e.characterGrowth),
 		memories: structuredClone(e.memories),
-		edges: structuredClone(e.edges)
+		characterGrowth: structuredClone(e.characterGrowth)
 	};
 }
-function yc(e, t, n) {
-	if (t?.format !== "scene-diary-content" || ![2, 3].includes(t.version) || String(n) !== t.chatId) throw Error("备份格式、版本或聊天身份不匹配。");
+function xc(e, t, n) {
+	if (t?.format !== "scene-diary-content" || ![
+		2,
+		3,
+		4
+	].includes(t.version) || String(n) !== t.chatId) throw Error("备份格式、版本或聊天身份不匹配。");
 	if (!Array.isArray(t.diaries) || !Array.isArray(t.memories) || typeof t.characterGrowth?.content != "string") throw Error("备份缺少必需字段。");
 	let r = t.version === 2, i = (e) => e.every((e) => typeof e == "string" && e) && new Set(e).size === e.length;
-	if (!i(t.diaries.map((e) => r ? Number.isInteger(e?.actId) ? String(e.actId) : "" : e?.id)) || !t.diaries.every((e) => $(r ? e?.diary : e?.body) && (r || typeof e.summary == "string")) || !i(t.memories.map((e) => e?.id)) || !t.memories.every((e) => $(e?.category) && $(e?.title) && $(e?.content))) throw Error("备份包含重复 ID 或无效条目。");
-	let a = t.memories.map(oc), o = new Map(e.acts.map((e) => [e.id, e.closedAt || e.createdAt])), s = Date.parse(t.createdAt) || Date.now(), c = t.diaries.map((e, t) => sc(r ? {
+	if (!i(t.diaries.map((e) => r ? Number.isInteger(e?.actId) ? String(e.actId) : "" : e?.id)) || !t.diaries.every((e) => $(r ? e?.diary : e?.body)) || !i(t.memories.map((e) => e?.id)) || !t.memories.every((e) => $(e?.title) && $(e?.content))) throw Error("备份包含重复 ID 或无效条目。");
+	let a = t.memories.filter(cc).map(mc), o = new Map(e.acts.map((e) => [e.id, e.closedAt || e.createdAt])), s = Date.parse(t.createdAt) || Date.now(), c = t.diaries.map((e, t) => gc(r ? {
 		title: e.title,
 		body: e.diary,
 		needsReview: e.dirty,
 		createdAt: o.get(e.actId) || s + t
-	} : e)), l = r ? [] : pc(t.edges, a);
-	if (!r && (!Array.isArray(t.edges) || l.length !== t.edges.length)) throw Error("备份中的图谱关系无效。");
+	} : e));
+	if (!a.every(hc)) throw Error("备份包含无效记忆。");
 	return {
 		...e,
 		diaries: c,
 		memories: a,
-		edges: l,
-		graphReviewed: {},
-		graphPreview: null,
 		memoryRevision: e.memoryRevision + 1,
 		characterGrowth: {
 			...e.characterGrowth,
@@ -3957,7 +3958,7 @@ function yc(e, t, n) {
 	};
 }
 // src/TextField.vue?vue&type=script&setup=true&lang.ts
-var bc = { class: "sd-field" }, xc = ["rows", "readonly"], Sc = /* @__PURE__ */ $n({
+var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ Qn({
 	__name: "TextField",
 	props: /*@__PURE__*/ Nr({
 		label: {},
@@ -3970,25 +3971,22 @@ var bc = { class: "sd-field" }, xc = ["rows", "readonly"], Sc = /* @__PURE__ */ 
 	emits: ["update:modelValue"],
 	setup(e) {
 		let t = $r(e, "modelValue");
-		return (n, r) => (U(), W("label", bc, [G("span", null, N(e.label), 1), B(G("textarea", {
+		return (n, r) => (U(), W("label", Sc, [G("span", null, N(e.label), 1), V(G("textarea", {
 			"onUpdate:modelValue": r[0] ||= (e) => t.value = e,
 			rows: e.rows || 6,
 			readonly: e.readonly
-		}, null, 8, xc), [[X, t.value]])]));
+		}, null, 8, Cc), [[Z, t.value]])]));
 	}
-}), Cc = { class: "sd-card sd-stack" }, wc = { class: "sd-section-title" }, Tc = { class: "sd-pill" }, Ec = {
+}), Tc = { class: "sd-card sd-stack" }, Ec = { class: "sd-section-title" }, Dc = { class: "sd-pill" }, Oc = {
 	key: 0,
 	class: "sd-alert"
-}, Dc = { key: 1 }, Oc = { key: 2 }, kc = { class: "sd-field" }, Ac = {
-	key: 0,
-	class: "sd-compare"
-}, jc = { class: "sd-field" }, Mc = ["value"], Nc = { key: 0 }, Pc = { class: "sd-stack" }, Fc = { key: 0 }, Ic = { key: 1 }, Lc = ["onUpdate:modelValue", "disabled"], Rc = { key: 0 }, zc = { class: "sd-field" }, Bc = ["onUpdate:modelValue"], Vc = ["value"], Hc = { class: "sd-field" }, Uc = ["onUpdate:modelValue"], Wc = { class: "sd-form-grid" }, Gc = { class: "sd-field" }, Kc = ["onUpdate:modelValue"], qc = { class: "sd-field" }, Jc = ["onUpdate:modelValue"], Yc = {
-	key: 4,
+}, kc = { class: "sd-field" }, Ac = { key: 0 }, jc = { class: "sd-stack" }, Mc = ["onUpdate:modelValue"], Nc = ["onUpdate:modelValue"], Pc = { class: "sd-field" }, Fc = ["onUpdate:modelValue"], Ic = { class: "sd-form-grid" }, Lc = { class: "sd-field" }, Rc = ["onUpdate:modelValue"], zc = { class: "sd-field" }, Bc = ["onUpdate:modelValue"], Vc = {
+	key: 2,
 	class: "sd-actions"
-}, Xc = {
-	key: 5,
+}, Hc = {
+	key: 3,
 	class: "sd-actions"
-}, Zc = /* @__PURE__ */ $n({
+}, Uc = /* @__PURE__ */ Qn({
 	__name: "Review",
 	props: {
 		kind: {},
@@ -3996,15 +3994,11 @@ var bc = { class: "sd-field" }, xc = ["rows", "readonly"], Sc = /* @__PURE__ */ 
 		transaction: {}
 	},
 	setup(e) {
-		let t = e, { view: n, host: r, run: i, select: a } = $s(), o = /* @__PURE__ */ R(), s = () => t.kind === "diary" ? {
+		let t = e, { view: n, host: r, run: i, select: a } = Zs(), o = /* @__PURE__ */ z(), s = () => t.kind === "diary" ? {
 			title: "",
-			body: "",
-			summary: ""
-		} : t.kind === "growth" ? {
-			changed: !0,
-			content: ""
+			body: ""
 		} : [];
-		Hn(() => JSON.stringify(t.part.value), () => {
+		Vn(() => JSON.stringify(t.part.value), () => {
 			o.value = t.part.value ? JSON.parse(JSON.stringify(t.part.value)) : s();
 		}, { immediate: !0 });
 		let c = {
@@ -4015,157 +4009,110 @@ var bc = { class: "sd-field" }, xc = ["rows", "readonly"], Sc = /* @__PURE__ */ 
 			confirmed: "已确认",
 			skipped: "已跳过",
 			outdated: "需重新评估"
-		}, l = {
-			new: "新增",
-			duplicate: "重复",
-			supplement: "补充",
-			update: "状态变化"
-		}, u = Y(() => t.kind !== "growth" || t.transaction.results.diary.status === "confirmed"), d = Y(() => n.value.busy.includes("close:" + t.kind)), f = Y(() => n.value.channels.some((e) => e.id === n.value.state?.settings.bindings[t.kind])), p = (e) => n.value.state?.memories.find((t) => t.id === e);
-		function m(e = !1, n = !0) {
+		}, l = X(() => n.value.busy.includes("close:" + t.kind)), u = X(() => n.value.channels.some((e) => e.id === n.value.state?.settings.bindings[t.kind]));
+		function d(e = !1, n = !0) {
 			return i(() => r.reviewPart(t.kind, JSON.parse(JSON.stringify(o.value)), e, n));
 		}
-		return (t, s) => (U(), W("article", Cc, [
-			G("header", wc, [G("h3", null, N(z(rc)[e.kind]), 1), G("span", Tc, N(c[e.part.status]), 1)]),
-			e.part.error ? (U(), W("p", Ec, N(e.part.error), 1)) : J("", !0),
-			e.kind === "growth" && !u.value && e.part.status !== "skipped" ? (U(), W("p", Dc, "确认日记后开始成长评估。")) : J("", !0),
-			e.kind === "growth" && e.part.status === "outdated" ? (U(), W("p", Oc, "日记内容已变更。可参考旧草稿，重新评估或修订后确认。")) : J("", !0),
-			u.value && !d.value ? (U(), W(H, { key: 3 }, [e.kind === "diary" ? (U(), W(H, { key: 0 }, [
-				G("label", kc, [s[11] ||= q("标题", -1), B(G("input", { "onUpdate:modelValue": s[0] ||= (e) => o.value.title = e }, null, 512), [[X, o.value.title]])]),
-				K(Sc, {
-					modelValue: o.value.body,
-					"onUpdate:modelValue": s[1] ||= (e) => o.value.body = e,
-					label: "第一人称正文",
-					rows: 9
-				}, null, 8, ["modelValue"]),
-				K(Sc, {
-					modelValue: o.value.summary,
-					"onUpdate:modelValue": s[2] ||= (e) => o.value.summary = e,
-					label: "单篇摘要",
-					rows: 4
-				}, null, 8, ["modelValue"])
-			], 64)) : e.kind === "growth" ? (U(), W(H, { key: 1 }, [G("label", null, [B(G("input", {
-				type: "checkbox",
-				"onUpdate:modelValue": s[3] ||= (e) => o.value.changed = e
-			}, null, 512), [[Oo, o.value.changed]]), s[12] ||= q(" 本幕有实质变化", -1)]), o.value.changed ? (U(), W("div", Ac, [G("label", jc, [s[13] ||= q("当前画像", -1), G("textarea", {
-				value: z(n).state?.characterGrowth.content,
-				readonly: "",
-				rows: "8"
-			}, null, 8, Mc)]), K(Sc, {
-				modelValue: o.value.content,
-				"onUpdate:modelValue": s[4] ||= (e) => o.value.content = e,
-				label: "候选画像",
-				rows: 8
-			}, null, 8, ["modelValue"])])) : J("", !0)], 64)) : (U(), W(H, { key: 2 }, [e.part.value && !o.value.length ? (U(), W("p", Nc, "本幕没有合格事实。")) : J("", !0), (U(!0), W(H, null, V(o.value, (e) => (U(), W("details", {
+		return (t, n) => (U(), W("article", Tc, [
+			G("header", Ec, [G("h3", null, N(B(oc)[e.kind]), 1), G("span", Dc, N(c[e.part.status]), 1)]),
+			e.part.error ? (U(), W("p", Oc, N(e.part.error), 1)) : J("", !0),
+			l.value ? J("", !0) : (U(), W(H, { key: 1 }, [e.kind === "diary" ? (U(), W(H, { key: 0 }, [G("label", kc, [n[8] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": n[0] ||= (e) => o.value.title = e }, null, 512), [[Z, o.value.title]])]), K(wc, {
+				modelValue: o.value.body,
+				"onUpdate:modelValue": n[1] ||= (e) => o.value.body = e,
+				label: "第一人称正文",
+				rows: 9
+			}, null, 8, ["modelValue"])], 64)) : (U(), W(H, { key: 1 }, [e.part.value && !o.value.length ? (U(), W("p", Ac, "本幕没有合格事实。")) : J("", !0), (U(!0), W(H, null, Dr(o.value, (e) => (U(), W("details", {
 				class: "sd-subcard",
 				key: e.id,
 				open: ""
-			}, [G("summary", null, N(l[e.action]) + " · " + N(e.value.title), 1), G("div", Pc, [
-				p(e.targetId) ? (U(), W("p", Fc, [
-					s[14] ||= G("strong", null, "已有事实", -1),
-					s[15] ||= G("br", null, null, -1),
-					q(N(p(e.targetId).content), 1)
-				])) : J("", !0),
-				e.action === "duplicate" ? J("", !0) : (U(), W("label", Ic, [
-					B(G("input", {
-						type: "checkbox",
-						"onUpdate:modelValue": (t) => e.accepted = t,
-						disabled: p(e.targetId)?.locked
-					}, null, 8, Lc), [[Oo, e.accepted]]),
-					s[16] ||= q(" 接受这条建议", -1),
-					p(e.targetId)?.locked ? (U(), W("span", Rc, "（目标已锁定）")) : J("", !0)
-				])),
-				G("label", zc, [s[18] ||= q("类别", -1), B(G("select", { "onUpdate:modelValue": (t) => e.value.category = t }, [s[17] ||= G("option", {
-					disabled: "",
-					value: ""
-				}, "请选择", -1), (U(!0), W(H, null, V(z(tc), (e, t) => (U(), W("option", {
-					key: t,
-					value: t
-				}, N(e), 9, Vc))), 128))], 8, Bc), [[Ao, e.value.category]])]),
-				G("label", Hc, [s[19] ||= q("标题", -1), B(G("input", { "onUpdate:modelValue": (t) => e.value.title = t }, null, 8, Uc), [[X, e.value.title]])]),
-				K(Sc, {
+			}, [G("summary", null, "新增 · " + N(e.value.title), 1), G("div", jc, [
+				G("label", null, [V(G("input", {
+					type: "checkbox",
+					"onUpdate:modelValue": (t) => e.accepted = t
+				}, null, 8, Mc), [[ko, e.accepted]]), n[9] ||= q(" 保存此记忆点", -1)]),
+				G("label", null, [V(G("input", {
+					type: "checkbox",
+					"onUpdate:modelValue": (t) => e.value.permanent = t
+				}, null, 8, Nc), [[ko, e.value.permanent]]), n[10] ||= q(" 常驻记忆", -1)]),
+				G("label", Pc, [n[11] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": (t) => e.value.title = t }, null, 8, Fc), [[Z, e.value.title]])]),
+				K(wc, {
 					modelValue: e.value.content,
 					"onUpdate:modelValue": (t) => e.value.content = t,
 					label: "拟保存内容",
 					rows: 3
 				}, null, 8, ["modelValue", "onUpdate:modelValue"]),
-				G("div", Wc, [G("label", Gc, [s[20] ||= q("故事时间", -1), B(G("input", { "onUpdate:modelValue": (t) => e.value.storyTime = t }, null, 8, Kc), [[X, e.value.storyTime]])]), G("label", qc, [s[21] ||= q("重要度", -1), B(G("input", {
+				G("div", Ic, [G("label", Lc, [n[12] ||= q("故事时间", -1), V(G("input", { "onUpdate:modelValue": (t) => e.value.storyTime = t }, null, 8, Rc), [[Z, e.value.storyTime]])]), G("label", zc, [n[13] ||= q("重要度", -1), V(G("input", {
 					type: "number",
 					"onUpdate:modelValue": (t) => e.value.importance = t,
 					min: "1",
 					max: "5"
-				}, null, 8, Jc), [[
-					X,
+				}, null, 8, Bc), [[
+					Z,
 					e.value.importance,
 					void 0,
 					{ number: !0 }
 				]])])])
-			])]))), 128))], 64))], 64)) : J("", !0),
-			d.value ? (U(), W("div", Yc, [G("button", { onClick: s[5] ||= (t) => z(r).cancel("close:" + e.kind) }, "取消本项请求")])) : u.value ? (U(), W("div", Xc, [
-				f.value ? (U(), W("button", {
+			])]))), 128))], 64))], 64)),
+			l.value ? (U(), W("div", Vc, [G("button", { onClick: n[2] ||= (t) => B(r).cancel("close:" + e.kind) }, "取消本项请求")])) : (U(), W("div", Hc, [
+				u.value ? (U(), W("button", {
 					key: 0,
-					onClick: s[6] ||= (t) => z(i)(() => z(r).runClose(e.kind))
+					onClick: n[3] ||= (t) => B(i)(() => B(r).runClose(e.kind))
 				}, N(e.part.status === "idle" ? "生成" : "重新生成"), 1)) : (U(), W("button", {
 					key: 1,
-					onClick: s[7] ||= (e) => z(a)("settings")
+					onClick: n[4] ||= (e) => B(a)("settings")
 				}, "配置渠道")),
 				e.kind !== "memory" || e.part.value ? (U(), W("button", {
 					key: 2,
-					onClick: s[8] ||= (e) => m(!1, !1)
+					onClick: n[5] ||= (e) => d(!1, !1)
 				}, "保存草稿")) : J("", !0),
 				e.kind !== "memory" || e.part.value ? (U(), W("button", {
 					key: 3,
 					class: "sd-primary",
-					onClick: s[9] ||= (e) => m()
-				}, "确认" + N(z(rc)[e.kind]), 1)) : J("", !0),
-				G("button", { onClick: s[10] ||= (e) => m(!0) }, N(e.kind === "diary" ? "跳过日记和成长评估" : "跳过本项"), 1)
-			])) : J("", !0)
+					onClick: n[6] ||= (e) => d()
+				}, "确认" + N(B(oc)[e.kind]), 1)) : J("", !0),
+				G("button", { onClick: n[7] ||= (e) => d(!0) }, "跳过本项")
+			]))
 		]));
 	}
-}), Qc = {
+}), Wc = {
 	key: 0,
 	class: "sd-card sd-stack"
-}, $c = ["max"], el = { class: "sd-hero sd-card" }, tl = { class: "sd-kicker" }, nl = { key: 0 }, rl = { key: 1 }, il = { key: 0 }, al = ["disabled"], ol = {
+}, Gc = ["max"], Kc = { class: "sd-hero sd-card" }, qc = { class: "sd-kicker" }, Jc = { key: 0 }, Yc = { key: 1 }, Xc = { key: 0 }, Zc = ["disabled"], Qc = {
 	key: 0,
 	class: "sd-status"
-}, sl = {
+}, $c = {
 	key: 1,
 	id: "sd-close-review",
 	class: "sd-stack"
-}, cl = { class: "sd-sticky sd-actions" }, ll = ["disabled"], ul = { class: "sd-card" }, dl = { class: "sd-actions" }, fl = { class: "sd-file" }, pl = /* @__PURE__ */ $n({
+}, el = { class: "sd-sticky sd-actions" }, tl = ["disabled"], nl = { class: "sd-card" }, rl = { class: "sd-actions" }, il = { class: "sd-file" }, al = /* @__PURE__ */ Qn({
 	__name: "Workbench",
 	setup(e) {
-		let { view: t, host: n, run: r, select: i } = $s(), a = /* @__PURE__ */ R(1), o = Y(() => t.value.state), s = Y(() => fs(o.value)), c = Y(() => o.value?.pendingTransaction), l = Y(() => ic.every((e) => ["confirmed", "skipped"].includes(c.value?.results[e]?.status))), u = () => document.getElementById("sd-close-review")?.scrollIntoView({ block: "start" }), d = (e) => window.confirm(e), f = (e) => t.value.channels.some((t) => t.id === o.value?.settings.bindings[e]);
+		let { view: t, host: n, run: r, select: i } = Zs(), a = /* @__PURE__ */ z(1), o = X(() => t.value.state), s = X(() => fs(o.value)), c = X(() => o.value?.pendingTransaction), l = X(() => sc.every((e) => ["confirmed", "skipped"].includes(c.value?.results[e]?.status))), u = () => document.getElementById("sd-close-review")?.scrollIntoView({ block: "start" }), d = (e) => window.confirm(e), f = (e) => t.value.channels.some((t) => t.id === o.value?.settings.bindings[e]);
 		return (e, p) => o.value ? (U(), W(H, { key: 1 }, [
-			G("header", el, [G("div", null, [
-				G("p", tl, "第 " + N(s.value?.id) + " 幕", 1),
+			G("header", Kc, [G("div", null, [
+				G("p", qc, "第 " + N(s.value?.id) + " 幕", 1),
 				G("h3", null, N(c.value ? "本幕待审核" : o.value.status === "pending_next_act" ? "本幕已归档" : "当前幕"), 1),
 				G("p", null, [
 					q(N(s.value?.messageIds.length || 0) + " 条归幕对话", 1),
-					s.value?.startMessageIndex == null ? J("", !0) : (U(), W("span", nl, " · 起始楼层 " + N(s.value.startMessageIndex + 1), 1)),
-					s.value?.endMessageIndex == null ? J("", !0) : (U(), W("span", rl, " · 结束楼层 " + N(s.value.endMessageIndex + 1), 1))
+					s.value?.startMessageIndex == null ? J("", !0) : (U(), W("span", Jc, " · 起始楼层 " + N(s.value.startMessageIndex + 1), 1)),
+					s.value?.endMessageIndex == null ? J("", !0) : (U(), W("span", Yc, " · 结束楼层 " + N(s.value.endMessageIndex + 1), 1))
 				]),
-				o.value.status === "pending_next_act" ? (U(), W("p", il, "下一条玩家消息将开启新幕。")) : J("", !0)
+				o.value.status === "pending_next_act" ? (U(), W("p", Xc, "下一条玩家消息将开启新幕。")) : J("", !0)
 			]), !c.value && o.value.status === "active" ? (U(), W("button", {
 				key: 0,
 				class: "sd-primary",
 				disabled: !s.value?.messageIds.length,
-				onClick: p[3] ||= (e) => z(r)(z(n).openClose)
-			}, "结束这一幕", 8, al)) : c.value ? (U(), W("button", {
+				onClick: p[3] ||= (e) => B(r)(B(n).openClose)
+			}, "结束这一幕", 8, Zc)) : c.value ? (U(), W("button", {
 				key: 1,
 				class: "sd-primary",
 				onClick: u
 			}, "继续审核")) : (U(), W("button", {
 				key: 2,
-				onClick: p[4] ||= (e) => z(i)("diaries")
+				onClick: p[4] ||= (e) => B(i)("diaries")
 			}, "查看日记档案"))]),
-			o.value.connectionSetupNeeded && [
-				"diary",
-				"memory",
-				"growth",
-				"summary",
-				"graph"
-			].some((e) => !f(e)) ? (U(), W("p", ol, [p[13] ||= q(" 旧版连接已停用。请为尚未绑定的日记、成长、事实提取、日记摘要和图谱任务配置自建渠道。 ", -1), G("button", { onClick: p[5] ||= (e) => z(i)("settings") }, "打开设置")])) : J("", !0),
-			c.value ? (U(), W("section", sl, [(U(!0), W(H, null, V(z(ic), (e) => (U(), ea(Zc, {
+			o.value.connectionSetupNeeded && Object.keys(B(oc)).some((e) => !f(e)) ? (U(), W("p", Qc, [p[13] ||= q(" 旧版连接已停用。请为尚未绑定的日记、记忆提取和成长任务配置自建渠道。 ", -1), G("button", { onClick: p[5] ||= (e) => B(i)("settings") }, "打开设置")])) : J("", !0),
+			c.value ? (U(), W("section", $c, [(U(!0), W(H, null, Dr(B(sc), (e) => (U(), ea(Uc, {
 				key: c.value.id + e,
 				kind: e,
 				part: c.value.results[e],
@@ -4174,107 +4121,152 @@ var bc = { class: "sd-field" }, xc = ["rows", "readonly"], Sc = /* @__PURE__ */ 
 				"kind",
 				"part",
 				"transaction"
-			]))), 128)), G("div", cl, [G("button", { onClick: p[6] ||= (e) => z(r)(() => d("取消这次关幕并清除本次审核草稿？") && z(n).cancelClose()) }, "取消关幕"), G("button", {
+			]))), 128)), G("div", el, [G("button", { onClick: p[6] ||= (e) => B(r)(() => d("取消这次关幕并清除本次审核草稿？") && B(n).cancelClose()) }, "取消关幕"), G("button", {
 				class: "sd-primary",
 				disabled: !l.value,
-				onClick: p[7] ||= (e) => z(r)(z(n).confirmClose)
-			}, "确认结束本幕", 8, ll)])])) : J("", !0),
-			G("details", ul, [p[15] ||= G("summary", null, "备份与恢复", -1), G("div", dl, [
-				G("button", { onClick: p[8] ||= (e) => z(r)(() => z(ec)(z(n).backup(), "scene-diary-" + z(t).chatId + ".json")) }, "导出内容"),
-				G("label", fl, [p[14] ||= q("导入内容 ", -1), G("input", {
+				onClick: p[7] ||= (e) => B(r)(B(n).confirmClose)
+			}, "确认结束本幕", 8, tl)])])) : J("", !0),
+			G("details", nl, [p[15] ||= G("summary", null, "备份与恢复", -1), G("div", rl, [
+				G("button", { onClick: p[8] ||= (e) => B(r)(() => B(Qs)(B(n).backup(), "scene-diary-" + B(t).chatId + ".json")) }, "导出内容"),
+				G("label", il, [p[14] ||= q("导入内容 ", -1), G("input", {
 					type: "file",
 					accept: ".json,application/json",
-					onChange: p[9] ||= (e) => z(r)(async () => {
+					onChange: p[9] ||= (e) => B(r)(async () => {
 						let t = e.target, r = t.files?.[0];
 						if (t.value = "", !r) return;
-						let i = JSON.parse(await r.text()), a = i.version === 2 ? "请保留原 v2 文件以便查阅旧关联。确认替换当前日记、成长与事实？" : "确认替换当前日记、成长、事实与图谱？";
-						d(a) && await z(n).import(i);
+						let i = JSON.parse(await r.text());
+						d("确认替换当前聊天的日记、画像和记忆点？") && await B(n).import(i);
 					})
 				}, null, 32)]),
-				G("button", { onClick: p[10] ||= (e) => z(r)(async () => z(ec)(await z(n).migrationBackup(), "scene-diary-pre-upgrade-" + z(t).chatId + ".json")) }, "导出升级前整聊天备份")
+				G("button", { onClick: p[10] ||= (e) => B(r)(async () => B(Qs)(await B(n).migrationBackup(), "scene-diary-pre-upgrade-" + B(t).chatId + ".json")) }, "导出升级前整聊天备份")
 			])])
-		], 64)) : (U(), W("div", Qc, [
-			G("p", null, N(z(t).blocker), 1),
-			z(t).blocker.startsWith("已有聊天") ? (U(), W("form", {
+		], 64)) : (U(), W("div", Wc, [
+			G("p", null, N(B(t).blocker), 1),
+			B(t).blocker.startsWith("已有聊天") ? (U(), W("form", {
 				key: 0,
 				class: "sd-actions",
-				onSubmit: p[1] ||= Lo((e) => z(r)(() => z(n).takeOver(a.value - 1)), ["prevent"])
-			}, [G("label", null, [p[11] ||= q("从楼层 ", -1), B(G("input", {
+				onSubmit: p[1] ||= Ro((e) => B(r)(() => B(n).takeOver(a.value - 1)), ["prevent"])
+			}, [G("label", null, [p[11] ||= q("从楼层 ", -1), V(G("input", {
 				"onUpdate:modelValue": p[0] ||= (e) => a.value = e,
 				type: "number",
 				min: "1",
-				max: Math.max(z(t).messages, 1),
+				max: Math.max(B(t).messages, 1),
 				required: ""
-			}, null, 8, $c), [[
-				X,
+			}, null, 8, Gc), [[
+				Z,
 				a.value,
 				void 0,
 				{ number: !0 }
 			]])]), p[12] ||= G("button", { class: "sd-primary" }, "接管聊天", -1)], 32)) : J("", !0),
-			z(t).blocker.startsWith("迁移备份失败") ? (U(), W("button", {
+			B(t).blocker.startsWith("迁移备份失败") ? (U(), W("button", {
 				key: 1,
-				onClick: p[2] ||= (e) => z(r)(z(n).initialize)
+				onClick: p[2] ||= (e) => B(r)(B(n).initialize)
 			}, "重试迁移")) : J("", !0)
 		]));
 	}
-}), ml = {
+}), ol = ["disabled"], sl = ["role"], cl = /* @__PURE__ */ Qn({
+	__name: "SaveAction",
+	props: {
+		action: { type: Function },
+		label: {},
+		success: {},
+		disabled: { type: Boolean }
+	},
+	setup(e) {
+		let t = e, n = /* @__PURE__ */ z(!1), r = /* @__PURE__ */ z(""), i = /* @__PURE__ */ z(!1);
+		async function a() {
+			if (!n.value) {
+				n.value = !0, i.value = !1, r.value = "";
+				try {
+					await t.action(), r.value = t.success;
+				} catch (e) {
+					i.value = !0, r.value = e.message;
+				} finally {
+					n.value = !1;
+				}
+			}
+		}
+		return (t, o) => (U(), W(H, null, [G("button", {
+			type: "button",
+			class: "sd-primary",
+			disabled: e.disabled || n.value,
+			onClick: a
+		}, N(n.value ? "保存中…" : e.label), 9, ol), r.value ? (U(), W("span", {
+			key: 0,
+			role: i.value ? "alert" : "status"
+		}, N(r.value), 9, sl)) : J("", !0)], 64));
+	}
+}), ll = {
 	key: 0,
 	class: "sd-card"
-}, hl = { class: "sd-card sd-stack" }, gl = {
+}, ul = {
+	key: 0,
+	class: "sd-card"
+}, dl = { class: "sd-prose" }, fl = { class: "sd-card sd-stack" }, pl = {
 	key: 0,
 	class: "sd-status"
-}, _l = { class: "sd-sticky sd-actions" }, vl = { class: "sd-card sd-stack" }, yl = {
+}, ml = { class: "sd-sticky sd-actions" }, hl = { class: "sd-card sd-stack" }, gl = {
 	key: 0,
 	role: "status"
-}, bl = {
+}, _l = {
 	key: 1,
 	class: "sd-compare"
-}, xl = { class: "sd-field" }, Sl = ["value"], Cl = { class: "sd-actions" }, wl = /* @__PURE__ */ $n({
+}, vl = { class: "sd-field" }, yl = ["value"], bl = { key: 2 }, xl = { class: "sd-actions" }, Sl = ["disabled"], Cl = ["disabled"], wl = /* @__PURE__ */ Qn({
 	__name: "Growth",
 	setup(e) {
-		let { view: t, host: n, run: r, select: i } = $s(), a = Y(() => t.value.state?.characterGrowth), o = /* @__PURE__ */ R(""), s = /* @__PURE__ */ R("");
-		return Hn(() => a.value?.revision, () => o.value = a.value?.content || "", { immediate: !0 }), Hn(() => t.value.growthPreview, (e) => s.value = e?.content || "", { immediate: !0 }), (e, c) => a.value ? (U(), W(H, { key: 1 }, [G("section", hl, [
-			c[8] ||= G("header", { class: "sd-section-title" }, [G("h3", null, "当前角色画像")], -1),
-			a.value.reviewRecommended ? (U(), W("p", gl, "历史材料有变更，可核对现画像或发起重整。")) : J("", !0),
-			K(Sc, {
-				modelValue: o.value,
-				"onUpdate:modelValue": c[0] ||= (e) => o.value = e,
-				label: "人格、关系与当前状态",
-				rows: 12
-			}, null, 8, ["modelValue"]),
-			G("div", _l, [G("button", {
-				class: "sd-primary",
-				onClick: c[1] ||= (e) => z(r)(() => z(n).mutate((e) => z(dc)(e, o.value)))
-			}, "保存画像")])
-		]), G("section", vl, [
-			c[10] ||= G("header", { class: "sd-section-title" }, [G("h3", null, "全局成长重整")], -1),
-			z(t).growthProgress ? (U(), W("p", yl, N(z(t).growthProgress), 1)) : J("", !0),
-			z(t).growthPreview ? (U(), W("div", bl, [G("label", xl, [c[9] ||= q("现画像", -1), G("textarea", {
-				value: a.value.content,
-				rows: "10",
-				readonly: ""
-			}, null, 8, Sl)]), K(Sc, {
-				modelValue: s.value,
-				"onUpdate:modelValue": c[2] ||= (e) => s.value = e,
-				label: "重整后画像",
-				rows: 10
-			}, null, 8, ["modelValue"])])) : J("", !0),
-			G("div", Cl, [z(t).busy.includes("growth") ? (U(), W("button", {
-				key: 0,
-				onClick: c[3] ||= (e) => z(n).cancel("growth")
-			}, "取消重整")) : z(t).growthPreview ? (U(), W(H, { key: 1 }, [G("button", { onClick: c[4] ||= (...e) => z(n).discardGrowth && z(n).discardGrowth(...e) }, "保留现稿"), G("button", {
-				class: "sd-primary",
-				onClick: c[5] ||= (e) => z(r)(() => z(n).acceptGrowth(s.value))
-			}, "应用候选画像")], 64)) : z(t).channels.some((e) => e.id === z(t).state?.settings.bindings.growth) ? (U(), W("button", {
-				key: 2,
-				onClick: c[6] ||= (e) => z(r)(z(n).generateGrowth)
-			}, "根据全部有效日记重整")) : (U(), W("button", {
-				key: 3,
-				onClick: c[7] ||= (e) => z(i)("settings")
-			}, "配置成长渠道"))])
-		])], 64)) : (U(), W("p", ml, N(z(t).blocker), 1));
+		let { view: t, host: n, run: r, select: i } = Zs(), a = X(() => Math.min(o.value, t.value.state?.settings.growthDiaryCount ?? 0)), o = X(() => t.value.state?.diaries.filter((e) => !e.needsReview && e.body.trim()).length ?? 0), s = X(() => t.value.state?.characterGrowth), c = /* @__PURE__ */ z(""), l = /* @__PURE__ */ z("");
+		return Vn(() => s.value?.revision, () => c.value = s.value?.content || "", { immediate: !0 }), Vn(() => t.value.growthPreview, (e) => l.value = e?.content || "", { immediate: !0 }), (e, u) => s.value ? (U(), W(H, { key: 1 }, [
+			B(t).state.legacyGrowthDraft ? (U(), W("details", ul, [u[8] ||= G("summary", null, "升级前的成长待审稿", -1), G("p", dl, N(B(t).state.legacyGrowthDraft), 1)])) : J("", !0),
+			G("section", fl, [
+				u[9] ||= G("header", { class: "sd-section-title" }, [G("h3", null, "当前角色画像")], -1),
+				s.value.reviewRecommended ? (U(), W("p", pl, "历史材料有变更，可核对现画像或发起重整。")) : J("", !0),
+				K(wc, {
+					modelValue: c.value,
+					"onUpdate:modelValue": u[0] ||= (e) => c.value = e,
+					label: "人格、关系与当前状态",
+					rows: 12
+				}, null, 8, ["modelValue"]),
+				G("div", ml, [K(cl, {
+					action: () => B(n).mutate((e) => B(ac)(e, c.value)),
+					label: "保存画像",
+					success: "画像已保存"
+				}, null, 8, ["action"])])
+			]),
+			G("section", hl, [
+				u[11] ||= G("header", { class: "sd-section-title" }, [G("h3", null, "根据日记更新画像")], -1),
+				B(t).growthProgress ? (U(), W("p", gl, N(B(t).growthProgress), 1)) : J("", !0),
+				B(t).growthPreview?.changed ? (U(), W("div", _l, [G("label", vl, [u[10] ||= q("现画像", -1), G("textarea", {
+					value: s.value.content,
+					rows: "10",
+					readonly: ""
+				}, null, 8, yl)]), K(wc, {
+					modelValue: l.value,
+					"onUpdate:modelValue": u[1] ||= (e) => l.value = e,
+					label: "重整后画像",
+					rows: 10
+				}, null, 8, ["modelValue"])])) : J("", !0),
+				B(t).growthPreview ? (U(), W("p", bl, "使用了 " + N(B(t).growthPreview.count) + " 篇日记。" + N(B(t).growthPreview.changed ? "" : "没有实质变化。"), 1)) : J("", !0),
+				G("div", xl, [B(t).busy.includes("growth") ? (U(), W("button", {
+					key: 0,
+					onClick: u[2] ||= (e) => B(n).cancel("growth")
+				}, "取消重整")) : B(t).growthPreview ? (U(), W(H, { key: 1 }, [G("button", { onClick: u[3] ||= (...e) => B(n).discardGrowth && B(n).discardGrowth(...e) }, "保留现稿"), B(t).growthPreview.changed ? (U(), W("button", {
+					key: 0,
+					class: "sd-primary",
+					onClick: u[4] ||= (e) => B(r)(() => B(n).acceptGrowth(l.value))
+				}, "应用候选画像")) : J("", !0)], 64)) : B(t).channels.some((e) => e.id === B(t).state?.settings.bindings.growth) ? (U(), W(H, { key: 2 }, [G("button", {
+					disabled: !a.value,
+					onClick: u[5] ||= (e) => B(r)(() => B(n).generateGrowth("recent"))
+				}, "追踪最新动态（" + N(a.value) + " 篇）", 9, Sl), G("button", {
+					disabled: !o.value,
+					onClick: u[6] ||= (e) => B(r)(() => B(n).generateGrowth("global"))
+				}, "全局重建（" + N(o.value) + " 篇）", 9, Cl)], 64)) : (U(), W("button", {
+					key: 3,
+					onClick: u[7] ||= (e) => B(i)("settings")
+				}, "配置成长渠道"))])
+			])
+		], 64)) : (U(), W("p", ll, N(B(t).blocker), 1));
 	}
-}), Tl = { class: "sd-search" }, El = ["aria-label", "placeholder"], Dl = /* @__PURE__ */ $n({
+}), Tl = { class: "sd-search" }, El = ["aria-label", "placeholder"], Dl = /* @__PURE__ */ Qn({
 	__name: "SearchField",
 	props: /*@__PURE__*/ Nr({ label: {} }, {
 		modelValue: {},
@@ -4286,658 +4278,254 @@ var bc = { class: "sd-field" }, xc = ["rows", "readonly"], Sc = /* @__PURE__ */ 
 		return (n, r) => (U(), W("label", Tl, [r[1] ||= G("i", {
 			class: "fa-solid fa-magnifying-glass",
 			"aria-hidden": "true"
-		}, null, -1), B(G("input", {
+		}, null, -1), V(G("input", {
 			"onUpdate:modelValue": r[0] ||= (e) => t.value = e,
 			type: "search",
 			"aria-label": e.label,
 			placeholder: e.label
-		}, null, 8, El), [[X, t.value]])]));
+		}, null, 8, El), [[Z, t.value]])]));
 	}
 }), Ol = {
 	key: 0,
 	class: "sd-card"
-}, kl = { class: "sd-card sd-stack" }, Al = { class: "sd-actions" }, jl = {
+}, kl = { class: "sd-card sd-stack" }, Al = { class: "sd-section-title" }, jl = ["disabled"], Ml = { class: "sd-field" }, Nl = { class: "sd-field" }, Pl = { class: "sd-field" }, Fl = { class: "sd-actions sd-sticky" }, Il = { key: 0 }, Ll = { key: 1 }, Rl = { class: "sd-snippet" }, zl = ["onClick"], Bl = {
 	key: 0,
-	role: "status"
-}, Ml = {
-	key: 0,
-	class: "sd-card sd-stack"
-}, Nl = { class: "sd-section-title" }, Pl = { class: "sd-field" }, Fl = { class: "sd-sticky sd-actions" }, Il = {
-	key: 1,
 	class: "sd-card"
-}, Ll = { key: 0 }, Rl = { key: 1 }, zl = { class: "sd-snippet" }, Bl = ["onClick"], Vl = /* @__PURE__ */ $n({
-	__name: "Diaries",
+}, Vl = /* @__PURE__ */ Qn({
+	__name: "Archive",
+	props: { kind: {} },
 	setup(e) {
-		let { view: t, host: n, run: r, select: i } = $s(), a = /* @__PURE__ */ R(""), o = Y(() => t.value.state), s = /* @__PURE__ */ R(null), c = /* @__PURE__ */ R(null), l = Y(() => [...o.value?.diaries || []].sort((e, t) => t.createdAt - e.createdAt)), u = Y(() => l.value.filter((e) => e.summaryPending).map((e) => e.id)), d = Y(() => l.value.filter((e) => (e.title + "\n" + e.body + "\n" + e.summary).toLowerCase().includes(a.value.trim().toLowerCase()))), f = Y(() => l.value.find((e) => e.id === s.value));
-		Hn(() => f.value?.updatedAt, () => {
-			f.value && (c.value = { ...f.value });
-		}, { immediate: !0 });
-		function p(e = null) {
-			s.value = e?.id || null, c.value = e ? { ...e } : sc({
-				body: "",
-				summary: "",
-				title: ""
-			});
-		}
-		function m(e = !1) {
-			return r(async () => {
-				if (!$(c.value.body)) throw Error("请填写日记正文。");
-				if (e && !$(c.value.summary)) throw Error("请先填写摘要。");
-				let t = f.value, r = e ? !1 : t ? t.body !== c.value.body || t.summaryPending : !$(c.value.summary), i = sc({
-					...c.value,
-					summaryPending: r,
-					needsReview: !1,
-					updatedAt: Date.now()
-				});
-				await n.mutate((e) => {
-					let n = e.diaries.findIndex((e) => e.id === i.id);
-					if (n < 0 && t) throw Error("该日记已删除。");
-					n >= 0 ? e.diaries[n] = i : e.diaries.push(i), (!t || t.body !== i.body || t.needsReview) && (e.characterGrowth.reviewRecommended = !0);
-				}), p(i);
-			});
+		let t = e, { view: n, host: r, run: i } = Zs(), a = X(() => t.kind === "diaries"), o = X(() => a.value ? "日记" : "记忆点"), s = /* @__PURE__ */ z(""), c = /* @__PURE__ */ z(null), l = /* @__PURE__ */ z(!1), u, d = "", f = X(() => {
+			let e = n.value.state;
+			if (!e) return [];
+			let t = a.value ? [...e.diaries].sort((e, t) => t.createdAt - e.createdAt) : e.memories, r = s.value.trim().toLowerCase();
+			return t.filter((e) => e.id === c.value?.id || [
+				e.title,
+				e.body,
+				e.content,
+				e.storyTime
+			].join("\n").toLowerCase().includes(r));
+		}), p = X(() => l.value ? [c.value, ...f.value.filter((e) => e.id !== c.value.id)] : f.value);
+		function m(e, t) {
+			u = t.currentTarget, l.value = !e, d = e ? JSON.stringify(e) : "", c.value = e ? { ...e } : a.value ? gc({ title: "新日记" }) : pc();
 		}
 		function h() {
-			if (!f.value || !window.confirm("删除这篇日记及其摘要？")) return;
-			let e = f.value.id;
-			return r(async () => {
-				await n.mutate((t) => {
-					t.diaries = t.diaries.filter((t) => t.id !== e), t.characterGrowth.reviewRecommended = !0;
-				}), c.value = null, s.value = null;
-			});
+			c.value = null, l.value = !1, bn(() => u?.focus({ preventScroll: !0 }));
 		}
-		return (e, l) => o.value ? (U(), W(H, { key: 1 }, [
-			G("div", kl, [
-				K(Dl, {
-					modelValue: a.value,
-					"onUpdate:modelValue": l[0] ||= (e) => a.value = e,
-					label: "搜索日记标题、正文与摘要"
-				}, null, 8, ["modelValue"]),
-				G("div", Al, [G("button", {
-					class: "sd-primary",
-					onClick: l[1] ||= (e) => p()
-				}, "新建日记"), z(t).busy.includes("summary") ? (U(), W("button", {
-					key: 0,
-					onClick: l[2] ||= (e) => z(n).cancel("summary")
-				}, "取消摘要任务")) : u.value.length && z(t).channels.some((e) => e.id === o.value.settings.bindings.summary) ? (U(), W("button", {
-					key: 1,
-					onClick: l[3] ||= (e) => z(r)(() => z(n).summarizeAll(u.value))
-				}, "补全 " + N(u.value.length) + " 篇摘要", 1)) : u.value.length ? (U(), W("button", {
-					key: 2,
-					onClick: l[4] ||= (e) => z(i)("settings")
-				}, "配置摘要渠道")) : J("", !0)]),
-				z(t).summaryProgress ? (U(), W("p", jl, N(z(t).summaryProgress), 1)) : J("", !0)
-			]),
-			c.value ? (U(), W("section", Ml, [
-				G("header", Nl, [G("h3", null, N(f.value ? "编辑日记" : "新建日记"), 1), G("button", { onClick: l[5] ||= (e) => {
-					c.value = null, s.value = null;
-				} }, "关闭编辑")]),
-				G("label", Pl, [l[12] ||= q("标题", -1), B(G("input", { "onUpdate:modelValue": l[6] ||= (e) => c.value.title = e }, null, 512), [[X, c.value.title]])]),
-				K(Sc, {
-					modelValue: c.value.body,
-					"onUpdate:modelValue": l[7] ||= (e) => c.value.body = e,
-					label: "正文",
-					rows: 12
-				}, null, 8, ["modelValue"]),
-				K(Sc, {
-					modelValue: c.value.summary,
-					"onUpdate:modelValue": l[8] ||= (e) => c.value.summary = e,
-					label: f.value?.summaryPending ? "摘要 · 待核对" : "单篇摘要",
-					rows: 5
-				}, null, 8, ["modelValue", "label"]),
-				G("div", Fl, [
-					f.value ? (U(), W("button", {
-						key: 0,
-						class: "sd-danger",
-						onClick: h
-					}, "删除")) : J("", !0),
-					f.value && !z(t).busy.includes("summary") ? (U(), W("button", {
-						key: 1,
-						onClick: l[9] ||= (e) => z(r)(() => z(n).summarizeAll([f.value.id]))
-					}, "重生成摘要")) : J("", !0),
-					G("button", { onClick: l[10] ||= (e) => m() }, "保存日记"),
-					G("button", {
-						class: "sd-primary",
-						onClick: l[11] ||= (e) => m(!0)
-					}, "保存并确认摘要")
-				])
-			])) : J("", !0),
-			d.value.length ? J("", !0) : (U(), W("p", Il, "没有符合条件的日记。")),
-			(U(!0), W(H, null, V(d.value, (e) => (U(), W("article", {
-				key: e.id,
-				class: "sd-card sd-listrow"
-			}, [G("div", null, [
-				G("h3", null, N(e.title), 1),
-				G("p", null, [
-					q(N(new Date(e.createdAt).toLocaleDateString()), 1),
-					e.summaryPending ? (U(), W("span", Ll, " · 摘要待核对")) : J("", !0),
-					e.needsReview ? (U(), W("span", Rl, " · 日记待复核")) : J("", !0)
-				]),
-				G("p", zl, N(e.summary || e.body), 1)
-			]), G("button", { onClick: (t) => p(e) }, "查看与编辑", 8, Bl)]))), 128))
-		], 64)) : (U(), W("p", Ol, N(z(t).blocker), 1));
-	}
-}), Hl = {
-	key: 0,
-	class: "sd-card"
-}, Ul = {
-	class: "sd-segments",
-	"aria-label": "长期记忆视图"
-}, Wl = ["aria-pressed"], Gl = ["aria-pressed"], Kl = ["aria-pressed"], ql = { class: "sd-card sd-stack" }, Jl = { key: 0 }, Yl = {
-	key: 1,
-	class: "sd-actions"
-}, Xl = {
-	key: 0,
-	class: "sd-card sd-stack"
-}, Zl = { class: "sd-section-title" }, Ql = ["disabled"], $l = { class: "sd-form-grid" }, eu = { class: "sd-field" }, tu = ["value"], nu = ["value"], ru = { class: "sd-field" }, iu = { class: "sd-field" }, au = { class: "sd-form-grid" }, ou = { class: "sd-field" }, su = { class: "sd-field" }, cu = { class: "sd-field" }, lu = { class: "sd-sticky sd-actions" }, uu = ["disabled"], du = {
-	key: 1,
-	class: "sd-card"
-}, fu = { class: "sd-stack" }, pu = { key: 0 }, mu = { key: 1 }, hu = { class: "sd-actions" }, gu = ["onClick"], _u = ["onClick"], vu = { class: "sd-card sd-stack" }, yu = { class: "sd-section-title" }, bu = { class: "sd-field" }, xu = ["value"], Su = {
-	key: 0,
-	class: "sd-graph"
-}, Cu = { class: "sd-node" }, wu = { class: "sd-branches" }, Tu = { key: 0 }, Eu = ["onClick"], Du = ["onClick"], Ou = {
-	key: 1,
-	class: "sd-actions"
-}, ku = {
-	key: 2,
-	class: "sd-subcard sd-stack"
-}, Au = { class: "sd-field" }, ju = ["value"], Mu = { key: 0 }, Nu = ["disabled"], Pu = {
-	key: 3,
-	class: "sd-subcard sd-stack"
-}, Fu = { class: "sd-form-grid" }, Iu = { class: "sd-field" }, Lu = ["value"], Ru = { class: "sd-field" }, zu = ["value"], Bu = { class: "sd-field" }, Vu = ["value"], Hu = { class: "sd-actions" }, Uu = { class: "sd-card sd-stack" }, Wu = {
-	key: 0,
-	role: "status"
-}, Gu = { class: "sd-actions" }, Ku = {
-	key: 1,
-	class: "sd-stack"
-}, qu = ["onUpdate:modelValue"], Ju = { class: "sd-actions" }, Yu = /* @__PURE__ */ $n({
-	__name: "Memory",
-	setup(e) {
-		let { view: t, host: n, run: r, select: i } = $s(), a = Y(() => t.value.state), o = /* @__PURE__ */ R("facts"), s = /* @__PURE__ */ R(""), c = /* @__PURE__ */ R(null), l = /* @__PURE__ */ R(""), u = /* @__PURE__ */ R(null), d = /* @__PURE__ */ R(""), f = /* @__PURE__ */ R([]), p = /* @__PURE__ */ R(!1), m = /* @__PURE__ */ R(""), h = /* @__PURE__ */ R(""), g = Y(() => new Map((a.value?.memories || []).map((e) => [e.id, e]))), _ = Y(() => (a.value?.memories || []).filter(ac)), v = Y(() => (a.value?.memories || []).filter((e) => !ac(e))), y = Y(() => (o.value === "pending" ? v.value : _.value).filter((e) => [
-			e.title,
-			e.content,
-			...e.people,
-			...e.aliases
-		].join("\n").toLowerCase().includes(s.value.trim().toLowerCase()))), b = Y(() => (a.value?.edges || []).filter((e) => e.from === l.value || e.to === l.value)), x = (e) => g.value.get(e)?.title || e;
-		Hn(() => JSON.stringify(a.value?.graphPreview), () => {
-			f.value = JSON.parse(JSON.stringify(a.value?.graphPreview?.edges || []));
-		}, { immediate: !0 });
-		function S(e = null) {
-			c.value = e ? {
-				...e,
-				peopleText: e.people.join("、"),
-				aliasesText: e.aliases.join("、")
-			} : {
-				title: "",
-				category: "preference",
-				content: "",
-				importance: 3,
-				storyTime: "",
-				peopleText: "",
-				aliasesText: "",
-				permanent: !1
-			};
+		async function g() {
+			let e = { ...c.value };
+			if (!$(a.value ? e.body : e.content)) throw Error("请填写正文。");
+			await r.mutate((t) => {
+				let n = a.value ? t.diaries : t.memories, r = n.findIndex((t) => t.id === e.id);
+				if (!l.value && r < 0) throw Error("条目已删除。");
+				if (r >= 0 && JSON.stringify(n[r]) !== d) throw Error("条目已变化，请重新打开核对。");
+				if (a.value) {
+					let n = gc({
+						...e,
+						needsReview: !1,
+						updatedAt: Date.now()
+					});
+					r < 0 ? t.diaries.push(n) : t.diaries[r] = n, t.characterGrowth.reviewRecommended = !0;
+				} else yc(t, e, r >= 0 ? e.id : null);
+				d = JSON.stringify(n.find((t) => t.id === e.id));
+			}), c.value?.id === e.id && (l.value = !1);
 		}
-		function C() {
-			return r(async () => {
-				let { id: e, title: t, content: r, category: i, importance: a, storyTime: o, permanent: s, peopleText: l, aliasesText: u } = c.value, d = (e) => e.split(/[、，,\r\n]+/).map((e) => e.trim()).filter(Boolean);
-				await n.mutate((n) => hc(n, {
-					title: t,
-					content: r,
-					category: i,
-					importance: a,
-					storyTime: o,
-					permanent: s,
-					people: d(l),
-					aliases: d(u)
-				}, e)), c.value = null;
-			});
-		}
-		function w(e, t) {
-			return r(() => n.mutate((n) => {
-				let r = n.memories.find((t) => t.id === e.id);
-				if (!r) throw Error("该事实已删除。");
-				if (r.locked && t !== "locked") throw Error("请先解锁。");
-				r[t] = !r[t], n.memoryRevision++, c.value?.id === e.id && (c.value[t] = r[t]);
-			}));
-		}
-		function ee() {
-			if (!c.value || !window.confirm("删除此事实及其相关边？")) return;
+		async function _() {
 			let e = c.value.id;
-			return r(async () => {
-				await n.mutate((t) => gc(t, e)), c.value = null;
+			await r.mutate((t) => {
+				let n = t.memories.find((t) => t.id === e);
+				if (!n || JSON.stringify(n) !== d) throw Error("条目已变化，请重新打开核对。");
+				n.locked = !n.locked, d = JSON.stringify(n);
+			}), c.value.locked = n.value.state.memories.find((t) => t.id === e).locked;
+		}
+		function v() {
+			if (window.confirm("删除此" + o.value + "？")) return i(async () => {
+				let e = c.value.id;
+				await r.mutate((t) => {
+					if (a.value) t.diaries = t.diaries.filter((t) => t.id !== e), t.characterGrowth.reviewRecommended = !0;
+					else {
+						if (t.memories.find((t) => t.id === e)?.locked) throw Error("请先解锁。");
+						t.memories = t.memories.filter((t) => t.id !== e), t.memoryRevision++;
+					}
+				}), h();
 			});
 		}
-		function te(e = null) {
-			u.value = e ? { ...e } : {
-				from: l.value,
-				to: "",
-				type: "stored_at",
-				reason: ""
-			}, d.value = e ? fc(e) : "";
-		}
-		function T() {
-			let e = { ...u.value };
-			return r(async () => {
-				await n.mutate((t) => {
-					let n = t.edges.filter((e) => fc(e) !== d.value), r = pc([...n, e], t.memories);
-					if (r.length !== n.length + 1) throw Error("请选择不同的事实、关系类型并填写依据，且避免重复关系。");
-					t.edges = r;
-				}), l.value = e.from, u.value = null;
-			});
-		}
-		function E() {
-			if (window.confirm("删除这条关系？")) return r(async () => {
-				await n.mutate((e) => {
-					e.edges = e.edges.filter((e) => fc(e) !== d.value);
-				}), u.value = null;
-			});
-		}
-		function D() {
-			if (window.confirm("将来源事实合并到选定事实，并重定向相关边？")) return r(async () => {
-				await n.mutate((e) => _c(e, l.value, [m.value], h.value)), p.value = !1;
-			});
-		}
-		return (e, O) => a.value ? (U(), W(H, { key: 1 }, [G("nav", Ul, [
-			G("button", {
-				"aria-pressed": o.value === "facts",
-				onClick: O[0] ||= (e) => {
-					o.value = "facts", c.value = null;
-				}
-			}, "事实表", 8, Wl),
-			G("button", {
-				"aria-pressed": o.value === "pending",
-				onClick: O[1] ||= (e) => {
-					o.value = "pending", c.value = null;
-				}
-			}, "待分类" + N(v.value.length ? " · " + v.value.length : ""), 9, Gl),
-			G("button", {
-				"aria-pressed": o.value === "graph",
-				onClick: O[2] ||= (e) => {
-					o.value = "graph", c.value = null;
-				}
-			}, "记忆图谱", 8, Kl)
-		]), o.value === "graph" ? (U(), W(H, { key: 1 }, [G("section", vu, [
-			G("header", yu, [O[40] ||= G("h3", null, "节点与关系", -1), G("span", null, N(_.value.length) + " 个节点 · " + N(a.value.edges.length) + " 条边", 1)]),
-			G("label", bu, [O[42] ||= q("查看事实", -1), B(G("select", {
-				"onUpdate:modelValue": O[15] ||= (e) => l.value = e,
-				onChange: O[16] ||= (e) => {
-					u.value = null, p.value = !1;
-				}
-			}, [O[41] ||= G("option", { value: "" }, "请选择", -1), (U(!0), W(H, null, V(_.value, (e) => (U(), W("option", {
-				key: e.id,
-				value: e.id
-			}, N(e.title), 9, xu))), 128))], 544), [[Ao, l.value]])]),
-			g.value.has(l.value) ? (U(), W("div", Su, [G("div", Cu, [G("h3", null, N(x(l.value)), 1), G("p", null, N(g.value.get(l.value).content), 1)]), G("div", wu, [b.value.length ? J("", !0) : (U(), W("p", Tu, "该事实尚无关系。")), (U(!0), W(H, null, V(b.value, (e) => (U(), W("div", {
-				key: z(fc)(e),
-				class: "sd-branch"
-			}, [G("button", { onClick: (t) => te(e) }, N(e.from === l.value ? "→" : "←") + " " + N(z(nc)[e.type].label), 9, Eu), G("button", {
-				class: "sd-node",
-				onClick: (t) => {
-					l.value = e.from === l.value ? e.to : e.from, u.value = null, p.value = !1;
-				}
-			}, N(x(e.from === l.value ? e.to : e.from)), 9, Du)]))), 128))])])) : J("", !0),
-			l.value ? (U(), W("div", Ou, [G("button", { onClick: O[17] ||= (e) => te() }, "新建关系"), G("button", { onClick: O[18] ||= (e) => {
-				p.value = !p.value, m.value = "", h.value = g.value.get(l.value)?.content || "";
-			} }, "合并事实")])) : J("", !0),
-			p.value ? (U(), W("div", ku, [
-				G("label", Au, [q("合并到 " + N(x(l.value)), 1), B(G("select", { "onUpdate:modelValue": O[19] ||= (e) => m.value = e }, [O[43] ||= G("option", { value: "" }, "选择来源事实", -1), (U(!0), W(H, null, V(_.value.filter((e) => !e.locked && e.id !== l.value), (e) => (U(), W("option", {
-					key: e.id,
-					value: e.id
-				}, N(e.title), 9, ju))), 128))], 512), [[Ao, m.value]])]),
-				m.value ? (U(), W("p", Mu, N(g.value.get(m.value)?.content), 1)) : J("", !0),
-				K(Sc, {
-					modelValue: h.value,
-					"onUpdate:modelValue": O[20] ||= (e) => h.value = e,
-					label: "合并后的正文"
-				}, null, 8, ["modelValue"]),
-				G("button", {
-					disabled: !m.value,
-					onClick: D
-				}, "确认合并", 8, Nu)
-			])) : J("", !0),
-			u.value ? (U(), W("div", Pu, [
-				G("div", Fu, [G("label", Iu, [O[45] ||= q("起点", -1), B(G("select", { "onUpdate:modelValue": O[21] ||= (e) => u.value.from = e }, [O[44] ||= G("option", { value: "" }, "请选择", -1), (U(!0), W(H, null, V(_.value, (e) => (U(), W("option", {
-					key: e.id,
-					value: e.id
-				}, N(e.title), 9, Lu))), 128))], 512), [[Ao, u.value.from]])]), G("label", Ru, [O[47] ||= q("终点", -1), B(G("select", { "onUpdate:modelValue": O[22] ||= (e) => u.value.to = e }, [O[46] ||= G("option", { value: "" }, "请选择", -1), (U(!0), W(H, null, V(_.value, (e) => (U(), W("option", {
-					key: e.id,
-					value: e.id
-				}, N(e.title), 9, zu))), 128))], 512), [[Ao, u.value.to]])])]),
-				G("label", Bu, [O[48] ||= q("类型", -1), B(G("select", { "onUpdate:modelValue": O[23] ||= (e) => u.value.type = e }, [(U(!0), W(H, null, V(z(nc), (e, t) => (U(), W("option", {
-					key: t,
-					value: t
-				}, N(e.label), 9, Vu))), 128))], 512), [[Ao, u.value.type]])]),
-				G("p", null, N(z(nc)[u.value.type].meaning), 1),
-				K(Sc, {
-					modelValue: u.value.reason,
-					"onUpdate:modelValue": O[24] ||= (e) => u.value.reason = e,
-					label: "关系依据",
-					rows: 3
-				}, null, 8, ["modelValue"]),
-				G("div", Hu, [
-					G("button", { onClick: O[25] ||= (e) => [u.value.from, u.value.to] = [u.value.to, u.value.from] }, "交换方向"),
-					d.value ? (U(), W("button", {
-						key: 0,
-						class: "sd-danger",
-						onClick: E
-					}, "删除关系")) : J("", !0),
-					G("button", { onClick: O[26] ||= (e) => u.value = null }, "关闭"),
-					G("button", {
-						class: "sd-primary",
-						onClick: T
-					}, "保存关系")
-				])
-			])) : J("", !0)
-		]), G("section", Uu, [
-			O[50] ||= G("h3", null, "整理图谱", -1),
-			z(t).graphProgress ? (U(), W("p", Wu, N(z(t).graphProgress), 1)) : J("", !0),
-			G("div", Gu, [z(t).busy.includes("graph") ? (U(), W("button", {
-				key: 0,
-				onClick: O[27] ||= (e) => z(n).cancel("graph")
-			}, "取消整理")) : z(t).channels.some((e) => e.id === a.value.settings.bindings.graph) ? (U(), W(H, { key: 1 }, [G("button", { onClick: O[28] ||= (e) => z(r)(() => z(n).organize("full")) }, "全量整理"), G("button", { onClick: O[29] ||= (e) => z(r)(() => z(n).organize("incremental")) }, "增量整理")], 64)) : (U(), W("button", {
-				key: 2,
-				onClick: O[30] ||= (e) => z(i)("settings")
-			}, "配置图谱渠道"))]),
-			a.value.graphPreview ? (U(), W("div", Ku, [
-				G("p", null, N(a.value.graphPreview.mode === "full" ? "批准后以勾选的关系替换现有图谱。" : "批准后增加勾选的关系。"), 1),
-				(U(!0), W(H, null, V(f.value, (e) => (U(), W("article", {
-					key: z(fc)(e),
-					class: "sd-subcard sd-stack"
-				}, [
-					G("label", null, [B(G("input", {
-						type: "checkbox",
-						"onUpdate:modelValue": (t) => e.accepted = t
-					}, null, 8, qu), [[Oo, e.accepted]]), q(" " + N(x(e.from)) + " → " + N(z(nc)[e.type].label) + " → " + N(x(e.to)), 1)]),
-					G("p", null, [
-						q(N(g.value.get(e.from)?.content), 1),
-						O[49] ||= G("br", null, null, -1),
-						q(N(g.value.get(e.to)?.content), 1)
-					]),
-					K(Sc, {
-						modelValue: e.reason,
-						"onUpdate:modelValue": (t) => e.reason = t,
-						label: "依据",
-						rows: 2
-					}, null, 8, ["modelValue", "onUpdate:modelValue"])
-				]))), 128)),
-				G("div", Ju, [G("button", { onClick: O[31] ||= (e) => z(r)(() => z(n).mutate((e) => {
-					e.graphPreview = null;
-				})) }, "取消预览"), G("button", {
-					class: "sd-primary",
-					onClick: O[32] ||= (e) => z(r)(() => z(n).applyGraph(JSON.parse(JSON.stringify(f.value))))
-				}, "应用获批关系")])
-			])) : J("", !0)
-		])], 64)) : (U(), W(H, { key: 0 }, [
-			G("div", ql, [K(Dl, {
+		return (e, t) => B(n).state ? (U(), W(H, { key: 1 }, [
+			G("section", kl, [K(Dl, {
 				modelValue: s.value,
-				"onUpdate:modelValue": O[3] ||= (e) => s.value = e,
-				label: "搜索事实、人物、别名"
-			}, null, 8, ["modelValue"]), o.value === "pending" ? (U(), W("p", Jl, "这些旧条目保留原文和控制属性。保存新类别后恢复召回。")) : (U(), W("div", Yl, [G("button", {
-				class: "sd-primary",
-				onClick: O[4] ||= (e) => S()
-			}, "新增事实")]))]),
-			c.value ? (U(), W("section", Xl, [
-				G("header", Zl, [G("h3", null, N(c.value.id ? "编辑事实" : "新建事实"), 1), G("button", { onClick: O[5] ||= (e) => c.value = null }, "关闭编辑")]),
+				"onUpdate:modelValue": t[0] ||= (e) => s.value = e,
+				label: "搜索" + o.value
+			}, null, 8, ["modelValue", "label"]), G("div", null, [G("button", { onClick: t[1] ||= (e) => m(null, e) }, "新建" + N(o.value), 1)])]),
+			(U(!0), W(H, null, Dr(p.value, (e) => (U(), W("article", {
+				key: e.id,
+				class: "sd-card sd-stack"
+			}, [c.value?.id === e.id ? (U(), W(H, { key: 0 }, [
+				G("header", Al, [G("h3", null, "编辑" + N(o.value), 1), G("button", { onClick: h }, "关闭编辑")]),
 				G("fieldset", {
-					disabled: c.value.locked,
-					class: "sd-stack"
-				}, [
-					G("div", $l, [G("label", eu, [O[33] ||= q("类别", -1), B(G("select", { "onUpdate:modelValue": O[6] ||= (e) => c.value.category = e }, [z(tc)[c.value.category] ? J("", !0) : (U(), W("option", {
-						key: 0,
-						value: c.value.category
-					}, "旧类别 · " + N(c.value.category), 9, tu)), (U(!0), W(H, null, V(z(tc), (e, t) => (U(), W("option", {
-						key: t,
-						value: t
-					}, N(e), 9, nu))), 128))], 512), [[Ao, c.value.category]])]), G("label", ru, [O[34] ||= q("重要度", -1), B(G("input", {
+					class: "sd-stack",
+					disabled: c.value.locked
+				}, [G("label", Ml, [t[9] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": t[2] ||= (e) => c.value.title = e }, null, 512), [[Z, c.value.title]])]), a.value ? (U(), ea(wc, {
+					key: 0,
+					modelValue: c.value.body,
+					"onUpdate:modelValue": t[3] ||= (e) => c.value.body = e,
+					label: "日记正文",
+					rows: 12
+				}, null, 8, ["modelValue"])) : (U(), W(H, { key: 1 }, [
+					K(wc, {
+						modelValue: c.value.content,
+						"onUpdate:modelValue": t[4] ||= (e) => c.value.content = e,
+						label: "内容"
+					}, null, 8, ["modelValue"]),
+					G("label", Nl, [t[10] ||= q("故事时间", -1), V(G("input", { "onUpdate:modelValue": t[5] ||= (e) => c.value.storyTime = e }, null, 512), [[Z, c.value.storyTime]])]),
+					G("label", Pl, [t[11] ||= q("重要度", -1), V(G("input", {
 						type: "number",
-						"onUpdate:modelValue": O[7] ||= (e) => c.value.importance = e,
+						"onUpdate:modelValue": t[6] ||= (e) => c.value.importance = e,
 						min: "1",
 						max: "5"
 					}, null, 512), [[
-						X,
+						Z,
 						c.value.importance,
 						void 0,
 						{ number: !0 }
-					]])])]),
-					G("label", iu, [O[35] ||= q("标题", -1), B(G("input", { "onUpdate:modelValue": O[8] ||= (e) => c.value.title = e }, null, 512), [[X, c.value.title]])]),
-					K(Sc, {
-						modelValue: c.value.content,
-						"onUpdate:modelValue": O[9] ||= (e) => c.value.content = e,
-						label: "可独立理解的客观事实"
-					}, null, 8, ["modelValue"]),
-					G("div", au, [
-						G("label", ou, [O[36] ||= q("故事时间", -1), B(G("input", { "onUpdate:modelValue": O[10] ||= (e) => c.value.storyTime = e }, null, 512), [[X, c.value.storyTime]])]),
-						G("label", su, [O[37] ||= q("相关人物", -1), B(G("input", { "onUpdate:modelValue": O[11] ||= (e) => c.value.peopleText = e }, null, 512), [[X, c.value.peopleText]])]),
-						G("label", cu, [O[38] ||= q("别名", -1), B(G("input", { "onUpdate:modelValue": O[12] ||= (e) => c.value.aliasesText = e }, null, 512), [[X, c.value.aliasesText]])])
-					]),
-					G("label", null, [B(G("input", {
+					]])]),
+					G("label", null, [V(G("input", {
 						type: "checkbox",
-						"onUpdate:modelValue": O[13] ||= (e) => c.value.permanent = e
-					}, null, 512), [[Oo, c.value.permanent]]), O[39] ||= q(" 常驻", -1)])
-				], 8, Ql),
-				G("div", lu, [
-					c.value.id ? (U(), W("button", {
+						"onUpdate:modelValue": t[7] ||= (e) => c.value.permanent = e
+					}, null, 512), [[ko, c.value.permanent]]), t[12] ||= q(" 常驻", -1)])
+				], 64))], 8, jl),
+				G("div", Fl, [
+					!l.value && !a.value ? (U(), W("button", {
 						key: 0,
-						onClick: O[14] ||= (e) => w(c.value, "locked")
+						onClick: t[8] ||= (e) => B(i)(_)
 					}, N(c.value.locked ? "解锁" : "锁定"), 1)) : J("", !0),
-					c.value.id && !c.value.locked ? (U(), W("button", {
+					!l.value && !c.value.locked ? (U(), W("button", {
 						key: 1,
 						class: "sd-danger",
-						onClick: ee
+						onClick: v
 					}, "删除")) : J("", !0),
-					G("button", {
-						class: "sd-primary",
-						disabled: c.value.locked,
-						onClick: C
-					}, "保存事实", 8, uu)
+					K(cl, {
+						action: g,
+						label: "保存" + o.value,
+						success: o.value + "已保存",
+						disabled: c.value.locked
+					}, null, 8, [
+						"label",
+						"success",
+						"disabled"
+					])
 				])
-			])) : J("", !0),
-			y.value.length ? J("", !0) : (U(), W("p", du, "没有符合条件的事实。")),
-			(U(!0), W(H, null, V(y.value, (e) => (U(), W("article", {
-				key: e.id,
-				class: "sd-card sd-listrow"
-			}, [G("div", fu, [
+			], 64)) : (U(), W(H, { key: 1 }, [
 				G("h3", null, N(e.title), 1),
-				G("p", null, [
-					q(N(z(tc)[e.category] || e.category) + " · 重要度 " + N(e.importance), 1),
-					e.locked ? (U(), W("span", pu, " · 已锁定")) : J("", !0),
-					e.permanent ? (U(), W("span", mu, " · 常驻")) : J("", !0)
-				]),
-				G("p", null, N(e.content), 1)
-			]), G("div", hu, [G("button", { onClick: (t) => S(e) }, "查看与编辑", 8, gu), o.value === "facts" ? (U(), W("button", {
-				key: 0,
-				onClick: (t) => {
-					l.value = e.id, o.value = "graph";
-				}
-			}, "关系", 8, _u)) : J("", !0)])]))), 128))
-		], 64))], 64)) : (U(), W("p", Hl, N(z(t).blocker), 1));
+				a.value ? (U(), W("p", Il, N(new Date(e.createdAt).toLocaleDateString()) + " " + N(e.needsReview ? "· 待复核" : ""), 1)) : (U(), W("p", Ll, "重要度 " + N(e.importance) + " " + N(e.storyTime) + " " + N(e.permanent ? "· 常驻" : "") + " " + N(e.locked ? "· 已锁定" : ""), 1)),
+				G("p", Rl, N(a.value ? e.body : e.content), 1)
+			], 64)), V(G("div", null, [G("button", { onClick: (t) => m(e, t) }, "查看与编辑", 8, zl)], 512), [[qa, c.value?.id !== e.id]])]))), 128)),
+			p.value.length ? J("", !0) : (U(), W("p", Bl, "没有符合条件的" + N(o.value) + "。", 1))
+		], 64)) : (U(), W("p", Ol, N(B(n).blocker), 1));
 	}
-}), Xu = { type: "string" }, Zu = { type: ["string", "null"] }, Qu = (e) => ({
-	type: "object",
-	additionalProperties: !1,
-	properties: e,
-	required: Object.keys(e)
-}), $u = (e, t) => ({
-	name: `scene_diary_${e}`,
-	strict: !0,
-	value: Qu(t)
-}), ed = Qu({
-	category: {
-		type: "string",
-		enum: [
-			"preference",
-			"habit",
-			"promise",
-			"relationship",
-			"event",
-			"item_place"
-		]
-	},
-	title: Xu,
-	content: Xu,
-	people: {
-		type: "array",
-		items: Xu
-	},
-	aliases: {
-		type: "array",
-		items: Xu
-	},
-	importance: {
-		type: "integer",
-		minimum: 1,
-		maximum: 5
-	},
-	storyTime: Zu
-}), td = Object.freeze({
-	diary: $u("diary", {
-		title: Xu,
-		diary: Xu
-	}),
-	memory: $u("memory", { memories: {
-		type: "array",
-		items: ed
-	} }),
-	growth: $u("growth", { characterGrowth: Xu }),
-	maintenance: $u("maintenance", { operations: {
-		type: "array",
-		items: Qu({
-			action: {
-				type: "string",
-				enum: ["merge", "link"]
-			},
-			memberIds: {
-				type: "array",
-				items: Xu
-			},
-			targetId: Zu,
-			title: Zu,
-			content: Zu,
-			category: Zu,
-			a: Zu,
-			b: Zu,
-			reason: Xu
-		})
-	} })
-});
-function nd(e) {
-	let t = [];
-	for (let n = e, r = 0; n && r < 4; n = n.cause, r++) t.push(String(n.message || n));
-	return t.join(" ");
-}
-var rd = "上一轮响应缺少必需字段，或不是可解析的完整 JSON。请按格式重新输出完整 JSON 对象及必需数组；字符串内的换行写成 \\n，双引号写成 \\\"。不要输出 Markdown 或说明。";
-function id(e, t = "json_schema") {
-	return t === "json_object" ? { type: t } : {
-		type: "json_schema",
-		json_schema: {
-			name: e.name,
-			strict: e.strict ?? !0,
-			schema: structuredClone(e.value)
-		}
+}), Hl = /* @__PURE__ */ Qn({
+	__name: "Diaries",
+	setup(e) {
+		return (e, t) => (U(), ea(Vl, { kind: "diaries" }));
+	}
+}), Ul = /* @__PURE__ */ Qn({
+	__name: "Memory",
+	setup(e) {
+		return (e, t) => (U(), ea(Vl, { kind: "memory" }));
+	}
+}), Wl = {
+	diary: "{\"title\":\"标题\",\"body\":\"日记正文\"}",
+	memory: "{\"memories\":[{\"title\":\"标题\",\"content\":\"记忆内容\",\"storyTime\":null,\"importance\":3}]}，importance 是 1–5 的整数；storyTime 是字符串或 null；没有记忆点时返回 {\"memories\":[]}。",
+	growth: "{\"changed\":true,\"content\":\"完整候选画像\"} 或 {\"changed\":false,\"content\":\"\"}",
+	test: "{\"ok\":true}"
+};
+function Gl(e, t, n, r, i) {
+	let a = t.prompts[e], o = "sd_" + e;
+	return {
+		system: Es(a.system, n),
+		background: [n.context, r && "[当前角色画像]\n" + r].filter(Boolean).join("\n\n"),
+		description: Es(a.description, n),
+		material: i,
+		format: "返回一个用 <" + o + "> 和 </" + o + "> 包裹的 JSON 对象。结构如下：\n" + Wl[e]
 	};
 }
-function ad(e, t) {
-	let n = [];
-	for (let t = e, r = 0; t && r < 4; t = t.cause, r++) n.push(t);
-	let r = nd(e), i = n.map((e) => `${e.code || ""} ${e.providerCode || ""} ${e.category || ""}`).join(" ");
-	if (n.some((e) => e.name === "AbortError" || [
-		401,
-		403,
-		402,
-		429
-	].includes(Number(e.providerStatus)) || [
-		401,
-		403,
-		402,
-		429
-	].includes(Number(e.bridgeStatus)) || Number(e.providerStatus) >= 500) || /SCENE_DIARY_(?:STALE|JSON_(?:NETWORK|CONFIG|PROTOCOL|TRANSPORT|REFUSAL))/i.test(i) || /network|timeout|timed out|dns|tls|quota|rate[_ -]?limit|authentication|unauthori[sz]ed|forbidden|insufficient|permission denied|internal server error|service unavailable|invalid[_ -]?(?:api[_ -]?key|key)|api[_ -]?key.*(?:invalid|missing)|网络|超时|额度|限流/i.test(`${i} ${r}`) || /\b(?:HTTP|status)\s*[:=]?\s*(?:401|402|403|429|5\d\d)\b/i.test(r) || /invalid (?:json )?schema|schema.*(?:required|additionalProperties|properties|minimum|maximum)|must.*(?:contain|include).*\bjson\b|context|token.*(?:limit|exceed)/i.test(r)) return !1;
-	let a = t.replace("_", "[_ -]");
-	return RegExp(`(?:${a}|response[_ -]format(?:[. ]type)?)[^\\n]{0,100}(?:not supported|unsupported|unavailable|not available|not enabled|not allowed|unknown type)`, "i").test(r) || RegExp(`(?:not supported|unsupported|unavailable|not available|not enabled|unknown type)[^\\n]{0,100}(?:${a}|response[_ -]format(?:[. ]type)?)`, "i").test(r) || /response_format[.\[ '\"]*type/i.test(`${n.map((e) => e.param || "").join(" ")} ${r}`) && /(?:must be one of|allowed values|supported values|invalid enum|not in.*enum)/i.test(r);
-}
-function od(e) {
-	return Object.assign(Error(e), { code: "SCENE_DIARY_SCHEMA" });
-}
-function sd(e, t, n) {
-	let r = Array.isArray(t.type) ? t.type : [t.type];
-	if (!r.some((t) => t === "null" ? e === null : t === "object" ? typeof e == "object" && !!e && !Array.isArray(e) : t === "array" ? Array.isArray(e) : t === "integer" ? Number.isInteger(e) : typeof e === t)) throw od(`${n} 类型不符合 JSON 协议（需要 ${r.join("/")}）`);
-	if (t.enum && !t.enum.includes(e)) throw od(`${n} 不在允许值中`);
-	if (typeof e == "number" && (e < (t.minimum ?? -Infinity) || e > (t.maximum ?? Infinity))) throw od(`${n} 超出允许范围`);
-	if (typeof e == "object" && e && !Array.isArray(e)) {
-		for (let r of t.required || []) if (!Object.hasOwn(e, r)) throw od(`${n}.${r} 缺少必需字段`);
-		for (let r of Object.keys(e)) Object.hasOwn(t.properties || {}, r) && sd(e[r], t.properties[r], `${n}.${r}`);
-	}
-	Array.isArray(e) && t.items && e.forEach((e, r) => sd(e, t.items, `${n}[${r}]`));
-}
-function cd(e, t) {
-	let n;
-	try {
-		n = typeof e == "string" ? JSON.parse(e.trim()) : e;
-	} catch {
-		throw od("JSON 无法完整解析");
-	}
-	let r = structuredClone(t.value);
-	return t.name === td.maintenance.name && delete r.properties.operations.items, t.name === td.memory.name && delete r.properties.memories.items, sd(n, r, "$"), n;
-}
-var ld = "只输出一个完整、可解析的 JSON 对象及所有必需字段。不要输出 Markdown、说明或工具调用。";
-function ud(e) {
-	return Array.isArray(e) ? [...structuredClone(e), {
+function Kl(e) {
+	let { system: t, background: n, description: r, material: i, format: a } = e;
+	return [{
+		role: "system",
+		content: t
+	}, {
 		role: "user",
-		content: ld
-	}] : [{
-		role: "user",
-		content: `${e}\n${ld}`
+		content: [
+			"[背景参考]\n" + n,
+			"[任务描述]\n" + r,
+			"[内容素材]\n" + i,
+			"[格式规定]\n" + a
+		].join("\n\n")
 	}];
 }
-async function dd(e, t, n, r, i, a, { assertCurrent: o = () => {}, onProgress: s = () => {}, connectionLabel: c = "" } = {}) {
-	let l = "json_schema", u = ud(t), d = async (t, r) => {
-		o(), s(`正在请求 ${l}…`);
-		let i = await e(t, r, id(n, l));
-		return o(), i;
-	}, f;
+function ql(e, t) {
+	let n = [...t.matchAll(RegExp("<sd_" + e + ">([\\s\\S]*?)</sd_" + e + ">", "g"))];
+	if (n.length !== 1) throw Error("需要一个完整的任务结果标签块，可重试本项。");
+	let r;
 	try {
-		f = await d(u, i);
-	} catch (e) {
-		if (!ad(e, l)) throw e;
-		o(), l = "json_object", s("json_schema 被拒，尝试 json_object…");
-		try {
-			f = await d(u, i);
-		} catch (t) {
-			throw ad(t, l) ? Object.assign(/* @__PURE__ */ Error(`${a}连接${c ? `（${c}）` : ""}拒绝两种 JSON 格式：json_schema：${nd(e)}；json_object：${nd(t)}`), { code: "SCENE_DIARY_JSON_FORMATS_REJECTED" }) : t;
-		}
+		r = JSON.parse(n[0][1]);
+	} catch {
+		throw Error("标签内 JSON 无法解析，可重试本项。");
 	}
-	let p = (e) => {
-		let t = cd(e, n);
-		try {
-			return r(JSON.stringify(t));
-		} catch (e) {
-			throw /JSON.*无法解析|日记正文为空|角色成长内容为空|角色成长超过 \d+ 字符/.test(e.message) ? od(e.message) : e;
-		}
-	};
-	try {
-		return p(f);
-	} catch (e) {
-		if (e?.code !== "SCENE_DIARY_SCHEMA") throw e;
-		o(), s(`使用 ${l} 修复 JSON 输出…`);
-		let t = await d([...u, {
-			role: "user",
-			content: `${rd} 结构错误：${e.message}`
-		}], Math.min(i * 2, 16384));
-		try {
-			return p(t);
-		} catch (e) {
-			throw e?.code === "SCENE_DIARY_SCHEMA" ? Object.assign(/* @__PURE__ */ Error(`${a}两次输出均未满足 JSON 格式或必需字段：${e.message}`), { code: "SCENE_DIARY_JSON_CONTENT" }) : e;
-		}
+	if (!{
+		diary: () => $(r?.title) && $(r?.body),
+		memory: () => Array.isArray(r?.memories) && r.memories.every((e) => hc(e) && (e.storyTime === null || typeof e.storyTime == "string")),
+		growth: () => typeof r?.changed == "boolean" && (r.changed ? !!$(r.content) : r.content === ""),
+		test: () => r?.ok === !0
+	}[e]()) throw Error("结果字段与格式规定不符，可重试本项。");
+	return r;
+}
+function Jl(e, t) {
+	let n = e.diaries.filter((e) => !e.needsReview && $(e.body)).sort((e, t) => t.createdAt - e.createdAt);
+	return (t === "global" ? n : n.slice(0, e.settings.growthDiaryCount)).reverse();
+}
+function Yl(e, t, n, r = [], i = "recent") {
+	let a;
+	if (e === "growth") a = Jl(t, i).map((e) => e.title + "\n" + e.body).join("\n\n");
+	else {
+		let e = ws(r, t.settings.extraction, n.char, n.user);
+		if (e.errors.length) throw Error("正文或故事时间标签未匹配：" + e.errors.map((e) => "楼层 " + (e.index + 1)).join("、"));
+		a = e.text;
 	}
+	return Gl(e, t.settings, n, t.characterGrowth.content, a);
+}
+async function Xl(e, t, n, r, i) {
+	let a = await i(e, Kl(Yl(e, t, n.character, r)));
+	return e === "diary" ? {
+		title: a.title,
+		body: a.body
+	} : a.memories.map(({ title: e, content: t, storyTime: n, importance: r }) => ({
+		id: $o("proposal"),
+		accepted: !0,
+		value: pc({
+			title: e,
+			content: t,
+			storyTime: n,
+			importance: r
+		})
+	}));
+}
+function Zl(e, t) {
+	for (let n of t.filter((e) => e.accepted)) yc(e, {
+		...n.value,
+		id: $o("fact"),
+		locked: !1
+	});
 }
 // redact.js
-function fd(e, t = []) {
+function Ql(e, t = []) {
 	let n = String(e ?? "");
 	for (let e of t.filter((e) => typeof e == "string" && e.length)) n = n.split(e).join("[已隐藏]");
 	return n.replace(/https?:\/\/[^\s"'<>]+/gi, "[地址已隐藏]").replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, "[已隐藏]").replace(/\bBearer\s+[^\s,"'}]+/gi, "Bearer [已隐藏]").replace(/((?:api[_-]?key|authorization|proxy_password|password|secret|token)\s*["']?\s*[:=]\s*)["']?[^\s,"'}]+/gi, "$1[已隐藏]").slice(0, 600);
 }
 // channels.js
-var pd = "scene_diary_channels", md = "/api/backends/chat-completions/", hd = () => ({
-	id: Xo("channel"),
+var $l = "scene_diary_channels", eu = "/api/backends/chat-completions/", tu = () => ({
+	id: $o("channel"),
 	name: "",
 	url: "",
 	key: "",
@@ -4945,20 +4533,20 @@ var pd = "scene_diary_channels", md = "/api/backends/chat-completions/", hd = ()
 	temperature: .4,
 	maxTokens: 4096
 });
-function gd(e) {
-	return e.extensionSettings?.[pd] || [];
+function nu(e) {
+	return e.extensionSettings?.[$l] || [];
 }
-function _d(e, t) {
-	e.extensionSettings[pd] = t, e.saveSettingsDebounced();
+function ru(e, t) {
+	e.extensionSettings[$l] = t, e.saveSettingsDebounced();
 }
-function vd(e) {
+function iu(e) {
 	let t = new URL(e);
 	if (!["http:", "https:"].includes(t.protocol) || t.username || t.password || t.search || t.hash) throw Error("请输入不含认证信息的 HTTP(S) API 地址。");
 	let n = t.pathname.replace(/\/+$/, "").replace(/\/(?:chat\/completions|models)$/, "");
 	return n ||= "/v1", t.origin + n;
 }
-function yd(e) {
-	let t = vd(e.url);
+function au(e) {
+	let t = iu(e.url);
 	if (!e.name.trim() || !e.model.trim()) throw Error("请填写渠道名称和模型。");
 	if (!Number.isFinite(e.temperature) || e.temperature < 0 || e.temperature > 2 || !Number.isInteger(e.maxTokens) || e.maxTokens < 1) throw Error("请检查温度与最大输出 token。");
 	return {
@@ -4969,16 +4557,16 @@ function yd(e) {
 		key: e.key.trim()
 	};
 }
-async function bd(e, t, n, r, i) {
+async function ou(e, t, n, r, i) {
 	let a = t.key ? { Authorization: "Bearer " + t.key } : {}, o = {
 		chat_completion_source: "custom",
 		custom_api_format: "openai_compat",
-		custom_url: vd(t.url),
+		custom_url: iu(t.url),
 		custom_include_headers: JSON.stringify(a),
 		...r
 	};
 	try {
-		let r = await fetch(md + n, {
+		let r = await fetch(eu + n, {
 			method: "POST",
 			headers: e.getRequestHeaders(),
 			signal: i,
@@ -4991,120 +4579,124 @@ async function bd(e, t, n, r, i) {
 		}
 		if (!r.ok || s?.error) {
 			let e = s.error || s;
-			throw Object.assign(Error(fd(e.message || (typeof e == "string" ? e : "HTTP " + r.status), [t.key])), {
+			throw Object.assign(Error(Ql(e.message || (typeof e == "string" ? e : "HTTP " + r.status), [t.key])), {
 				bridgeStatus: r.status,
 				providerStatus: e.status || e.status_code,
-				providerCode: fd(e.code || "", [t.key]),
+				providerCode: Ql(e.code || "", [t.key]),
 				param: e.param
 			});
 		}
 		if (String(s?.id || "").startsWith("tauritavern-error-")) throw Error("TauriTavern 代理未返回有效补全，请检查渠道或更新宿主。");
 		return s;
 	} catch (e) {
-		throw i?.throwIfAborted(), e.message = fd(e.message, [t.key]), e;
+		throw i?.throwIfAborted(), e.message = Ql(e.message, [t.key]), e;
 	}
 }
-async function xd(e, t, n) {
-	let r = await bd(e, t, "status", {}, n), i = r?.data ?? r?.models;
+async function su(e, t, n) {
+	let r = await ou(e, t, "status", {}, n), i = r?.data ?? r?.models;
 	if (!Array.isArray(i)) throw Error("代理未返回模型列表，可手动填写模型。");
-	return i.map((e) => typeof e == "string" ? e : e.id).filter(Boolean).sort();
+	return [...new Set(i.map((e) => typeof e == "string" ? e : e?.id).filter((e) => typeof e == "string" && e.trim()))].sort();
 }
-async function Sd(e, t, n, r, i, a) {
-	let o = (await bd(e, t, "generate", {
+async function cu(e, t, n, r, i) {
+	let a = (await ou(e, t, "generate", {
 		model: t.model,
-		messages: n,
+		messages: r,
 		stream: !1,
 		type: "quiet",
-		response_format: i,
-		max_tokens: r,
-		temperature: t.temperature,
-		custom_include_body: JSON.stringify(i ? { response_format: i } : {})
-	}, a))?.choices?.[0];
-	if (o?.message?.refusal || o?.finish_reason === "content_filter") throw Error("模型拒绝生成该内容。");
-	let s = o?.message?.content;
-	if (typeof s != "string" || !s.trim()) throw Error("渠道未返回文本。");
-	return s;
+		max_tokens: t.maxTokens,
+		temperature: t.temperature
+	}, i))?.choices?.[0];
+	if (a?.message?.refusal || a?.finish_reason === "content_filter") throw Error("模型拒绝生成该内容。");
+	if (a?.finish_reason === "length") throw Error("模型输出被截断，请调整渠道最大输出 token 后重试。");
+	if (typeof a?.message?.content != "string") throw Error("渠道未返回文本。");
+	return ql(n, a.message.content);
 }
-var Cd = {
-	name: "scene_diary_channel_test",
-	value: {
-		type: "object",
-		additionalProperties: !1,
-		properties: { ok: { type: "boolean" } },
-		required: ["ok"]
-	}
-};
-function wd(e, t, n) {
-	return Td(e, yd(t), "返回 JSON {\"ok\":true}。", Cd, n, "渠道测试", void 0, 64);
-}
-function Td(e, t, n, r, i, a, o, s = t.maxTokens) {
-	return dd((n, r, a) => Sd(e, t, n, Math.min(r, t.maxTokens), a, i), [{
-		role: "system",
-		content: "根据给出的素材与任务要求输出 JSON。"
-	}, {
-		role: "user",
-		content: n
-	}], r, JSON.parse, s, a, {
-		assertCurrent: () => i?.throwIfAborted(),
-		onProgress: o,
-		connectionLabel: fd(t.name, [t.key])
-	});
+function lu(e, t, n) {
+	let r = Gl("test", { prompts: { test: {
+		system: "渠道连通性测试。",
+		description: "按规定格式确认连接。"
+	} } }, {}, "", "");
+	return cu(e, au(t), "test", Kl(r), n);
 }
 // src/pages/Settings.vue?vue&type=script&setup=true&lang.ts
-var Ed = { class: "sd-card sd-stack" }, Dd = { class: "sd-section-title" }, Od = ["disabled"], kd = ["disabled", "onClick"], Ad = { class: "sd-form-grid" }, jd = { class: "sd-field" }, Md = { class: "sd-field" }, Nd = { class: "sd-field" }, Pd = { class: "sd-field" }, Fd = { id: "sd-channel-models" }, Id = ["value"], Ld = { class: "sd-field" }, Rd = { class: "sd-field" }, zd = { class: "sd-actions" }, Bd = ["disabled"], Vd = ["disabled"], Hd = ["disabled"], Ud = {
+var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu = ["disabled"], pu = ["disabled", "onClick"], mu = { class: "sd-form-grid" }, hu = { class: "sd-field" }, gu = { class: "sd-field" }, _u = { class: "sd-field" }, vu = { class: "sd-field" }, yu = { class: "sd-field" }, bu = { class: "sd-field" }, xu = {
+	key: 0,
+	role: "status"
+}, Su = {
+	key: 1,
+	class: "sd-subcard sd-stack"
+}, Cu = { class: "sd-field" }, wu = { class: "sd-model-list" }, Tu = ["aria-pressed", "onClick"], Eu = { key: 0 }, Du = { class: "sd-actions" }, Ou = ["disabled"], ku = ["disabled"], Au = ["disabled"], ju = {
 	key: 0,
 	class: "sd-card"
-}, Wd = { class: "sd-card sd-stack" }, Gd = { class: "sd-form-grid" }, Kd = ["onUpdate:modelValue"], qd = ["value"], Jd = {
+}, Mu = { class: "sd-card sd-stack" }, Nu = { class: "sd-form-grid" }, Pu = ["onUpdate:modelValue"], Fu = ["value"], Iu = {
 	class: "sd-card",
 	open: ""
-}, Yd = { class: "sd-stack" }, Xd = { class: "sd-form-grid" }, Zd = { class: "sd-field" }, Qd = { class: "sd-field" }, $d = { class: "sd-field" }, ef = { class: "sd-field" }, tf = { class: "sd-field" }, nf = { class: "sd-field" }, rf = { class: "sd-field" }, af = { class: "sd-field" }, of = { class: "sd-field" }, sf = { class: "sd-card" }, cf = { class: "sd-stack" }, lf = { class: "sd-form-grid" }, uf = { class: "sd-field" }, df = { class: "sd-field" }, ff = { class: "sd-field" }, pf = { class: "sd-field" }, mf = { class: "sd-form-grid" }, hf = { class: "sd-field" }, gf = { class: "sd-field" }, _f = { class: "sd-field" }, vf = { class: "sd-card" }, yf = { class: "sd-stack" }, bf = ["onUpdate:modelValue"], xf = { class: "sd-card" }, Sf = { class: "sd-stack" }, Cf = { class: "sd-field" }, wf = { class: "sd-actions sd-sticky" }, Tf = /* @__PURE__ */ $n({
+}, Lu = { class: "sd-stack" }, Ru = { class: "sd-form-grid" }, zu = { class: "sd-field" }, Bu = { class: "sd-field" }, Vu = { class: "sd-field" }, Hu = { class: "sd-field" }, Uu = { class: "sd-field" }, Wu = { class: "sd-field" }, Gu = { class: "sd-card" }, Ku = { class: "sd-stack" }, qu = { class: "sd-form-grid" }, Ju = { class: "sd-field" }, Yu = { class: "sd-field" }, Xu = { class: "sd-field" }, Zu = { class: "sd-field" }, Qu = { class: "sd-form-grid" }, $u = { class: "sd-field" }, ed = { class: "sd-field" }, td = { class: "sd-field" }, nd = { class: "sd-card" }, rd = { class: "sd-stack" }, id = ["onUpdate:modelValue"], ad = { class: "sd-stack" }, od = { class: "sd-segments" }, sd = ["aria-pressed", "onClick"], cd = { class: "sd-prose" }, ld = { class: "sd-prose" }, ud = { class: "sd-prose" }, dd = { class: "sd-actions sd-sticky" }, fd = /* @__PURE__ */ Qn({
 	__name: "Settings",
 	setup(e) {
-		let { view: t, host: n, run: r, notice: i, select: a } = $s(), o = /* @__PURE__ */ R(null), s = /* @__PURE__ */ R(null), c = /* @__PURE__ */ R([]), l = /* @__PURE__ */ R(!1), u = null;
-		_r(() => u?.abort());
-		let d = n.getContext, f = () => d().accountStorage, p = /* @__PURE__ */ R(f()?.getItem("scene_diary_embedding_key") || ""), m = /* @__PURE__ */ R(f()?.getItem("scene_diary_rerank_key") || ""), h = Y(() => JSON.stringify(t.value.state?.settings || null)), g = /* @__PURE__ */ R({});
-		Hn(h, (e) => {
+		let { view: t, host: n, run: r, notice: i, select: a } = Zs(), o = /* @__PURE__ */ z(null), s = /* @__PURE__ */ z(null), c = /* @__PURE__ */ z([]), l = /* @__PURE__ */ z("diary"), u = /* @__PURE__ */ z("recent"), d = /* @__PURE__ */ z(null), f = /* @__PURE__ */ z(""), p = /* @__PURE__ */ z(!1), m = /* @__PURE__ */ z(!1), h = /* @__PURE__ */ z(""), g = /* @__PURE__ */ z(""), _ = X(() => c.value.filter((e) => e.toLowerCase().includes(h.value.toLowerCase())));
+		Vn([
+			l,
+			u,
+			o,
+			p,
+			() => t.value.state
+		], async (e, t, r) => {
+			let i = !0;
+			if (r(() => {
+				i = !1;
+			}), o.value && p.value) try {
+				let e = await n.previewModules(l.value, o.value, u.value);
+				i && (d.value = e, f.value = "");
+			} catch (e) {
+				i && (d.value = null, f.value = e.message);
+			}
+		}, { deep: !0 });
+		let v = /* @__PURE__ */ z(), y = /* @__PURE__ */ z(!1), b = null;
+		gr(() => b?.abort());
+		let x = n.getContext, S = () => x().accountStorage, C = /* @__PURE__ */ z(S()?.getItem("scene_diary_embedding_key") || ""), w = /* @__PURE__ */ z(S()?.getItem("scene_diary_rerank_key") || ""), T = X(() => JSON.stringify(t.value.state?.settings || null)), E = /* @__PURE__ */ z({});
+		Vn(T, (e) => {
 			if (o.value = JSON.parse(e), !o.value) return;
 			let t = {};
 			for (let e of ["user", "character"]) {
 				t[e] = {};
 				for (let n of ["bodyTagPairs", "storyTimeTagPairs"]) t[e][n] = o.value.extraction[e][n].map((e) => e.open + " " + e.close).join("\n");
 			}
-			g.value = t;
+			E.value = t;
 		}, { immediate: !0 });
-		function _(e = hd()) {
-			s.value = { ...e }, c.value = [];
+		function ee(e = tu()) {
+			s.value = { ...e }, c.value = [], m.value = !1, g.value = "", h.value = "";
 		}
-		function v() {
+		function te() {
 			return r(() => {
-				let e = yd(s.value);
-				_d(d(), [...t.value.channels.filter((t) => t.id !== e.id), e]), n.refresh(), s.value = null, i.value = "渠道已提交保存。";
+				let e = au(s.value);
+				ru(x(), [...t.value.channels.filter((t) => t.id !== e.id), e]), n.refresh(), s.value = null, i.value = "渠道已提交保存。";
 			});
 		}
-		function y() {
+		function D() {
 			if (s.value && window.confirm("删除该渠道？已绑定的任务需要重新选择。")) return r(() => {
-				_d(d(), t.value.channels.filter((e) => e.id !== s.value.id)), n.refresh(), s.value = null;
+				ru(x(), t.value.channels.filter((e) => e.id !== s.value.id)), n.refresh(), s.value = null;
 			});
 		}
-		async function b(e) {
-			let t = u = new AbortController();
-			l.value = !0;
+		async function O(e) {
+			let t = b = new AbortController();
+			y.value = !0;
 			let n = { ...s.value };
 			try {
-				await r(async () => {
-					if (e === "models") c.value = await xd(d(), n, t.signal), i.value = "返回 " + c.value.length + " 个模型。";
-					else {
-						if ((await wd(d(), n, t.signal)).ok !== !0) throw Error("渠道返回了意外的测试结果。");
-						i.value = "结构化渠道测试通过。";
-					}
-				});
+				if (g.value = "", m.value = !1, e === "models") c.value = await su(x(), n, t.signal), h.value = "", m.value = c.value.length > 0, g.value = m.value ? "返回 " + c.value.length + " 个模型。" : "渠道未提供模型，可手动填写。";
+				else {
+					if ((await lu(x(), n, t.signal)).ok !== !0) throw Error("渠道返回了意外的测试结果。");
+					g.value = "渠道测试通过。";
+				}
+			} catch (e) {
+				g.value = t.signal.aborted ? "请求已取消。" : e.message;
 			} finally {
-				u = null, l.value = !1;
+				b = null, y.value = !1;
 			}
 		}
-		function x(e) {
+		function k(e) {
 			return e.split(/\r?\n/).map((e) => e.trim()).filter(Boolean).map((e) => {
-				let [t, n] = e.split(/\s+/), r = ns({
+				let [t, n] = e.split(/\s+/), r = as({
 					open: t,
 					close: n
 				});
@@ -5112,426 +4704,416 @@ var Ed = { class: "sd-card sd-stack" }, Dd = { class: "sd-section-title" }, Od =
 				return r;
 			});
 		}
-		function S() {
-			return r(async () => {
-				let e = JSON.parse(JSON.stringify(o.value));
-				for (let t of ["user", "character"]) for (let n of ["bodyTagPairs", "storyTimeTagPairs"]) e.extraction[t][n] = x(g.value[t][n]);
-				if (e.semantic.enabled && (e.semantic.endpoint = Ws(e.semantic.endpoint), !e.semantic.model.trim())) throw Error("请填写 Embedding 模型。");
-				if (e.semantic.rerank && (e.semantic.rerankEndpoint = Ws(e.semantic.rerankEndpoint, "重排"), !e.semantic.rerankModel.trim())) throw Error("请填写重排模型。");
-				let r = Object.fromEntries(Object.entries(e.bindings).filter(([, e]) => t.value.channels.some((t) => t.id === e))), i = f();
-				for (let [e, t] of [["scene_diary_embedding_key", p.value], ["scene_diary_rerank_key", m.value]]) t.trim() ? i?.setItem(e, t.trim()) : i?.removeItem(e);
-				await n.mutate((t) => {
-					t.settings = cc({
-						...e,
-						bindings: r
-					}), Object.keys(rc).every((e) => t.settings.bindings[e]) && (t.connectionSetupNeeded = !1);
-				});
+		async function A() {
+			if (!v.value?.reportValidity()) throw Error("请检查设置中的数值。");
+			let e = JSON.parse(JSON.stringify(o.value));
+			for (let t of ["user", "character"]) for (let n of ["bodyTagPairs", "storyTimeTagPairs"]) e.extraction[t][n] = k(E.value[t][n]);
+			if (e.semantic.enabled && (e.semantic.endpoint = Hs(e.semantic.endpoint), !e.semantic.model.trim())) throw Error("请填写 Embedding 模型。");
+			if (e.semantic.rerank && (e.semantic.rerankEndpoint = Hs(e.semantic.rerankEndpoint, "重排"), !e.semantic.rerankModel.trim())) throw Error("请填写重排模型。");
+			let r = Object.fromEntries(Object.entries(e.bindings).filter(([, e]) => t.value.channels.some((t) => t.id === e))), i = S();
+			for (let [e, t] of [["scene_diary_embedding_key", C.value], ["scene_diary_rerank_key", w.value]]) t.trim() ? i?.setItem(e, t.trim()) : i?.removeItem(e);
+			await n.mutate((t) => {
+				t.settings = fc({
+					...e,
+					bindings: r
+				}), Object.keys(oc).every((e) => t.settings.bindings[e]) && (t.connectionSetupNeeded = !1);
 			});
 		}
-		return (e, n) => (U(), W(H, null, [G("section", Ed, [
-			G("header", Dd, [n[32] ||= G("h3", null, "API 渠道", -1), G("button", {
+		return (e, n) => (U(), W(H, null, [G("section", uu, [
+			G("header", du, [n[35] ||= G("h3", null, "API 渠道", -1), G("button", {
 				class: "sd-primary",
-				disabled: l.value,
-				onClick: n[0] ||= (e) => _()
-			}, "新增渠道", 8, Od)]),
-			n[39] ||= G("p", null, "渠道在当前酒馆账户内共用，任务分派按聊天保存。", -1),
-			(U(!0), W(H, null, V(z(t).channels, (e) => (U(), W("div", {
+				disabled: y.value,
+				onClick: n[0] ||= (e) => ee()
+			}, "新增渠道", 8, fu)]),
+			n[43] ||= G("p", null, "渠道在当前酒馆账户内共用，任务分派按聊天保存。", -1),
+			(U(!0), W(H, null, Dr(B(t).channels, (e) => (U(), W("div", {
 				class: "sd-listrow",
 				key: e.id
 			}, [G("div", null, [G("strong", null, N(e.name), 1), G("p", null, N(e.model), 1)]), G("button", {
-				disabled: l.value,
-				onClick: (t) => _(e)
-			}, "编辑", 8, kd)]))), 128)),
+				disabled: y.value,
+				onClick: (t) => ee(e)
+			}, "编辑", 8, pu)]))), 128)),
 			s.value ? (U(), W("form", {
 				key: 0,
 				class: "sd-subcard sd-stack",
-				onSubmit: Lo(v, ["prevent"])
-			}, [G("div", Ad, [
-				G("label", jd, [n[33] ||= q("名称", -1), B(G("input", {
-					"onUpdate:modelValue": n[1] ||= (e) => s.value.name = e,
-					autocomplete: "off",
-					required: ""
-				}, null, 512), [[X, s.value.name]])]),
-				G("label", Md, [n[34] ||= q("OpenAI 兼容 API 地址", -1), B(G("input", {
-					"onUpdate:modelValue": n[2] ||= (e) => s.value.url = e,
-					type: "url",
-					placeholder: "https://example.com/v1",
-					required: ""
-				}, null, 512), [[
-					X,
-					s.value.url,
-					void 0,
-					{ trim: !0 }
-				]])]),
-				G("label", Nd, [n[35] ||= q("API Key", -1), B(G("input", {
-					"onUpdate:modelValue": n[3] ||= (e) => s.value.key = e,
-					type: "password",
-					autocomplete: "new-password"
-				}, null, 512), [[X, s.value.key]])]),
-				G("label", Pd, [
-					n[36] ||= q("模型", -1),
-					B(G("input", {
+				onSubmit: Ro(te, ["prevent"])
+			}, [
+				G("div", mu, [
+					G("label", hu, [n[36] ||= q("名称", -1), V(G("input", {
+						"onUpdate:modelValue": n[1] ||= (e) => s.value.name = e,
+						autocomplete: "off",
+						required: ""
+					}, null, 512), [[Z, s.value.name]])]),
+					G("label", gu, [n[37] ||= q("OpenAI 兼容 API 地址", -1), V(G("input", {
+						"onUpdate:modelValue": n[2] ||= (e) => s.value.url = e,
+						type: "url",
+						placeholder: "https://example.com/v1",
+						required: ""
+					}, null, 512), [[
+						Z,
+						s.value.url,
+						void 0,
+						{ trim: !0 }
+					]])]),
+					G("label", _u, [n[38] ||= q("API Key", -1), V(G("input", {
+						"onUpdate:modelValue": n[3] ||= (e) => s.value.key = e,
+						type: "password",
+						autocomplete: "new-password"
+					}, null, 512), [[Z, s.value.key]])]),
+					G("label", vu, [n[39] ||= q("模型", -1), V(G("input", {
 						"onUpdate:modelValue": n[4] ||= (e) => s.value.model = e,
-						list: "sd-channel-models",
 						required: ""
-					}, null, 512), [[X, s.value.model]]),
-					G("datalist", Fd, [(U(!0), W(H, null, V(c.value, (e) => (U(), W("option", {
-						key: e,
-						value: e
-					}, null, 8, Id))), 128))])
-				]),
-				G("label", Ld, [n[37] ||= q("温度", -1), B(G("input", {
-					"onUpdate:modelValue": n[5] ||= (e) => s.value.temperature = e,
-					type: "number",
-					min: "0",
-					max: "2",
-					step: "0.05",
-					required: ""
-				}, null, 512), [[
-					X,
-					s.value.temperature,
-					void 0,
-					{ number: !0 }
-				]])]),
-				G("label", Rd, [n[38] ||= q("最大输出 token", -1), B(G("input", {
-					"onUpdate:modelValue": n[6] ||= (e) => s.value.maxTokens = e,
-					type: "number",
-					min: "1",
-					step: "1",
-					required: ""
-				}, null, 512), [[
-					X,
-					s.value.maxTokens,
-					void 0,
-					{ number: !0 }
-				]])])
-			]), G("div", zd, [
-				l.value ? (U(), W("button", {
-					key: 0,
-					type: "button",
-					onClick: n[7] ||= (e) => z(u)?.abort()
-				}, "取消请求")) : (U(), W(H, { key: 1 }, [G("button", {
-					type: "button",
-					onClick: n[8] ||= (e) => b("models")
-				}, "获取模型列表"), G("button", {
-					type: "button",
-					onClick: n[9] ||= (e) => b("test")
-				}, "测试渠道")], 64)),
-				G("button", {
-					type: "button",
-					disabled: l.value,
-					onClick: n[10] ||= (e) => s.value = null
-				}, "关闭", 8, Bd),
-				z(t).channels.some((e) => e.id === s.value.id) ? (U(), W("button", {
-					key: 2,
-					type: "button",
-					class: "sd-danger",
-					disabled: l.value,
-					onClick: y
-				}, "删除", 8, Vd)) : J("", !0),
-				G("button", {
-					class: "sd-primary",
-					disabled: l.value
-				}, "保存渠道", 8, Hd)
-			])], 32)) : J("", !0)
-		]), o.value ? (U(), W("form", {
-			key: 1,
-			class: "sd-stack",
-			onSubmit: Lo(S, ["prevent"])
-		}, [
-			G("section", Wd, [n[41] ||= G("h3", null, "任务分派", -1), G("div", Gd, [(U(!0), W(H, null, V(z(rc), (e, r) => (U(), W("label", {
-				key: r,
-				class: "sd-field"
-			}, [q(N(e) + " ", 1), B(G("select", { "onUpdate:modelValue": (e) => o.value.bindings[r] = e }, [n[40] ||= G("option", { value: void 0 }, "请选择渠道", -1), (U(!0), W(H, null, V(z(t).channels, (e) => (U(), W("option", {
-				key: e.id,
-				value: e.id
-			}, N(e.name), 9, qd))), 128))], 8, Kd), [[Ao, o.value.bindings[r]]])]))), 128))])]),
-			G("details", Jd, [n[53] ||= G("summary", null, "上下文与召回", -1), G("div", Yd, [
-				G("label", null, [B(G("input", {
-					type: "checkbox",
-					"onUpdate:modelValue": n[11] ||= (e) => o.value.growthEnabled = e
-				}, null, 512), [[Oo, o.value.growthEnabled]]), n[42] ||= q(" 注入当前画像", -1)]),
-				G("div", Xd, [
-					G("label", Zd, [n[43] ||= q("近期日记篇数", -1), B(G("input", {
-						"onUpdate:modelValue": n[12] ||= (e) => o.value.recentDiaryCount = e,
+					}, null, 512), [[Z, s.value.model]])]),
+					G("label", yu, [n[40] ||= q("温度", -1), V(G("input", {
+						"onUpdate:modelValue": n[5] ||= (e) => s.value.temperature = e,
 						type: "number",
 						min: "0",
-						max: "20",
+						max: "2",
+						step: "0.05",
 						required: ""
 					}, null, 512), [[
-						X,
-						o.value.recentDiaryCount,
+						Z,
+						s.value.temperature,
 						void 0,
 						{ number: !0 }
 					]])]),
-					G("label", Qd, [n[44] ||= q("近期日记额度（留空不限）", -1), B(G("input", {
-						"onUpdate:modelValue": n[13] ||= (e) => o.value.recentDiaryBudget = e,
-						type: "number",
-						min: "0"
-					}, null, 512), [[
-						X,
-						o.value.recentDiaryBudget,
-						void 0,
-						{ number: !0 }
-					]])]),
-					G("label", $d, [n[45] ||= q("历史摘要额度", -1), B(G("input", {
-						"onUpdate:modelValue": n[14] ||= (e) => o.value.historyBudget = e,
-						type: "number",
-						min: "0",
-						required: ""
-					}, null, 512), [[
-						X,
-						o.value.historyBudget,
-						void 0,
-						{ number: !0 }
-					]])]),
-					G("label", ef, [n[46] ||= q("长期事实额度", -1), B(G("input", {
-						"onUpdate:modelValue": n[15] ||= (e) => o.value.memoryTokenBudget = e,
-						type: "number",
-						min: "0",
-						required: ""
-					}, null, 512), [[
-						X,
-						o.value.memoryTokenBudget,
-						void 0,
-						{ number: !0 }
-					]])]),
-					G("label", tf, [n[47] ||= q("用于查询的近邻消息数", -1), B(G("input", {
-						"onUpdate:modelValue": n[16] ||= (e) => o.value.recallMessageCount = e,
+					G("label", bu, [n[41] ||= q("最大输出 token", -1), V(G("input", {
+						"onUpdate:modelValue": n[6] ||= (e) => s.value.maxTokens = e,
 						type: "number",
 						min: "1",
-						max: "20",
+						step: "1",
 						required: ""
 					}, null, 512), [[
-						X,
-						o.value.recallMessageCount,
-						void 0,
-						{ number: !0 }
-					]])]),
-					G("label", nf, [n[48] ||= q("事实条数上限", -1), B(G("input", {
-						"onUpdate:modelValue": n[17] ||= (e) => o.value.recallLimit = e,
-						type: "number",
-						min: "0",
-						max: "30",
-						required: ""
-					}, null, 512), [[
-						X,
-						o.value.recallLimit,
-						void 0,
-						{ number: !0 }
-					]])]),
-					G("label", rf, [n[49] ||= q("召回分数门槛", -1), B(G("input", {
-						"onUpdate:modelValue": n[18] ||= (e) => o.value.recallScoreThreshold = e,
-						type: "number",
-						min: "0",
-						max: "1",
-						step: ".01",
-						required: ""
-					}, null, 512), [[
-						X,
-						o.value.recallScoreThreshold,
-						void 0,
-						{ number: !0 }
-					]])]),
-					G("label", af, [n[50] ||= q("图谱候选数量", -1), B(G("input", {
-						"onUpdate:modelValue": n[19] ||= (e) => o.value.maintenanceCandidateLimit = e,
-						type: "number",
-						min: "1",
-						max: "60",
-						required: ""
-					}, null, 512), [[
-						X,
-						o.value.maintenanceCandidateLimit,
-						void 0,
-						{ number: !0 }
-					]])]),
-					G("label", of, [n[51] ||= q("整理分数门槛", -1), B(G("input", {
-						"onUpdate:modelValue": n[20] ||= (e) => o.value.maintenanceScoreThreshold = e,
-						type: "number",
-						min: "0",
-						max: "1",
-						step: ".01",
-						required: ""
-					}, null, 512), [[
-						X,
-						o.value.maintenanceScoreThreshold,
+						Z,
+						s.value.maxTokens,
 						void 0,
 						{ number: !0 }
 					]])])
 				]),
-				n[52] ||= G("p", null, "额度采用估算 token。单篇或单条超出可用额度时会跳过，可在诊断中查看。", -1)
-			])]),
-			G("details", sf, [n[63] ||= G("summary", null, "Embedding 与重排", -1), G("div", cf, [
-				G("label", null, [B(G("input", {
+				g.value ? (U(), W("p", xu, N(g.value), 1)) : J("", !0),
+				m.value ? (U(), W("section", Su, [
+					G("label", Cu, [n[42] ||= q("搜索模型", -1), V(G("input", {
+						"onUpdate:modelValue": n[7] ||= (e) => h.value = e,
+						type: "search"
+					}, null, 512), [[Z, h.value]])]),
+					G("div", wu, [(U(!0), W(H, null, Dr(_.value, (e) => (U(), W("button", {
+						type: "button",
+						key: e,
+						"aria-pressed": e === s.value.model,
+						onClick: (t) => {
+							s.value.model = e, m.value = !1, g.value = "已选择 " + e;
+						}
+					}, N(e) + " " + N(e === s.value.model ? "✓" : ""), 9, Tu))), 128))]),
+					_.value.length ? J("", !0) : (U(), W("p", Eu, "没有匹配的模型。")),
+					G("button", {
+						type: "button",
+						onClick: n[8] ||= (e) => m.value = !1
+					}, "收起列表")
+				])) : J("", !0),
+				G("div", Du, [
+					y.value ? (U(), W("button", {
+						key: 0,
+						type: "button",
+						onClick: n[9] ||= (e) => B(b)?.abort()
+					}, "取消请求")) : (U(), W(H, { key: 1 }, [G("button", {
+						type: "button",
+						onClick: n[10] ||= (e) => O("models")
+					}, "获取模型列表"), G("button", {
+						type: "button",
+						onClick: n[11] ||= (e) => O("test")
+					}, "测试渠道")], 64)),
+					G("button", {
+						type: "button",
+						disabled: y.value,
+						onClick: n[12] ||= (e) => s.value = null
+					}, "关闭", 8, Ou),
+					B(t).channels.some((e) => e.id === s.value.id) ? (U(), W("button", {
+						key: 2,
+						type: "button",
+						class: "sd-danger",
+						disabled: y.value,
+						onClick: D
+					}, "删除", 8, ku)) : J("", !0),
+					G("button", {
+						class: "sd-primary",
+						disabled: y.value
+					}, "保存渠道", 8, Au)
+				])
+			], 32)) : J("", !0)
+		]), o.value ? (U(), W("form", {
+			key: 1,
+			ref_key: "settingsForm",
+			ref: v,
+			class: "sd-stack",
+			onSubmit: n[34] ||= Ro(() => {}, ["prevent"])
+		}, [
+			G("section", Mu, [n[45] ||= G("h3", null, "任务分派", -1), G("div", Nu, [(U(!0), W(H, null, Dr(B(oc), (e, r) => (U(), W("label", {
+				key: r,
+				class: "sd-field"
+			}, [q(N(e) + " ", 1), V(G("select", { "onUpdate:modelValue": (e) => o.value.bindings[r] = e }, [n[44] ||= G("option", { value: void 0 }, "请选择渠道", -1), (U(!0), W(H, null, Dr(B(t).channels, (e) => (U(), W("option", {
+				key: e.id,
+				value: e.id
+			}, N(e.name), 9, Fu))), 128))], 8, Pu), [[jo, o.value.bindings[r]]])]))), 128))])]),
+			G("details", Iu, [n[53] ||= G("summary", null, "上下文与召回", -1), G("div", Lu, [G("label", null, [V(G("input", {
+				type: "checkbox",
+				"onUpdate:modelValue": n[13] ||= (e) => o.value.growthEnabled = e
+			}, null, 512), [[ko, o.value.growthEnabled]]), n[46] ||= q(" 注入当前画像", -1)]), G("div", Ru, [
+				G("label", zu, [n[47] ||= q("近期日记篇数", -1), V(G("input", {
+					"onUpdate:modelValue": n[14] ||= (e) => o.value.recentDiaryCount = e,
+					type: "number",
+					min: "0",
+					required: ""
+				}, null, 512), [[
+					Z,
+					o.value.recentDiaryCount,
+					void 0,
+					{ number: !0 }
+				]])]),
+				G("label", Bu, [n[48] ||= q("成长追踪日记篇数", -1), V(G("input", {
+					"onUpdate:modelValue": n[15] ||= (e) => o.value.growthDiaryCount = e,
+					type: "number",
+					min: "0",
+					required: ""
+				}, null, 512), [[
+					Z,
+					o.value.growthDiaryCount,
+					void 0,
+					{ number: !0 }
+				]])]),
+				G("label", Vu, [n[49] ||= q("查询深度 d", -1), V(G("input", {
+					"onUpdate:modelValue": n[16] ||= (e) => o.value.queryDepth = e,
+					type: "number",
+					min: "0",
+					required: ""
+				}, null, 512), [[
+					Z,
+					o.value.queryDepth,
+					void 0,
+					{ number: !0 }
+				]])]),
+				G("label", Hu, [n[50] ||= q("初检数量 q", -1), V(G("input", {
+					"onUpdate:modelValue": n[17] ||= (e) => o.value.retrievalCount = e,
+					type: "number",
+					min: "0",
+					required: ""
+				}, null, 512), [[
+					Z,
+					o.value.retrievalCount,
+					void 0,
+					{ number: !0 }
+				]])]),
+				G("label", Uu, [n[51] ||= q("精排候选数 r", -1), V(G("input", {
+					"onUpdate:modelValue": n[18] ||= (e) => o.value.candidateCount = e,
+					type: "number",
+					min: "0",
+					required: ""
+				}, null, 512), [[
+					Z,
+					o.value.candidateCount,
+					void 0,
+					{ number: !0 }
+				]])]),
+				G("label", Wu, [n[52] ||= q("召回分数门槛", -1), V(G("input", {
+					"onUpdate:modelValue": n[19] ||= (e) => o.value.recallScoreThreshold = e,
+					type: "number",
+					min: "0",
+					max: "1",
+					step: ".01",
+					required: ""
+				}, null, 512), [[
+					Z,
+					o.value.recallScoreThreshold,
+					void 0,
+					{ number: !0 }
+				]])])
+			])])]),
+			G("details", Gu, [n[63] ||= G("summary", null, "Embedding 与重排", -1), G("div", Ku, [
+				G("label", null, [V(G("input", {
 					type: "checkbox",
-					"onUpdate:modelValue": n[21] ||= (e) => o.value.semantic.enabled = e
-				}, null, 512), [[Oo, o.value.semantic.enabled]]), n[54] ||= q(" 使用向量检索", -1)]),
-				G("div", lf, [
-					G("label", uf, [n[55] ||= q("Embedding 完整地址", -1), B(G("input", {
-						"onUpdate:modelValue": n[22] ||= (e) => o.value.semantic.endpoint = e,
+					"onUpdate:modelValue": n[20] ||= (e) => o.value.semantic.enabled = e
+				}, null, 512), [[ko, o.value.semantic.enabled]]), n[54] ||= q(" 使用向量检索", -1)]),
+				G("div", qu, [
+					G("label", Ju, [n[55] ||= q("Embedding 完整地址", -1), V(G("input", {
+						"onUpdate:modelValue": n[21] ||= (e) => o.value.semantic.endpoint = e,
 						type: "url",
 						placeholder: "https://example.com/v1/embeddings"
 					}, null, 512), [[
-						X,
+						Z,
 						o.value.semantic.endpoint,
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", df, [n[56] ||= q("Embedding 模型", -1), B(G("input", { "onUpdate:modelValue": n[23] ||= (e) => o.value.semantic.model = e }, null, 512), [[
-						X,
+					G("label", Yu, [n[56] ||= q("Embedding 模型", -1), V(G("input", { "onUpdate:modelValue": n[22] ||= (e) => o.value.semantic.model = e }, null, 512), [[
+						Z,
 						o.value.semantic.model,
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", ff, [n[57] ||= q("Embedding 密钥", -1), B(G("input", {
-						"onUpdate:modelValue": n[24] ||= (e) => p.value = e,
+					G("label", Xu, [n[57] ||= q("Embedding 密钥", -1), V(G("input", {
+						"onUpdate:modelValue": n[23] ||= (e) => C.value = e,
 						type: "password",
 						autocomplete: "new-password"
-					}, null, 512), [[X, p.value]])]),
-					G("label", pf, [n[58] ||= q("向量维度（可选）", -1), B(G("input", {
-						"onUpdate:modelValue": n[25] ||= (e) => o.value.semantic.dimensions = e,
+					}, null, 512), [[Z, C.value]])]),
+					G("label", Zu, [n[58] ||= q("向量维度（可选）", -1), V(G("input", {
+						"onUpdate:modelValue": n[24] ||= (e) => o.value.semantic.dimensions = e,
 						type: "number",
 						min: "1"
 					}, null, 512), [[
-						X,
+						Z,
 						o.value.semantic.dimensions,
 						void 0,
 						{ number: !0 }
 					]])])
 				]),
-				G("label", null, [B(G("input", {
+				G("label", null, [V(G("input", {
 					type: "checkbox",
-					"onUpdate:modelValue": n[26] ||= (e) => o.value.semantic.rerank = e
-				}, null, 512), [[Oo, o.value.semantic.rerank]]), n[59] ||= q(" 使用 rerank 重排", -1)]),
-				G("div", mf, [
-					G("label", hf, [n[60] ||= q("Rerank 完整地址", -1), B(G("input", {
-						"onUpdate:modelValue": n[27] ||= (e) => o.value.semantic.rerankEndpoint = e,
+					"onUpdate:modelValue": n[25] ||= (e) => o.value.semantic.rerank = e
+				}, null, 512), [[ko, o.value.semantic.rerank]]), n[59] ||= q(" 使用 rerank 重排", -1)]),
+				G("div", Qu, [
+					G("label", $u, [n[60] ||= q("Rerank 完整地址", -1), V(G("input", {
+						"onUpdate:modelValue": n[26] ||= (e) => o.value.semantic.rerankEndpoint = e,
 						type: "url",
 						placeholder: "https://example.com/v1/rerank"
 					}, null, 512), [[
-						X,
+						Z,
 						o.value.semantic.rerankEndpoint,
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", gf, [n[61] ||= q("Rerank 模型", -1), B(G("input", { "onUpdate:modelValue": n[28] ||= (e) => o.value.semantic.rerankModel = e }, null, 512), [[
-						X,
+					G("label", ed, [n[61] ||= q("Rerank 模型", -1), V(G("input", { "onUpdate:modelValue": n[27] ||= (e) => o.value.semantic.rerankModel = e }, null, 512), [[
+						Z,
 						o.value.semantic.rerankModel,
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", _f, [n[62] ||= q("Rerank 密钥", -1), B(G("input", {
-						"onUpdate:modelValue": n[29] ||= (e) => m.value = e,
+					G("label", td, [n[62] ||= q("Rerank 密钥", -1), V(G("input", {
+						"onUpdate:modelValue": n[28] ||= (e) => w.value = e,
 						type: "password",
 						autocomplete: "new-password"
-					}, null, 512), [[X, m.value]])])
+					}, null, 512), [[Z, w.value]])])
 				])
 			])]),
-			G("details", vf, [n[66] ||= G("summary", null, "正文和故事时间标签", -1), G("div", yf, [n[65] ||= G("p", null, "每行填写一对开始和结束标签，中间用空格分隔。正文标签留空时使用完整消息。", -1), (U(), W(H, null, V(["user", "character"], (e) => G("div", {
+			G("details", nd, [n[66] ||= G("summary", null, "正文和故事时间标签", -1), G("div", rd, [n[65] ||= G("p", null, "每行填写一对开始和结束标签，中间用空格分隔。正文标签留空时使用完整消息。", -1), (U(), W(H, null, Dr(["user", "character"], (e) => G("div", {
 				key: e,
 				class: "sd-stack"
 			}, [
 				G("h3", null, N(e === "user" ? "玩家" : "角色"), 1),
-				K(Sc, {
-					modelValue: g.value[e].bodyTagPairs,
-					"onUpdate:modelValue": (t) => g.value[e].bodyTagPairs = t,
+				K(wc, {
+					modelValue: E.value[e].bodyTagPairs,
+					"onUpdate:modelValue": (t) => E.value[e].bodyTagPairs = t,
 					label: "正文标签",
 					rows: 2
 				}, null, 8, ["modelValue", "onUpdate:modelValue"]),
-				K(Sc, {
-					modelValue: g.value[e].storyTimeTagPairs,
-					"onUpdate:modelValue": (t) => g.value[e].storyTimeTagPairs = t,
+				K(wc, {
+					modelValue: E.value[e].storyTimeTagPairs,
+					"onUpdate:modelValue": (t) => E.value[e].storyTimeTagPairs = t,
 					label: "故事时间标签",
 					rows: 2
 				}, null, 8, ["modelValue", "onUpdate:modelValue"]),
-				G("label", null, [B(G("input", {
+				G("label", null, [V(G("input", {
 					type: "checkbox",
 					"onUpdate:modelValue": (t) => o.value.extraction[e].requiredStoryTime = t
-				}, null, 8, bf), [[Oo, o.value.extraction[e].requiredStoryTime]]), n[64] ||= q(" 故事时间必填", -1)])
+				}, null, 8, id), [[ko, o.value.extraction[e].requiredStoryTime]]), n[64] ||= q(" 故事时间必填", -1)])
 			])), 64))])]),
-			G("details", xf, [n[68] ||= G("summary", null, "任务提示词", -1), G("div", Sf, [G("label", Cf, [n[67] ||= q("日记目标长度", -1), B(G("input", { "onUpdate:modelValue": n[30] ||= (e) => o.value.diaryTargetLength = e }, null, 512), [[X, o.value.diaryTargetLength]])]), (U(), W(H, null, V({
-				diary: "日记",
-				growth: "角色成长",
-				memory: "事实提取",
-				maintenance: "图谱整理"
-			}, (e, t) => K(Sc, {
-				key: t,
-				modelValue: o.value.prompts[t],
-				"onUpdate:modelValue": (e) => o.value.prompts[t] = e,
-				label: e,
-				rows: 3
-			}, null, 8, [
-				"modelValue",
-				"onUpdate:modelValue",
-				"label"
-			])), 64))])]),
-			G("div", wf, [G("button", {
+			G("details", {
+				class: "sd-card",
+				onToggle: n[32] ||= (e) => p.value = e.target.open
+			}, [n[71] ||= G("summary", null, "任务提示词", -1), G("div", ad, [
+				G("nav", od, [(U(!0), W(H, null, Dr(B(oc), (e, t) => (U(), W("button", {
+					type: "button",
+					key: t,
+					"aria-pressed": l.value === t,
+					onClick: (e) => l.value = t
+				}, N(e), 9, sd))), 128))]),
+				K(wc, {
+					modelValue: o.value.prompts[l.value].system,
+					"onUpdate:modelValue": n[29] ||= (e) => o.value.prompts[l.value].system = e,
+					label: "系统提示词"
+				}, null, 8, ["modelValue"]),
+				G("details", null, [n[67] ||= G("summary", null, "背景参考", -1), G("p", cd, N(d.value?.background || "暂无背景"), 1)]),
+				K(wc, {
+					modelValue: o.value.prompts[l.value].description,
+					"onUpdate:modelValue": n[30] ||= (e) => o.value.prompts[l.value].description = e,
+					label: "任务描述"
+				}, null, 8, ["modelValue"]),
+				G("details", null, [
+					n[69] ||= G("summary", null, "内容素材", -1),
+					l.value === "growth" ? V((U(), W("select", {
+						key: 0,
+						"onUpdate:modelValue": n[31] ||= (e) => u.value = e
+					}, [...n[68] ||= [G("option", { value: "recent" }, "追踪最新动态", -1), G("option", { value: "global" }, "全局重建", -1)]], 512)), [[jo, u.value]]) : J("", !0),
+					G("p", ld, N(f.value || d.value?.material || "暂无素材"), 1)
+				]),
+				G("details", null, [n[70] ||= G("summary", null, "格式规定", -1), G("p", ud, N(d.value?.format), 1)])
+			])], 32),
+			G("div", dd, [G("button", {
 				type: "button",
-				onClick: n[31] ||= (e) => z(a)("diagnostics")
-			}, "查看诊断"), n[69] ||= G("button", { class: "sd-primary" }, "保存聊天设置", -1)])
-		], 32)) : (U(), W("p", Ud, N(z(t).blocker), 1))], 64));
+				onClick: n[33] ||= (e) => B(a)("diagnostics")
+			}, "查看诊断"), K(cl, {
+				action: A,
+				label: "保存聊天设置",
+				success: "聊天设置已保存"
+			})])
+		], 544)) : (U(), W("p", ju, N(B(t).blocker), 1))], 64));
 	}
-}), Ef = { class: "sd-card sd-stack" }, Df = { class: "sd-section-title" }, Of = { key: 0 }, kf = {
+}), pd = { class: "sd-card sd-stack" }, md = { class: "sd-section-title" }, hd = { key: 0 }, gd = {
 	key: 0,
 	class: "sd-log"
-}, Af = { key: 0 }, jf = { key: 0 }, Mf = /* @__PURE__ */ $n({
+}, _d = { key: 0 }, vd = { key: 0 }, yd = /* @__PURE__ */ Qn({
 	__name: "Diagnostics",
 	setup(e) {
-		let { view: t, host: n } = $s();
-		return (e, r) => (U(), W("section", Ef, [
-			G("header", Df, [r[1] ||= G("h3", null, "运行诊断", -1), G("button", { onClick: r[0] ||= (...e) => z(n).cancelRecall && z(n).cancelRecall(...e) }, "取消当前召回")]),
-			z(t).trace.length ? J("", !0) : (U(), W("p", Of, "暂无任务或召回记录。")),
-			(U(!0), W(H, null, V(z(t).trace, (e, t) => (U(), W(H, { key: t }, [e.details?.length ? (U(), W("details", kf, [G("summary", null, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", Af, N(Math.round(e.ms)) + " ms", 1))]), G("ul", null, [(U(!0), W(H, null, V(e.details, (e, t) => (U(), W("li", { key: t }, N(e), 1))), 128))])])) : (U(), W("p", {
+		let { view: t, host: n } = Zs();
+		return (e, r) => (U(), W("section", pd, [
+			G("header", md, [r[1] ||= G("h3", null, "运行诊断", -1), G("button", { onClick: r[0] ||= (...e) => B(n).cancelRecall && B(n).cancelRecall(...e) }, "取消当前召回")]),
+			B(t).trace.length ? J("", !0) : (U(), W("p", hd, "暂无任务或召回记录。")),
+			(U(!0), W(H, null, Dr(B(t).trace, (e, t) => (U(), W(H, { key: t }, [e.details?.length ? (U(), W("details", gd, [G("summary", null, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", _d, N(Math.round(e.ms)) + " ms", 1))]), G("ul", null, [(U(!0), W(H, null, Dr(e.details, (e, t) => (U(), W("li", { key: t }, N(e), 1))), 128))])])) : (U(), W("p", {
 				key: 1,
 				class: fe(["sd-log", { "sd-alert": e.status === "error" || e.status === "warning" }])
-			}, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", jf, N(Math.round(e.ms)) + " ms", 1))], 2))], 64))), 128))
+			}, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", vd, N(Math.round(e.ms)) + " ms", 1))], 2))], 64))), 128))
 		]));
 	}
-}), Nf = {
+}), bd = {
 	class: "sd-window",
 	"data-tt-mobile-surface": "fullscreen-window",
 	role: "dialog",
 	"aria-modal": "true",
 	"aria-labelledby": "sd-title"
-}, Pf = { class: "sd-header" }, Ff = { class: "sd-heading" }, If = {
+}, xd = { class: "sd-header" }, Sd = { class: "sd-heading" }, Cd = {
 	id: "sd-title",
 	tabindex: "-1"
-}, Lf = { class: "sd-actions" }, Rf = ["aria-pressed"], zf = ["aria-pressed"], Bf = {
+}, wd = { class: "sd-actions" }, Td = ["aria-pressed"], Ed = ["aria-pressed"], Dd = {
 	class: "sd-tabs",
 	"aria-label": "剧幕工作台导航"
-}, Vf = ["aria-current", "onClick"], Hf = { class: "sd-body" }, Uf = {
+}, Od = ["aria-current", "onClick"], kd = { class: "sd-body" }, Ad = {
 	key: 0,
 	class: "sd-alert",
 	role: "alert"
-}, Wf = { class: "sd-actions" }, Gf = {
+}, jd = { class: "sd-actions" }, Md = {
 	key: 1,
 	class: "sd-alert",
 	role: "alert"
-}, Kf = {
+}, Nd = {
 	key: 2,
 	class: "sd-status",
 	role: "status"
-}, qf = { class: "sd-status" }, Jf = {
+}, Pd = { class: "sd-status" }, Fd = {
 	key: 0,
 	class: "sd-card sd-stack"
-}, Yf = { class: "sd-prose" }, Xf = { class: "sd-prose" }, Zf = {
-	key: 0,
-	class: "sd-prose"
-}, Qf = { class: "sd-prose" }, $f = {
+}, Id = { class: "sd-prose" }, Ld = { class: "sd-prose" }, Rd = { class: "sd-prose" }, zd = {
 	key: 4,
 	class: "sd-card"
-}, ep = {
+}, Bd = {
 	class: "sd-footer",
 	"aria-live": "polite"
-}, tp = { key: 0 }, np = { key: 1 }, rp = { key: 2 }, ip = { key: 3 }, ap = /* @__PURE__ */ $n({
+}, Vd = { key: 0 }, Hd = { key: 1 }, Ud = { key: 2 }, Wd = { key: 3 }, Gd = /* @__PURE__ */ Qn({
 	__name: "App",
 	setup(e) {
-		let { view: t, host: n, opened: r, hasToolbar: i, page: a, error: o, notice: s, run: c, select: l, openWorkbench: u } = $s(), d = [
+		let { view: t, host: n, opened: r, hasToolbar: i, page: a, error: o, notice: s, run: c, select: l, openWorkbench: u } = Zs(), d = [
 			{
 				id: "workbench",
 				label: "剧幕工作台",
 				icon: "fa-clapperboard",
-				component: pl
+				component: al
 			},
 			{
 				id: "growth",
@@ -5543,65 +5125,81 @@ var Ed = { class: "sd-card sd-stack" }, Dd = { class: "sd-section-title" }, Od =
 				id: "diaries",
 				label: "日记档案",
 				icon: "fa-book-open",
-				component: Vl
+				component: Hl
 			},
 			{
 				id: "memory",
 				label: "长期记忆",
-				icon: "fa-diagram-project",
-				component: Yu
+				icon: "fa-bookmark",
+				component: Ul
 			}
 		], f = {
 			...Object.fromEntries(d.map((e) => [e.id, e.component])),
-			settings: Tf,
-			diagnostics: Mf
-		}, p = Y(() => f[a.value] || pl), m = Y(() => t.value.blocker.startsWith("检测到 SP") && t.value.persisted), h = Y(() => m.value?.diaries || m.value?.acts?.filter((e) => e.diary).map((e) => ({
+			settings: fd,
+			diagnostics: yd
+		}, p = X(() => f[a.value] || al), m = X(() => t.value.blocker.startsWith("检测到 SP") && t.value.persisted), h = X(() => m.value?.diaries || m.value?.acts?.filter((e) => e.diary).map((e) => ({
 			id: e.id,
 			title: e.title,
-			body: e.diary,
-			summary: ""
-		})) || []), g = Y(() => d.find((e) => e.id === a.value)?.label || (a.value === "settings" ? "设置" : "诊断")), _ = null;
-		Hn(r, (e) => {
-			e ? _ = document.activeElement : _?.focus();
+			body: e.diary
+		})) || []), g = X(() => d.find((e) => e.id === a.value)?.label || (a.value === "settings" ? "设置" : "诊断")), _ = /* @__PURE__ */ z(0), v = /* @__PURE__ */ z(window.innerHeight);
+		Vn(r, (e, t, n) => {
+			if (!e) return;
+			let r = document.getElementById("top-settings-holder");
+			function i() {
+				v.value = window.visualViewport?.height || window.innerHeight, _.value = r && getComputedStyle(r).visibility !== "hidden" ? Math.max(0, r.getBoundingClientRect().bottom) : 0;
+			}
+			i();
+			let a = new ResizeObserver(i);
+			r && a.observe(r), window.addEventListener("resize", i), window.visualViewport?.addEventListener("resize", i), n(() => {
+				a.disconnect(), window.removeEventListener("resize", i), window.visualViewport?.removeEventListener("resize", i);
+			});
 		});
-		function v(e) {
+		let y = null;
+		Vn(r, (e) => {
+			e ? y = document.activeElement : y?.focus();
+		});
+		function b(e) {
 			e.key === "Escape" && !e.defaultPrevented && r.value && (r.value = !1, e.stopPropagation());
 		}
-		document.addEventListener("keydown", v), _r(() => document.removeEventListener("keydown", v));
-		function y() {
-			return c(() => ec(n.backup(), "scene-diary-" + t.value.chatId + ".json"));
+		document.addEventListener("keydown", b), gr(() => document.removeEventListener("keydown", b));
+		function x() {
+			return c(() => Qs(n.backup(), "scene-diary-" + t.value.chatId + ".json"));
 		}
-		return (e, f) => (U(), W(H, null, [z(i) ? J("", !0) : (U(), W("button", {
+		return (e, f) => (U(), W(H, null, [B(i) ? J("", !0) : (U(), W("button", {
 			key: 0,
 			type: "button",
 			class: "sd-floating",
-			onClick: f[0] ||= (...e) => z(u) && z(u)(...e),
+			onClick: f[0] ||= (...e) => B(u) && B(u)(...e),
 			title: "打开剧幕工作台",
 			"aria-label": "打开剧幕工作台"
-		}, [...f[6] ||= [G("i", { class: "fa-solid fa-clapperboard" }, null, -1)]])), z(r) ? (U(), W("div", {
+		}, [...f[6] ||= [G("i", { class: "fa-solid fa-clapperboard" }, null, -1)]])), B(r) ? (U(), W("div", {
 			key: 1,
 			class: "sd-backdrop",
+			style: se({
+				"--sd-toolbar-bottom": _.value + "px",
+				"--sd-viewport-height": v.value + "px"
+			}),
 			"data-tt-mobile-surface": "backdrop",
-			onClick: f[5] ||= Lo((e) => r.value = !1, ["self"])
-		}, [G("section", Nf, [
-			G("header", Pf, [G("div", Ff, [f[7] ||= G("i", {
+			onClick: f[5] ||= Ro((e) => r.value = !1, ["self"])
+		}, [G("section", bd, [
+			G("header", xd, [G("div", Sd, [f[7] ||= G("i", {
 				class: "fa-solid fa-clapperboard",
 				"aria-hidden": "true"
-			}, null, -1), G("h2", If, N(g.value), 1)]), G("div", Lf, [
+			}, null, -1), G("h2", Cd, N(g.value), 1)]), G("div", wd, [
 				G("button", {
 					class: "sd-icon",
 					title: "设置",
 					"aria-label": "设置",
-					"aria-pressed": z(a) === "settings",
-					onClick: f[1] ||= (e) => z(l)("settings")
-				}, [...f[8] ||= [G("i", { class: "fa-solid fa-gear" }, null, -1)]], 8, Rf),
+					"aria-pressed": B(a) === "settings",
+					onClick: f[1] ||= (e) => B(l)("settings")
+				}, [...f[8] ||= [G("i", { class: "fa-solid fa-gear" }, null, -1)]], 8, Td),
 				G("button", {
 					class: "sd-icon",
 					title: "诊断",
 					"aria-label": "诊断",
-					"aria-pressed": z(a) === "diagnostics",
-					onClick: f[2] ||= (e) => z(l)("diagnostics")
-				}, [...f[9] ||= [G("i", { class: "fa-solid fa-list-check" }, null, -1)]], 8, zf),
+					"aria-pressed": B(a) === "diagnostics",
+					onClick: f[2] ||= (e) => B(l)("diagnostics")
+				}, [...f[9] ||= [G("i", { class: "fa-solid fa-list-check" }, null, -1)]], 8, Ed),
 				G("button", {
 					class: "sd-icon",
 					title: "关闭",
@@ -5609,166 +5207,107 @@ var Ed = { class: "sd-card sd-stack" }, Dd = { class: "sd-section-title" }, Od =
 					onClick: f[3] ||= (e) => r.value = !1
 				}, [...f[10] ||= [G("i", { class: "fa-solid fa-xmark" }, null, -1)]])
 			])]),
-			G("nav", Bf, [(U(), W(H, null, V(d, (e) => G("button", {
+			G("nav", Dd, [(U(), W(H, null, Dr(d, (e) => G("button", {
 				key: e.id,
-				"aria-current": z(a) === e.id ? "page" : void 0,
-				onClick: (t) => z(l)(e.id)
+				"aria-current": B(a) === e.id ? "page" : void 0,
+				onClick: (t) => B(l)(e.id)
 			}, [G("i", {
 				class: fe("fa-solid " + e.icon),
 				"aria-hidden": "true"
-			}, null, 2), G("span", null, N(e.label), 1)], 8, Vf)), 64))]),
-			G("div", Hf, [
-				z(t).saveError ? (U(), W("aside", Uf, [G("span", null, "保存失败。" + N(z(t).saveError) + " 当前内容仍可编辑。", 1), G("div", Wf, [G("button", { onClick: f[4] ||= (e) => z(c)(z(n).save) }, "重试保存"), z(t).state ? (U(), W("button", {
+			}, null, 2), G("span", null, N(e.label), 1)], 8, Od)), 64))]),
+			G("div", kd, [
+				B(t).saveError ? (U(), W("aside", Ad, [G("span", null, "保存失败。" + N(B(t).saveError) + " 当前内容仍可编辑。", 1), G("div", jd, [G("button", { onClick: f[4] ||= (e) => B(c)(B(n).save) }, "重试保存"), B(t).state ? (U(), W("button", {
 					key: 0,
-					onClick: y
+					onClick: x
 				}, "导出内容")) : J("", !0)])])) : J("", !0),
-				z(o) ? (U(), W("aside", Gf, N(z(o)), 1)) : J("", !0),
-				z(s) ? (U(), W("aside", Kf, N(z(s)), 1)) : J("", !0),
+				B(o) ? (U(), W("aside", Md, N(B(o)), 1)) : J("", !0),
+				B(s) ? (U(), W("aside", Nd, N(B(s)), 1)) : J("", !0),
 				m.value && [
 					"growth",
 					"diaries",
 					"memory"
-				].includes(z(a)) ? (U(), W(H, { key: 3 }, [G("p", qf, N(z(t).blocker) + " 已有内容可查阅。", 1), z(a) === "growth" ? (U(), W("section", Jf, [f[11] ||= G("h3", null, "当前角色画像", -1), G("p", Yf, N(m.value.characterGrowth?.content || "尚未建立画像。"), 1)])) : z(a) === "diaries" ? (U(!0), W(H, { key: 1 }, V(h.value, (e) => (U(), W("article", {
+				].includes(B(a)) ? (U(), W(H, { key: 3 }, [G("p", Pd, N(B(t).blocker) + " 已有内容可查阅。", 1), B(a) === "growth" ? (U(), W("section", Fd, [f[11] ||= G("h3", null, "当前角色画像", -1), G("p", Id, N(m.value.characterGrowth?.content || "尚未建立画像。"), 1)])) : B(a) === "diaries" ? (U(!0), W(H, { key: 1 }, Dr(h.value, (e) => (U(), W("article", {
 					key: e.id,
 					class: "sd-card sd-stack"
-				}, [
-					G("h3", null, N(e.title), 1),
-					G("p", Xf, N(e.body), 1),
-					e.summary ? (U(), W("p", Zf, N(e.summary), 1)) : J("", !0)
-				]))), 128)) : (U(!0), W(H, { key: 2 }, V(m.value.memories || [], (e) => (U(), W("article", {
+				}, [G("h3", null, N(e.title), 1), G("p", Ld, N(e.body), 1)]))), 128)) : (U(!0), W(H, { key: 2 }, Dr(m.value.memories || [], (e) => (U(), W("article", {
 					key: e.id,
 					class: "sd-card sd-stack"
-				}, [G("h3", null, N(e.title), 1), G("p", Qf, N(e.content), 1)]))), 128))], 64)) : m.value && z(a) === "settings" ? (U(), W("p", $f, N(z(t).blocker), 1)) : (U(), ea(Tr(p.value), { key: z(t).chatId + "-" + z(a) }))
+				}, [G("h3", null, N(e.title), 1), G("p", Rd, N(e.content), 1)]))), 128))], 64)) : m.value && B(a) === "settings" ? (U(), W("p", zd, N(B(t).blocker), 1)) : (U(), ea(wr(p.value), { key: B(t).chatId + "-" + B(a) }))
 			]),
-			G("footer", ep, [z(t).pendingSaves ? (U(), W("span", tp, "正在保存…")) : z(t).saveError ? (U(), W("span", np, "保存失败")) : z(t).saved ? (U(), W("span", rp, "已提交宿主保存")) : (U(), W("span", ip, "scene&diary"))])
-		])])) : J("", !0)], 64));
+			G("footer", Bd, [B(t).pendingSaves ? (U(), W("span", Vd, "正在保存…")) : B(t).saveError ? (U(), W("span", Hd, "保存失败")) : B(t).saved ? (U(), W("span", Ud, "已提交宿主保存")) : (U(), W("span", Wd, "scene&diary"))])
+		])], 4)) : J("", !0)], 64));
 	}
 });
-// recall-v7.js
-function op(e) {
-	return e.diaries.filter((e) => !e.needsReview).slice().sort((e, t) => t.createdAt - e.createdAt);
+// recall-v8.js
+function Kd(e, t) {
+	let n = e.filter((e) => _s(e) && typeof e.mes == "string" && e.mes.trim()), r = n.length;
+	for (; r && !n[r - 1].is_user;) r--;
+	return Ts(n.slice(Math.max(0, r - t.queryDepth - 1), r), t.extraction);
 }
-function sp(e, t, n, r, i) {
-	let a = [], o = [], s = 0;
-	for (let c of e) {
-		let e = i([...a, c].map(r));
-		a.length >= t || Os(e) > n ? o.push(c) : (a.push(c), s = Os(e));
-	}
-	return {
-		selected: a,
-		skipped: o,
-		cost: s,
-		content: a.length ? i(a.map(r)) : ""
+function qd(e, t, n, r, { localOnly: i = !1 } = {}) {
+	let a = e.settings.semantic, o = (e, t, r = [], i = "success") => n({
+		stage: e,
+		title: t,
+		details: r,
+		status: i
+	}), s = (e, n) => {
+		r?.throwIfAborted(), o(e, Us(n, [t.embeddingKey, t.rerankKey]), [], "warning");
 	};
-}
-var cp = (e) => (t) => "[" + e + "]\n" + t.join("\n\n") + "\n[/" + e + "]";
-function lp(e) {
-	let t = op(e), n = e.settings, r = sp(t.slice(0, n.recentDiaryCount), n.recentDiaryCount, n.recentDiaryBudget ?? Infinity, (e) => e.title + "\n" + e.body, cp("scene&diary 近期日记"));
-	r.content = r.selected.length ? cp("scene&diary 近期日记")([...r.selected].reverse().map((e) => e.title + "\n" + e.body)) : "";
-	let i = new Set(r.selected.map((e) => e.id));
-	return {
-		full: r,
-		history: t.filter((e) => !i.has(e.id) && !e.summaryPending && e.summary).map((e) => ({
-			id: e.id,
-			title: e.title,
-			content: e.summary
-		}))
-	};
-}
-function up(e, t, n, r, i) {
-	let a = new Map(e.map((e) => [e.id, e])), o = [...e.filter((e) => e.permanent).sort((e, t) => t.importance - e.importance).map((e) => ({
-		memory: e,
-		score: 1,
-		via: "常驻"
-	})), ...t.filter((e) => !e.memory.permanent && e.score >= i.recallScoreThreshold)], s = cp("scene&diary 长期事实"), c = i.memoryTokenBudget, l = (e) => As(e.memory), u = sp(o, i.recallLimit, c, l, s), d = new Set(u.selected.map((e) => e.memory.id)), f = new Set(ks(r)), p = new Map(t.map((e) => [e.memory.id, e.score])), m = [];
-	for (let e of u.selected) for (let t of n) {
-		let n = nc[t.type];
-		if (!n) continue;
-		let r = t.from === e.memory.id ? t.to : n.reverse && t.to === e.memory.id ? t.from : null, o = a.get(r);
-		if (!o || d.has(r)) continue;
-		let s = p.get(r) ?? 0;
-		s < i.recallScoreThreshold && !ks(o.content).some((e) => f.has(e)) || (d.add(r), m.push({
-			memory: o,
-			score: s,
-			via: n.label,
-			reason: t.reason
-		}));
-	}
-	m.sort((e, t) => t.score - e.score);
-	let h = sp([...u.selected, ...m], i.recallLimit, c, l, s);
-	return {
-		...h,
-		skipped: [...u.skipped, ...h.skipped]
-	};
-}
-function dp(e, t, n, r, { localOnly: i = !1, strict: a = !1 } = {}) {
-	let o = e.settings.semantic, s = e.settings, c = /* @__PURE__ */ new Map();
-	return async (l, u, d, { includePermanent: f = !1, useImportance: p = !0, excludeId: m = null } = {}) => {
-		if (r?.throwIfAborted(), !l.length || !u.trim()) return [];
-		let h = performance.now(), g = d === "历史日记" ? ms(JSON.stringify(l)) : e.memoryRevision, _ = zs(l, d + ":" + g, { includePermanent: f }), v = l.filter((e) => f || !e.permanent), y = [t.embeddingKey, t.rerankKey], b = {
+	return async (n, c) => {
+		let l = n.filter((e) => cc(e) && !e.permanent);
+		if (!l.length || !c.trim()) return [];
+		let u = {
 			account: t.account,
 			chat: t.chat,
-			space: e.memorySpaceId + ":" + d
-		}, x = (e, t, r, i = []) => n({
-			stage: d + " · " + e,
-			status: t,
-			title: r,
-			details: i,
-			ms: performance.now() - h
-		}), S = (e) => {
-			if (r?.throwIfAborted(), a) throw e;
-			x("语义服务", "warning", Gs(e, y));
-		}, C = _(u, {
-			useImportance: p,
-			excludeId: m
+			space: e.memorySpaceId + ":事实"
+		}, d = Ls(l, e.memoryRevision, { poolSize: e.settings.retrievalCount }), f, p;
+		if (!i && a.enabled) try {
+			[f, [p]] = await Promise.all([Yd(l, u, a, t, r), Ks([c], a, t.embeddingKey, { signal: r })]);
+		} catch (e) {
+			s("向量检索", e);
+		}
+		r?.throwIfAborted();
+		let m = d(c, {
+			vectors: f,
+			queryVector: p
 		});
-		if (x("BM25", "success", "候选 " + C.length + " 条"), !i && o.enabled && v.length) try {
-			let e = d + ":" + g + ":" + f;
-			c.has(e) || c.set(e, pp(v, b, o, t, r));
-			let n = c.get(e), i = m && v.find((e) => e.id === m && e.content === u), [a, [s]] = await Promise.all([n, i ? n.then((e) => [e.get(i.id)]) : Js([u], o, t.embeddingKey, { signal: r })]);
-			r?.throwIfAborted(), C = _(u, {
-				vectors: a,
-				queryVector: s,
-				useImportance: p,
-				excludeId: m
-			}), x("向量", "success", "索引 " + a.size + " 条");
+		o("初检", (f ? "BM25 + 向量" : "BM25") + " · " + m.length + " 条");
+		let h = m.map((e) => e.relevance), g = "检索相关度";
+		if (!i && a.rerank && m.length) try {
+			h = await Gs(c, m.map((e) => e.memory.content), a, t.rerankKey, { signal: r }), g = "rerank";
 		} catch (e) {
-			S(e);
+			s("重排", e);
 		}
-		if (!i && o.rerank && C.length) try {
-			let e = await qs(u, C.map((e) => e.memory.content), o, t.rerankKey, { signal: r });
-			C = Ls(C, e, {
-				absolute: !0,
-				useImportance: p
-			}), x("重排", "success", "重排 " + e.length + " 条");
-		} catch (e) {
-			S(e);
-		}
-		return x("排名", "success", "候选按相关性排列", C.slice(0, Math.max(8, s.recallLimit)).map((e) => e.score.toFixed(3) + " " + e.memory.title)), C;
+		r?.throwIfAborted();
+		let _ = m.map((e, t) => ({
+			...e,
+			score: (80 * Math.max(0, Math.min(1, h[t])) + 5 * (e.memory.importance - 1)) / 100
+		})).sort((e, t) => t.score - e.score || e.memory.id.localeCompare(t.memory.id));
+		return o("精排", g, _.map((e) => e.score.toFixed(3) + " " + e.memory.title)), _;
 	};
 }
-var fp = /* @__PURE__ */ new Map();
-async function pp(e, t, n, r, i) {
+var Jd = /* @__PURE__ */ new Map();
+async function Yd(e, t, n, r, i) {
 	let a = "scene-diary", o = "vectors-" + ms(JSON.stringify([
 		t.space,
 		n.endpoint,
 		n.model,
 		n.dimensions
-	])), s = JSON.stringify([t, o]), c = fp.get(s), l = Promise.resolve(c).catch(() => {}).then(async () => {
+	])), s = JSON.stringify([t, o]), c = Jd.get(s), l = Promise.resolve(c).catch(() => {}).then(async () => {
 		i?.throwIfAborted();
 		let s = r.store, c = s ? await s.getJson({
 			namespace: a,
 			key: o
 		}) || {} : null, l = c ? new Map(e.flatMap((e) => {
-			let r = c[Us(t, n, e)];
+			let r = c[Vs(t, n, e)];
 			return Array.isArray(r) ? [[e.id, r]] : [];
-		})) : await Ys(e, t, n), u = e.filter((e) => !l.has(e.id));
+		})) : await qs(e, t, n), u = e.filter((e) => !l.has(e.id));
 		for (let e = 0; e < u.length; e += 16) {
-			let a = u.slice(e, e + 16), o = await Js(a.map((e) => e.content), n, r.embeddingKey, { signal: i });
-			i?.throwIfAborted(), s || await Xs(a, o, t, n), a.forEach((e, t) => l.set(e.id, o[t]));
+			let a = u.slice(e, e + 16), o = await Ks(a.map((e) => e.content), n, r.embeddingKey, { signal: i });
+			i?.throwIfAborted(), s || await Js(a, o, t, n), a.forEach((e, t) => l.set(e.id, o[t]));
 		}
 		if (s && (u.length || Object.keys(c).length !== l.size)) {
-			let r = Object.fromEntries(e.map((e) => [Us(t, n, e), l.get(e.id)]));
+			let r = Object.fromEntries(e.map((e) => [Vs(t, n, e), l.get(e.id)]));
 			await s.setJson({
 				namespace: a,
 				key: o,
@@ -5777,357 +5316,87 @@ async function pp(e, t, n, r, i) {
 		}
 		return l;
 	});
-	fp.set(s, l);
+	Jd.set(s, l);
 	try {
 		return await l;
 	} finally {
-		fp.get(s) === l && fp.delete(s);
+		Jd.get(s) === l && Jd.delete(s);
 	}
 }
-async function mp(e, t, n, r) {
-	let i = lp(e), a = e.memories.filter(ac), [o, s] = await Promise.all([e.settings.memoryTokenBudget && e.settings.recallLimit ? n(a, t, "事实") : [], e.settings.historyBudget ? n(i.history, t, "历史日记", { useImportance: !1 }) : []]), c = sp(s.filter((t) => t.score >= e.settings.recallScoreThreshold).map((e) => e.memory), Infinity, e.settings.historyBudget, (e) => e.title + "\n" + e.content, cp("scene&diary 历史经历摘要")), l = up(a, o, e.edges, t, e.settings);
-	for (let [e, t] of [
-		["近期日记", i.full],
-		["历史经历摘要", c],
-		["事实及一跳关系", l]
-	]) {
-		let n = (e) => e.memory?.title || e.title;
-		r({
-			stage: e,
-			status: "success",
-			title: t.selected.length + " 条 · 约 " + t.cost + " token",
-			details: [...t.selected.map((e) => [
-				"注入",
-				n(e),
-				e.via,
-				e.reason
-			].filter(Boolean).join(" · ")), ...t.skipped.map((e) => "因数量／额度跳过 · " + n(e))]
-		});
-	}
-	let u = e.settings.growthEnabled && e.characterGrowth.content.trim();
-	return [
-		u && cp("scene&diary 当前角色画像")([u]),
-		i.full.content,
-		c.content,
-		l.content
+var Xd = (e, t) => t.length ? "[scene&diary " + e + "]\n" + t.join("\n\n") + "\n[/scene&diary " + e + "]" : "";
+async function Zd(e, t, n, r) {
+	let i = e.settings, a = e.diaries.filter((e) => !e.needsReview && e.body.trim()).sort((e, t) => t.createdAt - e.createdAt).slice(0, i.recentDiaryCount).reverse(), o = e.memories.filter(cc), s = o.filter((e) => e.permanent), c = i.retrievalCount && i.candidateCount && t.trim() ? await n(o.filter((e) => !e.permanent), t) : [], l = c.slice(0, i.candidateCount), u = l.filter((e) => e.score > i.recallScoreThreshold);
+	return r({
+		stage: "注入",
+		status: "success",
+		title: "常驻 " + s.length + " · 初检 " + c.length + " · 精排候选 " + l.length + " · 阈值淘汰 " + (l.length - u.length) + " · 普通记忆注入 " + u.length,
+		details: [...s.map((e) => "常驻 · " + e.title), ...u.map((e) => "召回 · " + e.memory.title)]
+	}), [
+		Xd("当前角色画像", i.growthEnabled && e.characterGrowth.content ? [e.characterGrowth.content] : []),
+		Xd("近期日记", a.map((e) => e.title + "\n" + e.body)),
+		Xd("常驻记忆", s.map(ks)),
+		Xd("长期记忆", u.map((e) => ks(e.memory)))
 	].filter(Boolean).join("\n\n");
 }
-function hp(e, t) {
-	return mp(e, t, dp(e, {}, () => {}, null, { localOnly: !0 }), () => {});
+function Qd(e, t) {
+	return Zd(e, t, qd(e, {}, () => {}, null, { localOnly: !0 }), () => {});
 }
-// tasks-v7.js
-var gp = { type: "string" }, _p = { type: ["string", "null"] }, vp = (e) => ({
-	type: "array",
-	items: e
-}), yp = (e) => ({
-	type: "string",
-	enum: e
-}), bp = (e) => ({
-	type: "object",
-	properties: e,
-	required: Object.keys(e),
-	additionalProperties: !1
-}), xp = (e, t) => ({
-	name: "scene_diary_" + e,
-	value: bp(t)
-}), Sp = bp({
-	category: yp(Object.keys(tc)),
-	title: gp,
-	content: gp,
-	people: vp(gp),
-	aliases: vp(gp),
-	importance: {
-		type: "integer",
-		minimum: 1,
-		maximum: 5
-	},
-	storyTime: _p
-}), Cp = {
-	diary: xp("diary_with_summary", {
-		title: gp,
-		body: gp,
-		summary: gp
-	}),
-	growth: xp("growth_evaluation", {
-		changed: { type: "boolean" },
-		content: gp
-	}),
-	memory: xp("facts", { facts: vp(Sp) }),
-	decisions: xp("fact_decisions", { decisions: vp(bp({
-		candidateId: gp,
-		action: yp([
-			"new",
-			"duplicate",
-			"supplement",
-			"update"
-		]),
-		targetId: _p,
-		content: gp
-	})) }),
-	summary: xp("summary", { summary: gp }),
-	graph: xp("typed_edges", { edges: vp(bp({
-		from: gp,
-		to: gp,
-		type: yp(Object.keys(nc)),
-		reason: gp
-	})) })
-};
-function wp(e, t) {
-	if (!$(e)) throw Error(t + "为空，可重试或手动填写。");
-	return $(e);
-}
-function Tp(e, t) {
-	return Es(e, {
-		char: t.character.char,
-		user: t.character.user
-	});
-}
-var Ep = "维护一份简洁的当前角色画像，聚焦仍然成立的人格、价值观、情感、信任、生活状态和重要经历的长期影响。结合初始设定，保留有证据的变化，避免按时间罗列或把日常写成成长。", Dp = "摘要应保留经历的经过、关键互动和长期意义，方便日后找回脉络，约 150–300 字。独立、精准的事实由事实库整理。";
-async function Op(e, t, n, r, i, a, o = t.settings) {
-	if (e === "growth") {
-		let e = n.results.diary.value, r = e.summary || e.body, s = op(t).slice(0, o.recentDiaryCount), c = new Set(s.map((e) => e.id)), l = (await a(op(t).filter((e) => !c.has(e.id) && !e.summaryPending).map((e) => ({
-			id: e.id,
-			title: e.title,
-			content: e.summary
-		})), r, "历史日记", { useImportance: !1 })).filter((e) => e.score >= o.recallScoreThreshold).slice(0, 3), u = [...s.map((e) => e.summaryPending ? e.body : e.summary), ...l.map((e) => e.memory.content)], d = await i("growth", [
-			Ep,
-			Tp(o.prompts.growth, n),
-			"只有实质变化才返回 changed=true 及完整画像，否则 changed=false、content=\"\"。",
-			"初始设定：" + n.character.context,
-			"现画像：" + t.characterGrowth.content,
-			"近期与相关历史：" + u.join("\n\n"),
-			"已确认的本幕日记：" + e.body
-		].join("\n\n"), Cp.growth);
-		return {
-			changed: d.changed,
-			content: d.changed ? wp(d.content, "候选画像") : ""
-		};
-	}
-	let s = ws(r, o.extraction, n.character.char, n.character.user);
-	if (s.errors.length) throw Error("正文或故事时间标签未匹配。" + s.errors.map((e) => "楼层 " + (e.index + 1) + " " + e.errors.join("、")).join("；"));
-	if (e === "diary") {
-		let e = await i("diary", [
-			Tp(o.prompts.diary, n),
-			Dp,
-			"以角色第一人称保留情节、互动细节、关键对话与当时感受。正文目标长度 " + o.diaryTargetLength,
-			"初始设定：" + n.character.context,
-			"本幕对话：\n" + s.text
-		].join("\n\n"), Cp.diary);
-		return {
-			title: $(e.title) || "未命名日记",
-			body: wp(e.body, "日记正文"),
-			summary: wp(e.summary, "日记摘要")
-		};
-	}
-	return Ap(t, s, n, i, a, o);
-}
-var kp = (e) => ({
-	id: e.id,
-	category: e.category,
-	title: e.title,
-	content: e.content,
-	storyTime: e.storyTime,
-	locked: e.locked
-});
-async function Ap(e, t, n, r, i, a) {
-	let o = (await r("memory", [
-		Tp(a.prompts.memory, n),
-		"提取四类可供后续直接使用的独立客观事实。忽略日常流水、愿望、推测、心理和未落实计划。无合格事实返回空数组。",
-		"preference 偏好：主体、喜好或厌恶的对象。npc_relationship：NPC 与角色或玩家的客观关系。item：有用途、归属或特殊意义的物品。place：地点及可复用的位置、条件或用途。",
-		"角色 " + n.character.char + "，玩家 " + n.character.user + "。故事时间仅使用对话中标出的时间。最多 30 条。",
-		"本幕对话：\n" + t.text
-	].join("\n\n"), Cp.memory)).facts.slice(0, 30).map((e) => oc(e)).filter(mc), s = e.memories.filter(ac), c = [];
-	for (let e = 0; e < o.length; e += 4) {
-		let t = o.slice(e, e + 4), n = await Promise.all(t.map(async (e) => ({
-			candidate: e,
-			existing: (await i(s, e.content, "事实", {
-				includePermanent: !0,
-				useImportance: !1
-			})).filter((e) => e.score >= a.maintenanceScoreThreshold).slice(0, 5).map((e) => kp(e.memory))
-		})));
-		c.push(...n);
-	}
-	let l = /* @__PURE__ */ new Map();
-	for (let e = 0; e < c.length; e += 8) {
-		let t = c.slice(e, e + 8).filter((e) => e.existing.length);
-		if (!t.length) continue;
-		let n = await r("memory", [
-			"对照每个候选对应的已有事实。每个候选使用 candidateId 输出一个判断：new 新事实；duplicate 同义重复；supplement 同一事实的补充；update 已发生的状态变化。",
-			"new 的 targetId 为 null，其余只允许使用该候选所列的已有 ID。补充或变化的 content 写出应用后的完整客观事实。",
-			JSON.stringify(t.map(({ candidate: e, existing: t }) => ({
-				...kp(e),
-				existing: t
-			})))
-		].join("\n\n"), Cp.decisions);
-		for (let e of t) {
-			let t = n.decisions.find((t) => t.candidateId === e.candidate.id);
-			if (!t || t.action !== "new" && !e.existing.some((e) => e.id === t.targetId)) throw Error("事实判定遗漏候选或引用了无效目标，可重试此项。");
-			l.set(e.candidate.id, t);
-		}
-	}
-	return c.map(({ candidate: e, existing: t }) => {
-		let n = l.get(e.id), r = n?.action || "new", i = r === "new" ? null : n.targetId, a = t.find((e) => e.id === i);
-		return {
-			id: Xo("proposal"),
-			action: r,
-			targetId: i,
-			targetContent: a?.content,
-			targetStoryTime: a?.storyTime,
-			value: {
-				...e,
-				content: ["supplement", "update"].includes(r) ? wp(n.content, "拟更新事实") : e.content
-			},
-			accepted: r !== "duplicate" && !a?.locked
-		};
-	});
-}
-function jp(e, t) {
-	let n = /* @__PURE__ */ new Set();
-	for (let r of t.filter((e) => e.accepted && e.action !== "duplicate")) {
-		if (!mc(r.value)) throw Error("已接受的事实必须分类并填写标题和正文。");
-		let t = r.targetId;
-		if (t) {
-			if (n.has(t)) throw Error("同一事实有多条已接受的修改，请只保留一条。");
-			let i = e.memories.find((e) => e.id === t);
-			if (!ac(i) || i.locked) throw Error("修改目标已删除、未分类或已锁定，请重新审核。");
-			if (r.targetContent !== i.content || r.targetStoryTime !== (i.storyTime ?? null)) throw Error("目标事实已修改，请重新提取或拒绝此建议。");
-			n.add(t), hc(e, {
-				title: r.value.title,
-				content: r.value.content,
-				storyTime: r.value.storyTime || i.storyTime,
-				people: [...i.people, ...r.value.people],
-				aliases: [...i.aliases, ...r.value.aliases]
-			}, t);
-		} else e.memories.some((e) => ac(e) && e.category === r.value.category && e.content.trim().toLocaleLowerCase() === r.value.content.trim().toLocaleLowerCase()) || hc(e, r.value);
-	}
-}
-async function Mp(e, t) {
-	return wp((await t("summary", Dp + "\n标题：" + e.title + "\n正文：\n" + e.body, Cp.summary)).summary, "日记摘要");
-}
-function Np(e, t = 12e3) {
-	let n = [];
-	for (let r = 0; r < e.length; r += t) n.push(e.slice(r, r + t));
-	return n;
-}
-async function Pp(e, t) {
-	return wp((await t("growth", "概括这批叙事材料中与持久人物状态有关的事实与变化，约 800 字。把阶段性变化与当前状态区分。输出 summary。\n" + e, Cp.summary)).summary, "成长归纳");
-}
-async function Fp(e, t, n, r) {
-	let i = op(e).reverse();
-	if (!i.length) throw Error("请先保存至少一篇有效日记。");
-	let a = Np(i.map((e) => e.title + "\n" + e.body).join("\n\n")), o = 1;
-	for (; a.length > 1;) {
-		let e = [];
-		for (let t of a) r("归纳第 " + o + " 层，第 " + (e.length + 1) + "/" + a.length + " 批"), e.push(await Pp(t, n));
-		if (o++, e.join("\n\n").length >= a.join("\n\n").length) throw Error("归纳内容未缩短，请以较小的渠道输出额度重试。");
-		a = Np(e.join("\n\n"));
-	}
-	let s = await n("growth", [
-		Ep,
-		"覆盖全部提供的历史素材，形成一份完整画像。现画像用于核对。",
-		"初始设定：" + t.context,
-		"现画像：" + e.characterGrowth.content,
-		"日记材料：\n" + a[0]
-	].join("\n\n"), Cp.growth);
-	return wp(s.changed ? s.content : e.characterGrowth.content, "重整画像");
-}
-var Ip = (e) => ms(JSON.stringify(kp(e)));
-async function Lp(e, t, n, r, i) {
-	let a = e.memories.filter(ac), o = Object.fromEntries(a.map((e) => [e.id, Ip(e)])), s = t === "full" ? a : a.filter((t) => e.graphReviewed[t.id] !== o[t.id]), c = new Map(a.map((e) => [e.id, e])), l = /* @__PURE__ */ new Map(), u = /* @__PURE__ */ new Map(), d = new Set(e.edges.map(fc));
-	for (let t = 0; t < s.length; t++) {
-		let n = s[t];
-		i("检索候选 " + (t + 1) + "/" + s.length);
-		let o = await r(a, n.content, "事实", {
-			includePermanent: !0,
-			excludeId: n.id,
-			useImportance: !1
-		});
-		for (let t of o.filter((t) => t.memory.id !== n.id && t.score >= e.settings.maintenanceScoreThreshold).slice(0, e.settings.maintenanceCandidateLimit)) {
-			let e = [n.id, t.memory.id].sort();
-			l.set(JSON.stringify(e), e);
-		}
-	}
-	let f = [...l.values()];
-	for (let r = 0; r < f.length; r += 8) {
-		let o = f.slice(r, r + 8), s = new Set(o.map((e) => JSON.stringify(e)));
-		i("整理候选 " + (r + 1) + "–" + (r + o.length) + "/" + f.length);
-		let l = await n("graph", [
-			e.settings.prompts.maintenance,
-			"仅用所给事实对提议有证据且有助于精准检索的有向关系。同人、同地点、同话题不足以建边。没有明确关系返回空数组。",
-			"from 与 to 使用真实 ID。必须用 reason 说明两个已有事实如何支持该方向。",
-			JSON.stringify(Object.fromEntries(Object.entries(nc).map(([e, t]) => [e, t.meaning]))),
-			JSON.stringify(o.map((e) => e.map((e) => kp(c.get(e)))))
-		].join("\n\n"), Cp.graph);
-		for (let e of pc(l.edges, a)) s.has(JSON.stringify([e.from, e.to].sort())) && (t === "incremental" && d.has(fc(e)) || u.set(fc(e), {
-			...e,
-			accepted: !0
-		}));
-	}
-	return {
-		mode: t,
-		edges: [...u.values()],
-		reviewed: o,
-		revision: e.memoryRevision
-	};
-}
-// host-v7.js
-var Rp = "0.4.1", zp = (e) => ["confirmed", "skipped"].includes(e?.status);
-async function Bp(e, t, n = 0, r = !1, i = !1) {
+// host-v8.js
+var $d = "0.5.0", ef = (e) => ["confirmed", "skipped"].includes(e?.status);
+async function tf(e, t, n = 0, r = !1, i = !1, a = null) {
 	if (!t || !r && Number.isInteger(n) && e.length > n && e.slice(n).every(Boolean)) return e;
-	let a = await t.tail({ limit: 100 }), o = a.startIndex + a.messages.length, s = Math.max(0, o - e.length), c = [], l = /* @__PURE__ */ new Map();
+	let o = await t.tail({ limit: 100 }), s = o.startIndex + o.messages.length, c = Math.max(0, s - e.length), l = [], u = /* @__PURE__ */ new Map();
 	for (e.forEach((e, t) => {
 		if (!e) return;
-		let n = t + s;
-		c[n] = e, i && e.tt_swipe_cold && l.set(e.tt_swipe_cold.record - 1, n);
+		let n = t + c;
+		l[n] = e, i && e.tt_swipe_cold && u.set(e.tt_swipe_cold.record - 1, n);
 	});;) {
-		for (let e = 0; e < a.messages.length; e++) {
-			let t = a.startIndex + e, n = a.messages[e];
-			if (c[t] ||= n, l.has(t)) {
-				let e = l.get(t), { tt_swipe_cold: r, ...i } = c[e], a = (e, t) => e?.map((e, n) => e ?? t?.[n]) || t;
-				c[e] = {
+		for (let e = 0; e < o.messages.length; e++) {
+			let t = o.startIndex + e, n = o.messages[e];
+			if (l[t] ||= n, u.has(t)) {
+				let e = u.get(t), { tt_swipe_cold: r, ...i } = l[e], a = (e, t) => e?.map((e, n) => e ?? t?.[n]) || t;
+				l[e] = {
 					...i,
 					swipes: a(i.swipes, n.swipes),
 					swipe_info: a(i.swipe_info, n.swipe_info)
-				}, l.delete(t);
+				}, u.delete(t);
 			}
 		}
-		if (!a.hasMoreBefore || a.startIndex <= n) {
-			if (l.size) throw Error("无法读取完整的历史候选回复。");
-			return c;
+		if (!o.hasMoreBefore || o.startIndex <= n || a?.(l, o.startIndex)) {
+			if (u.size) throw Error("无法读取完整的历史候选回复。");
+			return l;
 		}
-		a = await t.before(a, { limit: 100 });
+		o = await t.before(o, { limit: 100 });
 	}
 }
-function Vp(e, t, n = globalThis) {
-	let r = () => e(), i = () => r().chatMetadata, a = () => String(r().chatId ?? ""), o = () => r().chat || [], s = /* @__PURE__ */ new Set(), c = /* @__PURE__ */ new Map(), l = () => n.SillyTavern?.libs?.localforage, u = Xo("account"), d = () => {
+function nf(e, t, n = globalThis) {
+	let r = () => e(), i = () => r().chatMetadata, a = () => String(r().chatId ?? ""), o = () => r().chat || [], s = /* @__PURE__ */ new Set(), c = /* @__PURE__ */ new Map(), l = () => n.SillyTavern?.libs?.localforage, u = $o("account"), d = () => {
 		let e = r().accountStorage, t = e?.getItem("scene_diary_account_id") || u;
 		return e?.getItem("scene_diary_account_id") || e?.setItem("scene_diary_account_id", t), t;
-	}, f = null, p = Promise.resolve(), m = "", h = !1, g = 0, _ = "", v = [], y = "", b, x = 0, S = "", C = "", w = "", ee = null, te = async () => {
+	}, f = null, p = Promise.resolve(), m = "", h = !1, g = 0, _ = "", v = [], y = "", b, x = 0, S = "", C = null, w = async () => {
 		let e = n.__TAURITAVERN__;
 		return e ? (await e.ready, e.api?.chat?.current?.handle?.()) : null;
-	}, T = (e) => !!e && f === e && e.id === a() && e.metadata === i(), E = () => f && T(f) && !_ ? i()?.[Wo] : null, D = () => E() || i()?.scene_diary, O = () => ({
+	}, T = (e) => !!e && f === e && e.id === a() && e.metadata === i(), E = () => f && T(f) && !_ ? i()?.[Go] : null, ee = () => E() || i()?.scene_diary, te = () => ({
 		state: E(),
-		persisted: D(),
+		persisted: ee(),
 		chatId: a(),
 		blocker: _,
 		saveError: m,
 		saved: h,
 		pendingSaves: g,
 		trace: v,
-		graphProgress: S,
-		growthProgress: C,
-		summaryProgress: w,
-		growthPreview: ee,
+		growthProgress: S,
+		growthPreview: C,
 		busy: [...c.keys()],
-		channels: gd(r()),
+		channels: nu(r()),
 		messages: o().length
-	}), k = () => s.forEach((e) => e(O()));
-	function A(e) {
+	}), D = () => s.forEach((e) => e(te()));
+	function O(e) {
 		if (!e || !T(e)) throw new DOMException("聊天已切换", "AbortError");
 	}
-	function ne(e = !1) {
+	function k(e = !1) {
 		let t = f;
-		e && t.messageRevision++, g++, k();
+		e && t.messageRevision++, g++, D();
 		let n = p.then(async () => {
 			if (!T(t)) return !1;
 			let e = r(), n = t.messageRevision, i = n === t.savedMessageRevision ? e.saveMetadata || e.saveChat : e.saveChat || e.saveMetadata;
@@ -6137,19 +5406,19 @@ function Vp(e, t, n = globalThis) {
 		return p = n.catch((e) => {
 			T(t) && (m = e.message, h = !1);
 		}).finally(() => {
-			T(t) && (g--, k());
+			T(t) && (g--, D());
 		}), n;
 	}
-	function j(e, t = !1) {
+	function A(e, t = !1) {
 		let n = E();
 		if (!n) throw Error("请先打开受支持的聊天。");
 		let r = structuredClone(n), a = e(r);
-		return r.lastUpdatedAt = Date.now(), i()[Wo] = r, k(), ne(t).then(() => a);
+		return r.lastUpdatedAt = Date.now(), i()[Go] = r, D(), k(t).then(() => a);
 	}
-	function M(e) {
-		return "scene_diary_migration_backup_" + d() + "_" + a() + "_schema" + e + "_to7";
+	function ne(e) {
+		return "scene_diary_migration_backup_" + d() + "_" + a() + "_schema" + e + "_to8";
 	}
-	async function re() {
+	async function j() {
 		let e = a(), s = i(), u = ++x;
 		if (f?.id !== e || f?.metadata !== s) {
 			for (let e of c.values()) e.abort();
@@ -6158,23 +5427,23 @@ function Vp(e, t, n = globalThis) {
 				metadata: s,
 				messageRevision: 0,
 				savedMessageRevision: 0
-			}, m = "", h = !1, g = 0, v = [], y = "", S = "", C = "", w = "", ee = null, t("");
+			}, m = "", h = !1, g = 0, v = [], y = "", S = "", C = null, t("");
 		}
 		let p = f;
 		if (!e || r().groupId || !s) {
-			_ = "请选择一个单角色聊天。", k();
+			_ = "请选择一个单角色聊天。", D();
 			return;
 		}
 		if (n.AutoCardUpdaterAPI) {
-			_ = "检测到 SP·数据库，请停用 SP 并刷新后使用本扩展。", t(""), k();
+			_ = "检测到 SP·数据库，请停用 SP 并刷新后使用本扩展。", t(""), D();
 			return;
 		}
-		let E = s[Wo];
-		if (E?.version > 7) _ = "聊天数据版本高于当前插件支持范围，请使用对应的插件版本。", k();
-		else if (E && E.version !== 7) {
-			_ = "正在备份旧聊天…", k();
+		let E = s[Go];
+		if (E?.version > 8) _ = "聊天数据版本高于当前插件支持范围，请使用对应的插件版本。", D();
+		else if (E && E.version !== 8) {
+			_ = "正在备份旧聊天…", D();
 			try {
-				let t = M(E.version), n = await te(), r = await Bp(o(), n?.history, 0, !0, !0);
+				let t = ne(E.version), n = await w(), r = await tf(o(), n?.history, 0, !0, !0);
 				if (!T(p) || u !== x || (await l().getItem(t) || await l().setItem(t, {
 					schema: E.version,
 					savedAt: Date.now(),
@@ -6182,45 +5451,45 @@ function Vp(e, t, n = globalThis) {
 					messages: structuredClone(r),
 					pendingRecovery: E.memorySpaceId ? await l().getItem("scene_diary_recovery_" + d() + "_" + e + "_" + E.memorySpaceId) : null
 				}), !T(p) || u !== x || s.scene_diary !== E)) return;
-				s[Wo] = uc(E), _ = "", await ne();
+				s[Go] = _c(E), _ = "", await k();
 			} catch (e) {
-				T(p) && s.scene_diary === E && (_ = "迁移备份失败，旧聊天仍保留。" + e.message, k());
+				T(p) && s.scene_diary === E && (_ = "迁移备份失败，旧聊天仍保留。" + e.message, D());
 			}
-		} else if (!E && o().filter(_s).length > 1) _ = "已有聊天，请选择开始接管的楼层。", k();
+		} else if (!E && o().filter(_s).length > 1) _ = "已有聊天，请选择开始接管的楼层。", D();
 		else {
-			if (_ = "", !E) await ie(0);
+			if (_ = "", !E) await M(0);
 			else {
 				let e = E.pendingTransaction;
-				e && ic.some((t) => e.results[t]?.status === "running" && !c.has("close:" + t)) && await j((e) => {
-					for (let t of ic) {
+				e && sc.some((t) => e.results[t]?.status === "running" && !c.has("close:" + t)) && await A((e) => {
+					for (let t of sc) {
 						let n = e.pendingTransaction.results[t];
 						n?.status === "running" && !c.has("close:" + t) && (n.status = "error", n.error = "请求已中断，可单独重试本项。");
 					}
-				}), E.status === "active" && o().some((e) => _s(e) && !e.extra?.scene_diary?.actId) && await j((e) => o().forEach((t, n) => {
+				}), E.status === "active" && o().some((e) => _s(e) && !e.extra?.scene_diary?.actId) && await A((e) => o().forEach((t, n) => {
 					_s(t) && !t.extra?.scene_diary?.actId && vs(e, t, e.currentActId, n);
 				}), !0);
 			}
-			k();
+			D();
 		}
 	}
-	async function ie(e) {
+	async function M(e) {
 		if (n.AutoCardUpdaterAPI || r().groupId || !a() || i()?.scene_diary) return;
 		_ = "";
-		let t = lc();
+		let t = vc();
 		o().forEach((n, r) => {
 			r >= e && _s(n) && vs(t, n, 1, r);
-		}), fs(t).startMessageIndex = e, i()[Wo] = t, await ne(!0);
+		}), fs(t).startMessageIndex = e, i()[Go] = t, await k(!0);
 	}
-	async function ae(e, t) {
+	async function re(e, t) {
 		if (!e.messageIds.length) return [];
 		let n = o(), r = new Set(e.messageIds), i = (t) => t.filter((t) => _s(t) && Number(t.extra?.scene_diary?.actId) === e.id && r.has(t.extra?.scene_diary?.messageId)), a = i(n);
 		if (a.length === r.size) return a;
-		let s = await te();
-		if (A(t), !s?.history) return a;
-		let c = await Bp(n, s.history, 0, !0);
-		return A(t), n.every(Boolean) && c.length <= n.length ? a : i(c);
+		let s = await w();
+		if (O(t), !s?.history) return a;
+		let c = await tf(n, s.history, 0, !0);
+		return O(t), n.every(Boolean) && c.length <= n.length ? a : i(c);
 	}
-	function oe() {
+	function ie() {
 		let e = r(), t = e.getCharacterCardFields?.() || {};
 		return {
 			char: e.name2 || t.name || "角色",
@@ -6228,90 +5497,85 @@ function Vp(e, t, n = globalThis) {
 			context: Ds(t)
 		};
 	}
-	async function se() {
+	async function ae() {
 		let e = f, t = E(), n = fs(t);
 		if (!n || t.status !== "active") return;
-		let r = await ae(n, e);
+		let r = await re(n, e);
 		if (!r.length) throw Error("本幕没有可整理的对话。");
-		if (A(e), E() !== t) throw Error("当前幕已变化，请重新结束本幕。");
-		await j((e) => {
+		if (O(e), E() !== t) throw Error("当前幕已变化，请重新结束本幕。");
+		await A((e) => {
 			e.status = "preview", fs(e).status = "closing", e.pendingTransaction = {
-				id: Xo("close"),
+				id: $o("close"),
 				actId: n.id,
 				sourceFingerprint: hs(r),
-				character: oe(),
-				growthRevision: e.characterGrowth.revision,
-				results: Object.fromEntries(ic.map((e) => [e, { status: "idle" }]))
+				character: ie(),
+				results: Object.fromEntries(sc.map((e) => [e, { status: "idle" }]))
 			};
-		}), await Promise.allSettled([pe("diary"), pe("memory")]);
+		}), await Promise.allSettled([de("diary"), de("memory")]);
 	}
-	function ce(e) {
+	function oe(e) {
 		if (c.has(e)) return null;
 		let t = new AbortController();
-		return c.set(e, t), k(), t;
+		return c.set(e, t), D(), t;
 	}
-	function le(e, t) {
-		c.get(e) === t && (c.delete(e), k());
+	function se(e, t) {
+		c.get(e) === t && (c.delete(e), D());
 	}
-	let ue = (e, t) => {
-		T(e) && (v.push(t), v.length > 100 && v.shift(), k());
+	let ce = (e, t) => {
+		T(e) && (v.push(t), v.length > 100 && v.shift(), D());
 	};
-	function de(e, t, n, i) {
-		let a = new Map(gd(r()).map((e) => [e.id, structuredClone(e)]));
-		return (o, s, c) => {
-			A(n), t.throwIfAborted();
-			let l = a.get(e.settings.bindings[o]);
-			if (!l) throw Error("请在设置中为「" + rc[o] + "」绑定自建渠道。");
-			return Td(r(), l, s, c, t, rc[o], i);
+	function le(e, t, n) {
+		let i = new Map(nu(r()).map((e) => [e.id, structuredClone(e)]));
+		return (a, o) => {
+			O(n), t.throwIfAborted();
+			let s = i.get(e.settings.bindings[a]);
+			if (!s) throw Error("请在设置中为「" + oc[a] + "」绑定自建渠道。");
+			return cu(r(), s, a, o, t);
 		};
 	}
-	async function fe(e, t, n, i) {
-		let a = await te();
-		A(t);
+	async function ue(e, t, n, i) {
+		let a = await w();
+		O(t);
 		let o = r().accountStorage;
-		return dp(e, {
+		return qd(e, {
 			chat: t.id,
 			account: d(),
 			store: a?.store,
 			embeddingKey: o?.getItem("scene_diary_embedding_key") || "",
 			rerankKey: o?.getItem("scene_diary_rerank_key") || ""
-		}, (e) => ue(t, e), n, i);
+		}, (e) => ce(t, e), n, i);
 	}
-	async function pe(e) {
+	async function de(e) {
 		let t = f, n = E(), r = n?.pendingTransaction;
-		if (!r || !ic.includes(e) || e === "growth" && r.results.diary.status !== "confirmed") return;
-		let i = "close:" + e, a = ce(i);
+		if (!r || !sc.includes(e)) return;
+		let i = "close:" + e, a = oe(i);
 		if (!a) return;
-		let o = a.signal, s = de(n, o, t, (n) => ue(t, {
-			stage: rc[e],
-			title: n
-		})), l = r.results[e], u = () => T(t) && E()?.pendingTransaction?.id === r.id && c.get(i) === a;
+		let o = a.signal, s = le(n, o, t), l = r.results[e], u = () => T(t) && E()?.pendingTransaction?.id === r.id && c.get(i) === a;
 		try {
-			let i = structuredClone(await ae(fs(n), t));
+			let i = structuredClone(await re(fs(n), t));
 			if (o.throwIfAborted(), !u() || hs(i) !== r.sourceFingerprint) throw Error("本幕对话已经修改，请取消关幕后重开审核。");
-			if (e === "growth" && E().pendingTransaction.results.diary !== r.results.diary && JSON.stringify(E().pendingTransaction.results.diary) !== JSON.stringify(r.results.diary)) throw Error("已确认日记已变化，请重新评估成长。");
-			e === "diary" && c.get("close:growth")?.abort(), await j((t) => {
+			await A((t) => {
 				t.pendingTransaction.results[e] = {
 					...l,
 					status: "running",
 					error: ""
-				}, e === "diary" && me(t.pendingTransaction);
+				};
 			}), o.throwIfAborted();
-			let a = await Op(e, n, r, i, s, await fe(n, t, o));
+			let a = await Xl(e, n, r, i, s);
 			if (!u()) return;
-			if (o.throwIfAborted(), e !== "growth" && hs(await ae(fs(E()), t)) !== r.sourceFingerprint) throw Error("本幕对话已经修改，请取消关幕后重开审核。");
+			if (o.throwIfAborted(), hs(await re(fs(E()), t)) !== r.sourceFingerprint) throw Error("本幕对话已经修改，请取消关幕后重开审核。");
 			if (!u()) return;
-			o.throwIfAborted(), await j((t) => {
+			o.throwIfAborted(), await A((t) => {
 				t.pendingTransaction.results[e] = {
 					status: "draft",
 					value: a
-				}, e === "growth" && (t.pendingTransaction.growthRevision = n.characterGrowth.revision);
+				};
 			}).catch(() => {});
 		} catch (t) {
 			if (!u()) return;
 			let n = E().pendingTransaction.results[e];
 			if (n.status === "outdated" || n.status === "skipped") return;
-			await j((n) => {
+			await A((n) => {
 				n.pendingTransaction.results[e] = {
 					...l,
 					status: "error",
@@ -6319,49 +5583,34 @@ function Vp(e, t, n = globalThis) {
 				};
 			}).catch(() => {});
 		} finally {
-			le(i, a);
+			se(i, a);
 		}
 	}
-	function me(e) {
-		let t = e.results.growth;
-		e.results.growth = t.value ? {
-			...t,
-			status: "outdated"
-		} : { status: "idle" };
+	async function fe(e, t, n = !1, r = !0) {
+		if (sc.includes(e) && !c.has("close:" + e) && E()?.pendingTransaction) {
+			if (r && !n && e === "diary" && !$(t?.body)) throw Error("请填写日记正文。");
+			if (!n && e === "memory" && !Array.isArray(t)) throw Error("请先提取记忆。");
+			if (r && !n && e === "memory" && t.some((e) => e.accepted && !hc(e.value))) throw Error("请检查勾选记忆点的标题、内容和重要度。");
+			await A((i) => {
+				i.pendingTransaction.results[e] = n ? { status: "skipped" } : {
+					status: r ? "confirmed" : "draft",
+					value: t
+				};
+			});
+		}
 	}
-	async function he(e, t, n = !1, r = !0) {
-		if (c.has("close:" + e) || !ic.includes(e)) return;
-		let i = E()?.pendingTransaction;
-		if (!i || e === "growth" && i.results.diary.status !== "confirmed") return;
-		if (!n && t == null) throw Error("请填写或生成审核内容。");
-		if (r && !n && e === "diary" && (!$(t.body) || !$(t.summary))) throw Error("请填写日记正文和摘要。");
-		if (r && !n && e === "growth" && t.changed && !$(t.content)) throw Error("请填写候选画像。");
-		let a = e === "diary" && (n || !r || i.results.diary.status !== "confirmed" || JSON.stringify(i.results.diary.value) !== JSON.stringify(t));
-		if (a && c.get("close:growth")?.abort(), e === "growth" && r && !n && i.results.growth.value && i.growthRevision !== E().characterGrowth.revision) throw Error("当前画像已修改，请重新评估成长。");
-		await j((i) => {
-			let o = i.pendingTransaction;
-			o.results[e] = n ? { status: "skipped" } : {
-				status: r ? "confirmed" : "draft",
-				value: t
-			}, e === "diary" && (n ? o.results.growth = { status: "skipped" } : a && me(o)), e === "growth" && (o.growthRevision = i.characterGrowth.revision);
-		}), e === "diary" && !n && r && ["idle", "outdated"].includes(E()?.pendingTransaction?.results.growth.status) && await pe("growth");
-	}
-	async function ge() {
+	async function pe() {
 		let e = f, t = E(), n = t?.pendingTransaction;
-		if (!n || !ic.every((e) => zp(n.results[e]))) throw Error("请先处理三项审核。");
-		let r = await ae(fs(t), e);
-		if (A(e), E() !== t) throw Error("审核内容已变化，请重试提交。");
+		if (!n || !sc.every((e) => ef(n.results[e]))) throw Error("请先处理两项审核。");
+		let r = await re(fs(t), e);
+		if (O(e), E() !== t) throw Error("审核内容已变化，请重试提交。");
 		if (hs(r) !== n.sourceFingerprint) throw Error("本幕来源已变化，请取消后重新整理。");
-		await j((e) => {
-			let t = fs(e), { diary: i, growth: a, memory: o } = n.results;
-			if (a.status === "confirmed" && e.characterGrowth.revision !== n.growthRevision) throw Error("当前画像已修改，请重新评估成长。");
-			o.status === "confirmed" && jp(e, o.value), i.status === "confirmed" && e.diaries.push(sc({
+		await A((e) => {
+			let t = fs(e), { diary: i, memory: a } = n.results;
+			a.status === "confirmed" && Zl(e, a.value), i.status === "confirmed" && e.diaries.push(gc({
 				...i.value,
 				createdAt: Date.now()
-			})), a.status === "confirmed" && a.value.changed && dc(e, a.value.content, {
-				actId: t.id,
-				edited: !1
-			}), Object.assign(t, {
+			})), Object.assign(t, {
 				status: "closed",
 				closedAt: Date.now(),
 				sourceFingerprint: n.sourceFingerprint,
@@ -6370,101 +5619,76 @@ function Vp(e, t, n = globalThis) {
 			}), e.status = "pending_next_act", e.pendingTransaction = null;
 		});
 	}
-	function _e() {
-		for (let e of ic) {
+	function me() {
+		for (let e of sc) {
 			let t = "close:" + e;
 			c.get(t)?.abort(), c.delete(t);
 		}
-		return j((e) => {
+		return A((e) => {
 			fs(e).status = "active", e.status = "active", e.pendingTransaction = null;
 		});
 	}
-	async function ve(e) {
-		let t = f, n = E(), r = "summary", i = n && ce(r);
-		if (!i || !n) return;
-		let a = de(n, i.signal, t), o = n.diaries.filter((t) => e.includes(t.id));
-		try {
-			for (let e of o) {
-				w = "正在整理 " + e.title, k();
-				let n = await Mp(e, a);
-				i.signal.throwIfAborted(), A(t), await j((t) => {
-					let r = t.diaries.find((t) => t.id === e.id);
-					if (r?.body !== e.body) throw Error("日记已编辑，请重新生成摘要。");
-					Object.assign(r, {
-						summary: n,
-						summaryPending: !1,
-						updatedAt: Date.now()
-					});
-				});
-			}
-		} finally {
-			T(t) && (w = ""), le(r, i);
-		}
+	async function he(e, t, n = "recent") {
+		let r = E(), i = f, a = e === "growth" ? [] : await re(fs(r), i);
+		return O(i), Yl(e, {
+			...r,
+			settings: t
+		}, e !== "growth" && r.pendingTransaction?.character || ie(), a, n);
 	}
-	async function ye() {
-		let e = f, t = E(), n = "growth", r = t && ce(n);
-		if (r && t) try {
-			let n = await Fp(t, oe(), de(t, r.signal, e), (t) => {
-				T(e) && (C = t, k());
-			});
-			A(e), r.signal.throwIfAborted(), ee = {
-				content: n,
-				revision: t.characterGrowth.revision,
-				diaries: JSON.stringify(t.diaries)
+	async function ge(e = "recent") {
+		let t = f, n = E(), r = Jl(n, e);
+		if (!r.length) throw Error("所选范围没有有效日记。");
+		let i = oe("growth");
+		if (i) try {
+			S = "正在读取 " + r.length + " 篇日记…", D();
+			let a = Yl("growth", n, ie(), [], e), o = await le(n, i.signal, t)("growth", Kl(a));
+			i.signal.throwIfAborted(), O(t), C = {
+				...o,
+				mode: e,
+				count: r.length,
+				revision: n.characterGrowth.revision,
+				diaries: JSON.stringify(r)
 			};
+		} catch (t) {
+			throw e === "global" && /context|too many tokens|input.*long|上下文|上下文长度/i.test(t.message) ? Error(t.message + "。请更换长上下文模型后重试。") : t;
 		} finally {
-			T(e) && (C = ""), le(n, r);
+			T(t) && (S = ""), se("growth", i);
 		}
 	}
-	async function be(e) {
-		ee && (await j((t) => {
-			if (t.characterGrowth.revision !== ee.revision || JSON.stringify(t.diaries) !== ee.diaries) throw Error("画像或日记已变化，请重新重整。");
+	async function _e(e) {
+		let t = C;
+		t?.changed && (t.appliedRevision === E().characterGrowth.revision && e === E().characterGrowth.content ? await k() : await A((n) => {
+			if (n.characterGrowth.revision !== t.revision || JSON.stringify(Jl(n, t.mode)) !== t.diaries) throw Error("画像或本次日记已变化，请重新生成。");
 			if (!$(e)) throw Error("请填写候选画像。");
-			dc(t, e);
-		}), ee = null, k());
+			ac(n, e), t.appliedRevision = n.characterGrowth.revision;
+		}), C === t && (C = null), D());
 	}
-	async function xe(e) {
-		let t = f, n = E(), r = "graph", i = n && ce(r);
-		if (!i || !n) return;
-		let a = de(n, i.signal, t);
-		try {
-			let r = await Lp(n, e, a, await fe(n, t, i.signal, { strict: !0 }), (e) => {
-				T(t) && (S = e, k());
-			});
-			A(t), i.signal.throwIfAborted(), await j((e) => {
-				e.graphPreview = r;
-			});
-		} finally {
-			T(t) && (S = ""), le(r, i);
-		}
+	async function ve(e, t) {
+		let r = o(), i = Kd(r, e.settings);
+		if (i.rows.length > e.settings.queryDepth || !n.__TAURITAVERN__) return i;
+		let a = await w();
+		if (O(t), !a?.history) return i;
+		let s = await tf(r, a.history, 0, !0, !1, (t, n) => Kd(t.slice(n), e.settings).rows.length > e.settings.queryDepth);
+		return O(t), Kd(s, e.settings);
 	}
-	function Se(e) {
-		return j((t) => {
-			let n = t.graphPreview;
-			if (!n || t.memoryRevision !== n.revision) throw Error("事实库已变化，请重新整理图谱。");
-			let r = e.filter((e) => e.accepted), i = pc(r, t.memories);
-			if (i.length !== r.length) throw Error("存在重复或无效关系，请检查关系端点、类型和依据。");
-			t.edges = pc(n.mode === "full" ? i : [...t.edges, ...i], t.memories), t.graphReviewed = n.reviewed, t.graphPreview = null;
-		});
-	}
-	async function N(e, i, a) {
+	async function ye(e, i, a) {
 		t(""), y = "";
-		let s = E(), c = f;
-		if (!s || n.AutoCardUpdaterAPI || !["active", "preview"].includes(s.status) || !Array.isArray(e)) return;
+		let o = E(), s = f;
+		if (!o || n.AutoCardUpdaterAPI || !["active", "preview"].includes(o.status) || !Array.isArray(e)) return;
 		b?.abort();
-		let l = (b = new AbortController()).signal;
+		let c = (b = new AbortController()).signal;
 		v = [];
 		try {
-			let i = Ts(o().filter(_s).slice(-s.settings.recallMessageCount), s.settings.extraction);
+			let i = await ve(o, s);
 			if (i.errors.length) throw Error("最近对话正文标签未匹配，请检查正文提取设置。");
-			let a = await fe(s, c, l), u = await mp(s, i.text, a, (e) => ue(c, e));
-			if (A(c), l.throwIfAborted(), !["active", "preview"].includes(E()?.status) || E()?.currentActId !== s.currentActId) throw new DOMException("当前剧幕已变化", "AbortError");
-			if (E() !== s) throw Error("聊天内容已更新，请重新生成。");
-			e.splice(0, e.length, ...bs(e, s.currentActId)), String(r().mainApi).toLowerCase() === "openai" ? y = u : t(u, Math.min(e.length, 100)), v.some((e) => e.status === "warning") && n.toastr?.warning?.("语义召回部分失败，详情见 scene&diary 诊断。");
+			let a = await ue(o, s, c), l = await Zd(o, i.text, a, (e) => ce(s, e));
+			if (O(s), c.throwIfAborted(), !["active", "preview"].includes(E()?.status) || E()?.currentActId !== o.currentActId) throw new DOMException("当前剧幕已变化", "AbortError");
+			if (E() !== o) throw Error("聊天内容已更新，请重新生成。");
+			e.splice(0, e.length, ...bs(e, o.currentActId)), String(r().mainApi).toLowerCase() === "openai" ? y = l : t(l, Math.min(e.length, 100)), v.some((e) => e.status === "warning") && n.toastr?.warning?.("语义召回部分失败，详情见 scene&diary 诊断。");
 		} catch (e) {
-			if (!l.aborted && T(c)) {
-				let t = Gs(e);
-				ue(c, {
+			if (!c.aborted && T(s)) {
+				let t = Us(e);
+				ce(s, {
 					stage: "召回",
 					status: "error",
 					title: t
@@ -6473,32 +5697,32 @@ function Vp(e, t, n = globalThis) {
 			a?.(!0);
 		}
 	}
-	async function Ce(e) {
-		let t = E();
+	async function be(e) {
+		let t = E(), r = f;
 		if (!t || n.AutoCardUpdaterAPI || !["active", "preview"].includes(t.status) || !Array.isArray(e.chat)) return;
-		let r = y;
+		let i = y;
 		if (y = "", !e.dryRun) {
-			js(e.chat, r);
+			As(e.chat, i);
 			return;
 		}
-		let i = Ts(o().filter(_s).slice(-t.settings.recallMessageCount), t.settings.extraction);
-		if (i.errors.length) return;
-		let a = await hp(t, i.text);
-		E() === t && js(e.chat, a);
+		let a = await ve(t, r);
+		if (a.errors.length) return;
+		let o = await Qd(t, a.text);
+		E() === t && As(e.chat, o);
 	}
-	function we(e, t) {
+	function xe(e, t) {
 		let n = E(), r = o()[Number(e)];
-		if (n && _s(r) && !!r.is_user === t && (["active", "preview"].includes(n.status) || t && n.status === "pending_next_act")) return j((t) => {
+		if (n && _s(r) && !!r.is_user === t && (["active", "preview"].includes(n.status) || t && n.status === "pending_next_act")) return A((t) => {
 			t.status === "pending_next_act" ? ys(t, r, Number(e)) : vs(t, r, t.currentActId, Number(e));
 		}, !0);
 	}
-	function P(e) {
+	function Se(e) {
 		let t = E(), n = o()[Number(e)]?.extra?.scene_diary?.actId;
-		if (!(!t || !t.diaries.length || n && t.acts.find((e) => e.id === n)?.status !== "closed" || t.characterGrowth.reviewRecommended)) return j((e) => {
+		if (!(!t || !t.diaries.length || n && t.acts.find((e) => e.id === n)?.status !== "closed" || t.characterGrowth.reviewRecommended)) return A((e) => {
 			e.characterGrowth.reviewRecommended = !0;
 		});
 	}
-	function Te() {
+	function N() {
 		let e = r(), i = e.eventTypes || {}, a = (t, r, a) => e.eventSource?.on(i[t] || r, (...e) => {
 			try {
 				return Promise.resolve(a(...e)).catch((e) => {
@@ -6508,45 +5732,43 @@ function Vp(e, t, n = globalThis) {
 				n.toastr?.error?.(e.message);
 			}
 		});
-		return a("CHAT_CHANGED", "chat_id_changed", re), a("CHAT_LOADED", "chatLoaded", re), a("MESSAGE_SENT", "message_sent", (e) => we(e, !0)), a("MESSAGE_RECEIVED", "message_received", (e) => we(e, !1)), a("MESSAGE_EDITED", "message_edited", P), a("MESSAGE_UPDATED", "message_updated", P), a("MESSAGE_SWIPED", "message_swiped", P), a("MESSAGE_DELETED", "message_deleted", () => P()), a("CHAT_COMPLETION_PROMPT_READY", "chat_completion_prompt_ready", Ce), a("GENERATION_STOPPED", "generation_stopped", () => {
+		return a("CHAT_CHANGED", "chat_id_changed", j), a("CHAT_LOADED", "chatLoaded", j), a("MESSAGE_SENT", "message_sent", (e) => xe(e, !0)), a("MESSAGE_RECEIVED", "message_received", (e) => xe(e, !1)), a("MESSAGE_EDITED", "message_edited", Se), a("MESSAGE_UPDATED", "message_updated", Se), a("MESSAGE_SWIPED", "message_swiped", Se), a("MESSAGE_DELETED", "message_deleted", () => Se()), a("CHAT_COMPLETION_PROMPT_READY", "chat_completion_prompt_ready", be), a("GENERATION_STOPPED", "generation_stopped", () => {
 			b?.abort(), y = "", t("");
-		}), re();
+		}), j();
 	}
 	return {
-		snapshot: O,
+		snapshot: te,
 		subscribe(e) {
-			return s.add(e), e(O()), () => s.delete(e);
+			return s.add(e), e(te()), () => s.delete(e);
 		},
-		connect: Te,
-		initialize: re,
-		takeOver: ie,
-		mutate: j,
-		save: ne,
+		connect: N,
+		initialize: j,
+		takeOver: M,
+		mutate: A,
+		save: k,
 		getContext: e,
-		rearrange: N,
-		promptReady: Ce,
-		openClose: se,
-		runClose: pe,
-		reviewPart: he,
-		confirmClose: ge,
-		cancelClose: _e,
-		organize: xe,
-		applyGraph: Se,
-		generateGrowth: ye,
-		acceptGrowth: be,
+		rearrange: ye,
+		promptReady: be,
+		openClose: ae,
+		runClose: de,
+		reviewPart: fe,
+		confirmClose: pe,
+		cancelClose: me,
+		previewModules: he,
+		generateGrowth: ge,
+		acceptGrowth: _e,
 		discardGrowth() {
-			ee = null, k();
+			C = null, D();
 		},
-		summarizeAll: ve,
 		cancel(e) {
 			c.get(e)?.abort();
 		},
-		refresh: k,
-		backup: () => vc(E(), a()),
-		import: (e) => j((t) => Object.assign(t, yc(t, e, a()))),
+		refresh: D,
+		backup: () => bc(E(), a()),
+		import: (e) => A((t) => Object.assign(t, xc(t, e, a()))),
 		migrationBackup: async () => {
-			for (let e = 6; e > 0; e--) {
-				let t = await l()?.getItem(M(e));
+			for (let e = 7; e > 0; e--) {
+				let t = await l()?.getItem(ne(e));
 				if (t) return t;
 			}
 			throw Error("这个聊天没有迁移备份。");
@@ -6557,12 +5779,12 @@ function Vp(e, t, n = globalThis) {
 	};
 }
 // src/index.ts
-function Hp(e, t) {
-	let n = Vp(e, t);
+function rf(e, t) {
+	let n = nf(e, t);
 	Object.assign(globalThis, {
 		sceneDiaryRearrangeChat: n.rearrange,
 		sceneDiary: {
-			version: Rp,
+			version: $d,
 			...n
 		}
 	});
@@ -6570,8 +5792,8 @@ function Hp(e, t) {
 		if (document.getElementById("scene-diary-root")) return;
 		let e = document.createElement("div");
 		e.id = "scene-diary-root", document.body.append(e);
-		let t = Zs(n);
-		Vo(ap).provide(Qs, t).mount(e);
+		let t = Ys(n);
+		Ho(Gd).provide(Xs, t).mount(e);
 		let r = document.getElementById("send_but");
 		if (r) {
 			let e = document.createElement("button");
@@ -6581,4 +5803,4 @@ function Hp(e, t) {
 	};
 	document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r, { once: !0 }) : r();
 }
-export { Hp as install };
+export { rf as install };

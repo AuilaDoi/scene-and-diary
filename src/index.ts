@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import { createHost, VERSION_LABEL } from '../host-v7.js';
+import { createHost, VERSION_LABEL } from '../host-v8.js';
 import { WORKSPACE, createWorkspace } from './workspace';
 import './style.css';
 
