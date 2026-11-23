@@ -5325,7 +5325,7 @@ function rf(e, t, n, r, { localOnly: i = !1 } = {}) {
 			space: e.memorySpaceId + ":事实"
 		}, d = Ls(l, e.memoryRevision, { poolSize: e.settings.retrievalCount }), f, p;
 		if (!i && a.enabled) try {
-			[f, [p]] = await Promise.all([of(l, u, a, t, r), Ks([c], a, t.embeddingKey, { signal: r })]);
+			[f, [p]] = await Promise.all([sf(l, u, a, t, r), Ks([c], a, t.embeddingKey, { signal: r })]);
 		} catch (e) {
 			s("向量检索", e);
 		}
@@ -5349,19 +5349,30 @@ function rf(e, t, n, r, { localOnly: i = !1 } = {}) {
 		return o("精排", g, _.map((e) => e.score.toFixed(3) + " " + e.memory.title)), _;
 	};
 }
-var af = /* @__PURE__ */ new Map();
-async function of(e, t, n, r, i) {
+async function af(e, t, n) {
+	if (typeof e.listKeys == "function" && !(await e.listKeys({ namespace: t })).includes(n)) return {};
+	try {
+		return await e.getJson({
+			namespace: t,
+			key: n
+		}) || {};
+	} catch (e) {
+		let r = typeof e == "string" ? e : e?.message;
+		if (typeof r != "string") throw e;
+		if (r.match(/^(?:Not found: )?Chat store entry not found: (.+)$/)?.[1].replaceAll("\\", "/").endsWith("/" + t + "/" + n + ".json")) return {};
+		throw e;
+	}
+}
+var of = /* @__PURE__ */ new Map();
+async function sf(e, t, n, r, i) {
 	let a = "scene-diary", o = "vectors-" + ms(JSON.stringify([
 		t.space,
 		n.endpoint,
 		n.model,
 		n.dimensions
-	])), s = JSON.stringify([t, o]), c = af.get(s), l = Promise.resolve(c).catch(() => {}).then(async () => {
+	])), s = JSON.stringify([t, o]), c = of.get(s), l = Promise.resolve(c).catch(() => {}).then(async () => {
 		i?.throwIfAborted();
-		let s = r.store, c = s ? await s.getJson({
-			namespace: a,
-			key: o
-		}) || {} : null, l = c ? new Map(e.flatMap((e) => {
+		let s = r.store, c = s ? await af(s, a, o) : null, l = c ? new Map(e.flatMap((e) => {
 			let r = c[Vs(t, n, e)];
 			return Array.isArray(r) ? [[e.id, r]] : [];
 		})) : await qs(e, t, n), u = e.filter((e) => !l.has(e.id));
@@ -5379,15 +5390,15 @@ async function of(e, t, n, r, i) {
 		}
 		return l;
 	});
-	af.set(s, l);
+	of.set(s, l);
 	try {
 		return await l;
 	} finally {
-		af.get(s) === l && af.delete(s);
+		of.get(s) === l && of.delete(s);
 	}
 }
-var sf = (e, t) => t.length ? "[scene&diary " + e + "]\n" + t.join("\n\n") + "\n[/scene&diary " + e + "]" : "";
-async function cf(e, t, n, r) {
+var cf = (e, t) => t.length ? "[scene&diary " + e + "]\n" + t.join("\n\n") + "\n[/scene&diary " + e + "]" : "";
+async function lf(e, t, n, r) {
 	let i = e.settings, a = e.diaries.filter((e) => !e.needsReview && e.body.trim()).sort((e, t) => t.createdAt - e.createdAt).slice(0, i.recentDiaryCount).reverse(), o = e.memories.filter(cc), s = o.filter((e) => e.permanent), c = i.retrievalCount && i.candidateCount && t.trim() ? await n(o.filter((e) => !e.permanent), t) : [], l = c.slice(0, i.candidateCount), u = l.filter((e) => e.score > i.recallScoreThreshold);
 	return r({
 		stage: "注入",
@@ -5395,18 +5406,18 @@ async function cf(e, t, n, r) {
 		title: "常驻 " + s.length + " · 初检 " + c.length + " · 精排候选 " + l.length + " · 阈值淘汰 " + (l.length - u.length) + " · 普通记忆注入 " + u.length,
 		details: [...s.map((e) => "常驻 · " + e.title), ...u.map((e) => "召回 · " + e.memory.title)]
 	}), [
-		sf("当前角色画像", i.growthEnabled && e.characterGrowth.content ? [e.characterGrowth.content] : []),
-		sf("近期日记", a.map((e) => e.title + "\n" + e.body)),
-		sf("常驻记忆", s.map(ks)),
-		sf("长期记忆", u.map((e) => ks(e.memory)))
+		cf("当前角色画像", i.growthEnabled && e.characterGrowth.content ? [e.characterGrowth.content] : []),
+		cf("近期日记", a.map((e) => e.title + "\n" + e.body)),
+		cf("常驻记忆", s.map(ks)),
+		cf("长期记忆", u.map((e) => ks(e.memory)))
 	].filter(Boolean).join("\n\n");
 }
-function lf(e, t) {
-	return cf(e, t, rf(e, {}, () => {}, null, { localOnly: !0 }), () => {});
+function uf(e, t) {
+	return lf(e, t, rf(e, {}, () => {}, null, { localOnly: !0 }), () => {});
 }
 // host-v8.js
-var uf = "0.5.2", df = (e) => ["confirmed", "skipped"].includes(e?.status);
-async function ff(e, t, n = 0, r = !1, i = !1, a = null) {
+var df = "0.5.3", ff = (e) => ["confirmed", "skipped"].includes(e?.status);
+async function pf(e, t, n = 0, r = !1, i = !1, a = null) {
 	if (!t || !r && Number.isInteger(n) && e.length > n && e.slice(n).every(Boolean)) return e;
 	let o = await t.tail({ limit: 100 }), s = o.startIndex + o.messages.length, c = Math.max(0, s - e.length), l = [], u = /* @__PURE__ */ new Map();
 	for (e.forEach((e, t) => {
@@ -5432,7 +5443,7 @@ async function ff(e, t, n = 0, r = !1, i = !1, a = null) {
 		o = await t.before(o, { limit: 100 });
 	}
 }
-function pf(e, t, n = globalThis) {
+function mf(e, t, n = globalThis) {
 	let r = () => e(), i = () => r().chatMetadata, a = () => String(r().chatId ?? ""), o = () => r().chat || [], s = /* @__PURE__ */ new Set(), c = /* @__PURE__ */ new Map(), l = () => n.SillyTavern?.libs?.localforage, u = $o("account"), d = () => {
 		let e = r().accountStorage, t = e?.getItem("scene_diary_account_id") || u;
 		return e?.getItem("scene_diary_account_id") || e?.setItem("scene_diary_account_id", t), t;
@@ -5509,7 +5520,7 @@ function pf(e, t, n = globalThis) {
 		else if (D && D.version !== 8) {
 			_ = "正在备份旧聊天…", k();
 			try {
-				let t = re(D.version), n = await te(), r = await ff(o(), n?.history, 0, !0, !0);
+				let t = re(D.version), n = await te(), r = await pf(o(), n?.history, 0, !0, !0);
 				if (!E(p) || u !== x || (await l().getItem(t) || await l().setItem(t, {
 					schema: D.version,
 					savedAt: Date.now(),
@@ -5552,7 +5563,7 @@ function pf(e, t, n = globalThis) {
 		if (a.length === r.size) return a;
 		let s = await te();
 		if (A(t), !s?.history) return a;
-		let c = await ff(n, s.history, 0, !0);
+		let c = await pf(n, s.history, 0, !0);
 		return A(t), n.every(Boolean) && c.length <= n.length ? a : i(c);
 	}
 	function se() {
@@ -5668,7 +5679,7 @@ function pf(e, t, n = globalThis) {
 	}
 	async function ge() {
 		let e = f, t = D(), n = t?.pendingTransaction;
-		if (!n || !sc.every((e) => df(n.results[e]))) throw Error("请先处理两项审核。");
+		if (!n || !sc.every((e) => ff(n.results[e]))) throw Error("请先处理两项审核。");
 		let r = await oe(fs(t), e);
 		if (A(e), D() !== t) throw Error("审核内容已变化，请重试提交。");
 		if (hs(r) !== n.sourceFingerprint) throw Error("本幕来源已变化，请取消后重新整理。");
@@ -5747,7 +5758,7 @@ function pf(e, t, n = globalThis) {
 		if (i.rows.length > e.settings.queryDepth || !n.__TAURITAVERN__) return i;
 		let a = await te();
 		if (A(t), !a?.history) return i;
-		let s = await ff(r, a.history, 0, !0, !1, (t, n) => nf(t.slice(n), e.settings).rows.length > e.settings.queryDepth);
+		let s = await pf(r, a.history, 0, !0, !1, (t, n) => nf(t.slice(n), e.settings).rows.length > e.settings.queryDepth);
 		return A(t), nf(s, e.settings);
 	}
 	async function N(e, i, a) {
@@ -5760,7 +5771,7 @@ function pf(e, t, n = globalThis) {
 		try {
 			let i = await Se(o, s);
 			if (i.errors.length) throw Error("最近对话正文标签未匹配，请检查正文提取设置。");
-			let a = await pe(o, s, c), l = await cf(o, i.text, a, (e) => de(s, e));
+			let a = await pe(o, s, c), l = await lf(o, i.text, a, (e) => de(s, e));
 			if (A(s), c.throwIfAborted(), !["active", "preview"].includes(D()?.status) || D()?.currentActId !== o.currentActId) throw new DOMException("当前剧幕已变化", "AbortError");
 			if (D() !== o) throw Error("聊天内容已更新，请重新生成。");
 			e.splice(0, e.length, ...bs(e, o.currentActId)), String(r().mainApi).toLowerCase() === "openai" ? y = l : t(l, Math.min(e.length, 100)), v.some((e) => e.status === "warning") && n.toastr?.warning?.("语义召回部分失败，详情见 scene&diary 诊断。");
@@ -5786,7 +5797,7 @@ function pf(e, t, n = globalThis) {
 		}
 		let a = await Se(t, r);
 		if (a.errors.length) return;
-		let o = await lf(t, a.text);
+		let o = await uf(t, a.text);
 		D() === t && As(e.chat, o);
 	}
 	function we(e, t) {
@@ -5862,7 +5873,7 @@ function pf(e, t, n = globalThis) {
 	};
 }
 // src/index.ts
-function mf(e) {
+function hf(e) {
 	let t = document.createElement("button");
 	t.className = "menu_button sd-qr-entry", t.type = "button", t.title = "打开 scene&diary 剧幕工作台", t.setAttribute("aria-label", t.title), t.innerHTML = "<i class=\"fa-solid fa-clapperboard\" aria-hidden=\"true\"></i><span>剧幕工作台</span>", t.addEventListener("click", e);
 	let n = document.getElementById("send_form");
@@ -5873,12 +5884,12 @@ function mf(e) {
 	let i = new MutationObserver(r);
 	i.observe(document.body, { childList: !0 }), n && i.observe(n, { childList: !0 }), r();
 }
-function hf(e, t) {
-	let n = pf(e, t);
+function gf(e, t) {
+	let n = mf(e, t);
 	Object.assign(globalThis, {
 		sceneDiaryRearrangeChat: n.rearrange,
 		sceneDiary: {
-			version: uf,
+			version: df,
 			...n
 		}
 	});
@@ -5887,8 +5898,8 @@ function hf(e, t) {
 		let e = document.createElement("div");
 		e.id = "scene-diary-root", document.body.append(e);
 		let t = Ys(n);
-		Ho(tf).provide(Xs, t).mount(e), mf(t.openWorkbench), t.run(n.connect);
+		Ho(tf).provide(Xs, t).mount(e), hf(t.openWorkbench), t.run(n.connect);
 	};
 	document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r, { once: !0 }) : r();
 }
-export { hf as install };
+export { gf as install };

@@ -47,6 +47,23 @@ export function createRetrieval(state, scope, log, signal, { localOnly = false }
         return ranked;
     };
 }
+async function readChatVectorCache(store, namespace, key) {
+    // A missing key is normal, but TauriTavern reports a missing getJson as a backend error.
+    if (typeof store.listKeys === 'function') {
+        const keys = await store.listKeys({ namespace });
+        if (!keys.includes(key)) return {};
+    }
+    try {
+        return (await store.getJson({ namespace, key })) || {};
+    } catch (error) {
+        const message = typeof error === 'string' ? error : error?.message;
+        if (typeof message !== 'string') throw error;
+        const missing = message.match(/^(?:Not found: )?Chat store entry not found: (.+)$/);
+        if (missing?.[1].replaceAll('\\', '/').endsWith('/' + namespace + '/' + key + '.json')) return {};
+        throw error;
+    }
+}
+
 const queues = new Map();
 async function indexedVectors(documents, identity, config, scope, signal) {
     const namespace = 'scene-diary';
@@ -56,7 +73,7 @@ async function indexedVectors(documents, identity, config, scope, signal) {
     const task = Promise.resolve(previous).catch(() => {}).then(async () => {
         signal?.throwIfAborted();
         const store = scope.store;
-        const cached = store ? await store.getJson({ namespace, key }) || {} : null;
+        const cached = store ? await readChatVectorCache(store, namespace, key) : null;
         const vectors = cached ? new Map(documents.flatMap(item => {
             const value = cached[cacheKey(identity, config, item)];
             return Array.isArray(value) ? [[item.id, value]] : [];

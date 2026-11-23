@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3
+
+- Initialize missing TauriTavern vector caches and keep vector retrieval available on first use.
+
 ## 0.5.2
 
 - Move the workbench entry into Quick Replies, with an Extensions menu entry when Quick Replies is unavailable.
