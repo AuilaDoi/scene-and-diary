@@ -8,7 +8,7 @@ import Memory from './pages/Memory.vue';
 import Settings from './pages/Settings.vue';
 import Diagnostics from './pages/Diagnostics.vue';
 
-const { view, host, opened, hasToolbar, page, error, notice, run, select, openWorkbench } = useWorkspace();
+const { view, host, opened, page, error, notice, run, select } = useWorkspace();
 const tabs = [
     { id: 'workbench', label: '剧幕工作台', icon: 'fa-clapperboard', component: Workbench },
     { id: 'growth', label: '角色成长', icon: 'fa-seedling', component: Growth },
@@ -54,7 +54,6 @@ function exportContent() {
 </script>
 
 <template>
-    <button v-if="!hasToolbar" type="button" class="sd-floating" @click="openWorkbench" title="打开剧幕工作台" aria-label="打开剧幕工作台"><i class="fa-solid fa-clapperboard"></i></button>
     <div v-if="opened" class="sd-backdrop" :style="{ '--sd-toolbar-bottom': toolbarBottom + 'px', '--sd-viewport-height': viewportHeight + 'px' }" data-tt-mobile-surface="backdrop" @click.self="opened = false">
         <section class="sd-window" data-tt-mobile-surface="fullscreen-window" role="dialog" aria-modal="true" aria-labelledby="sd-title">
             <header class="sd-header">

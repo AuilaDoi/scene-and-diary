@@ -7,7 +7,6 @@ export type Page = 'workbench' | 'growth' | 'diaries' | 'memory' | 'settings' | 
 export function createWorkspace(host: ReturnType<typeof createHost>) {
     const view = shallowRef(host.snapshot());
     const opened = ref(false);
-    const hasToolbar = ref(false);
     const page = ref<Page>('workbench');
     const error = ref('');
     const notice = ref('');
@@ -40,7 +39,7 @@ export function createWorkspace(host: ReturnType<typeof createHost>) {
     const select = (value: Page) => {
         page.value = value; error.value = ''; notice.value = '';
     };
-    return { host, view, opened, hasToolbar, page, error, notice, run, openWorkbench, select };
+    return { host, view, opened, page, error, notice, run, openWorkbench, select };
 }
 
 export const WORKSPACE: InjectionKey<ReturnType<typeof createWorkspace>> = Symbol('scene-diary');

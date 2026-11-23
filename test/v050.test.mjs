@@ -205,14 +205,20 @@ test('close retries one failure and inserts only approved new points; growth sta
 test('global growth retains profile on context overflow; recent candidates track only selected sources', async t => {
     const { host } = fixture(); await host.connect();
     await host.mutate(s => { s.settings.growthDiaryCount = 1; s.characterGrowth.content = '原稿';
+        s.settings.prompts.growth.description = '近期任务';
+        s.settings.prompts.growth.globalDescription = '重建任务';
         s.diaries = [1,2].map(n=>diary({title:'日记'+n,body:'正文'+n,createdAt:n})); });
     let global = true, calls = 0;
     t.mock.method(globalThis,'fetch', async (_url, init) => {
         calls++;
         const text = JSON.parse(init.body).messages[1].content;
-        assert.match(text,/原稿/);
-        if (global) { assert.match(text,/正文1[\s\S]*正文2/); return new Response('context length exceeded',{status:400}); }
-        assert.doesNotMatch(text,/正文1/);
+        if (global) {
+            assert.match(text, /重建任务[\s\S]*正文1[\s\S]*正文2/);
+            assert.doesNotMatch(text, /当前角色画像|原稿|近期任务/);
+            return new Response('context length exceeded', { status: 400 });
+        }
+        assert.match(text, /当前角色画像[\s\S]*原稿[\s\S]*近期任务/);
+        assert.doesNotMatch(text, /正文1|重建任务/);
         return model('growth',{changed:true,content:'新画像'});
     });
     await assert.rejects(host.generateGrowth('global'),/长上下文/);

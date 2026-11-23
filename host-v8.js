@@ -8,7 +8,7 @@ import { createRetrieval, continuity, localPreview, queryFor } from './recall-v8
 import { VERSION, PARTS, TASKS, clean, diary, validFact, makeBackup, readBackup, migrateState, newState, writeGrowth } from './state-v8.js';
 import { applyProposals, closeOutput, growthSources, modulesFor, taskMessages, TaskResponseError } from './tasks-v8.js';
 
-export const VERSION_LABEL = '0.5.1';
+export const VERSION_LABEL = '0.5.2';
 const isReviewed = item => ['confirmed', 'skipped'].includes(item?.status);
 
 export async function readHistory(live, history, from = 0, complete = false, restoreSwipes = false, hasEnough = null) {

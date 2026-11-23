@@ -5,6 +5,7 @@ export { writeGrowth };
 export const VERSION = 8;
 export const TASKS = { diary: '日记', memory: '记忆提取', growth: '角色成长' };
 export const PARTS = ['diary', 'memory'];
+export const DEFAULT_GLOBAL_GROWTH_DESCRIPTION = '根据角色设定和全部有效日记重建 {{char}} 的完整当前画像。以日记中有依据的人格、关系与生活状态为准，结合前后变化整理至最新状态。素材足以建立画像时，返回完整候选画像。';
 export const clean = value => typeof value === 'string' ? value.trim() : '';
 export const eligible = value => !!value && !value.deletedAt && !!clean(value.content);
 const defaults = {
@@ -25,6 +26,7 @@ export function settingsV8(value = {}) {
             system: old?.system ?? system,
             description: old?.description ?? (typeof old === 'string' && old !== legacyDefaults[task] ? old : description),
         };
+        if (task === 'growth') prompts.growth.globalDescription = old?.globalDescription ?? DEFAULT_GLOBAL_GROWTH_DESCRIPTION;
         if (value.bindings?.[task]) bindings[task] = value.bindings[task];
     }
     return { prompts, bindings, extraction: normalized.extraction, semantic: normalized.semantic,

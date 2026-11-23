@@ -63,7 +63,8 @@ const rerankKey = ref(keyStore()?.getItem('scene_diary_rerank_key') || '');
 const initial = computed(() => JSON.stringify(view.value.state?.settings || null));
 const tags = ref({});
 watch(initial, source => {
-    settings.value = JSON.parse(source);
+    const stored = JSON.parse(source);
+    settings.value = stored && settingsV8(stored);
     if (!settings.value) return;
     const out = {};
     for (const role of ['user', 'character']) {
@@ -240,11 +241,14 @@ async function saveSettings() {
             <summary>任务提示词</summary>
             <div class="sd-stack">
                 <nav class="sd-segments"><button type="button" v-for="(label, key) in TASKS" :key="key" :aria-pressed="task === key" @click="task = key">{{ label }}</button></nav>
+                <label v-if="task === 'growth'" class="sd-field">成长模式
+                    <select v-model="mode"><option value="recent">追踪最新动态</option><option value="global">全局重建</option></select>
+                </label>
                 <TextField v-model="settings.prompts[task].system" label="系统提示词" />
                 <details><summary>背景参考</summary><p class="sd-prose">{{ preview?.background || '暂无背景' }}</p></details>
-                <TextField v-model="settings.prompts[task].description" label="任务描述" />
+                <TextField v-if="task === 'growth' && mode === 'global'" v-model="settings.prompts.growth.globalDescription" label="任务描述" />
+                <TextField v-else v-model="settings.prompts[task].description" label="任务描述" />
                 <details @toggle="materialOpen = ($event.target as HTMLDetailsElement).open"><summary>内容素材</summary>
-                    <select v-if="task === 'growth'" v-model="mode"><option value="recent">追踪最新动态</option><option value="global">全局重建</option></select>
                     <p class="sd-prose">{{ materialPreview || '暂无素材' }}</p>
                 </details>
                 <details><summary>格式规定</summary><p class="sd-prose">{{ preview?.format }}</p></details>

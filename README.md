@@ -1,10 +1,10 @@
-# scene&diary 0.5.1
+# scene&diary 0.5.2
 
 scene&diary 是 SillyTavern 和 TauriTavern 的单角色聊天扩展。用剧幕划分经历，关幕时整理第一人称日记和独立记忆点，在角色成长页根据日记更新画像。
 
 ## 安装与更新
 
-在扩展安装器中使用 `https://github.com/AuilaDoi/scene-and-diary`，选择 `main`。仓库自带前端构建，刷新宿主后，从发送区旁的剧幕图标打开「剧幕工作台」。旧 RC 安装先在扩展管理器切到 `main`，再更新并刷新。
+在扩展安装器中使用 `https://github.com/AuilaDoi/scene-and-diary`，选择 `main`。仓库自带前端构建，刷新宿主后，从 QR（快捷回复）栏的剧幕图标打开「剧幕工作台」。QR 未启用时，从宿主扩展菜单打开。旧 RC 安装先在扩展管理器切到 `main`，再更新并刷新。
 
 旧聊天首次打开时，插件保存升级前整聊天快照，然后迁移为 schema 8。[升级与回退](docs/UPGRADE-0.5.0.md)
 

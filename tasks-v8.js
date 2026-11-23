@@ -1,5 +1,5 @@
 import { buildDialogue, renderTemplate, newId } from './core.js';
-import { clean, fact, validFact, saveFact } from './state-v8.js';
+import { clean, fact, validFact, saveFact, DEFAULT_GLOBAL_GROWTH_DESCRIPTION } from './state-v8.js';
 
 const formats = {
     diary: '{"title":"标题","body":"日记正文"}',
@@ -7,12 +7,16 @@ const formats = {
     growth: '{"changed":true,"content":"完整候选画像"} 或 {"changed":false,"content":""}',
     test: '{"ok":true}',
 };
-export function taskModules(task, settings, character, profile, material) {
+export function taskModules(task, settings, character, profile, material, mode = 'recent') {
     const prompt = settings.prompts[task], tag = 'sd_' + task;
+    const globalGrowth = task === 'growth' && mode === 'global';
+    const background = [character.context];
+    if (!globalGrowth && profile) background.push('[当前角色画像]\n' + profile);
+    const description = globalGrowth ? prompt.globalDescription ?? DEFAULT_GLOBAL_GROWTH_DESCRIPTION : prompt.description;
     return {
         system: renderTemplate(prompt.system, character),
-        background: [character.context, profile && '[当前角色画像]\n' + profile].filter(Boolean).join('\n\n'),
-        description: renderTemplate(prompt.description, character), material,
+        background: background.filter(Boolean).join('\n\n'),
+        description: renderTemplate(description, character), material,
         format: '返回一个用 <' + tag + '> 和 </' + tag + '> 包裹的 JSON 对象。结构如下：\n' + formats[task],
     };
 }
@@ -58,7 +62,7 @@ export function modulesFor(task, state, character, messages = [], mode = 'recent
     const material = task === 'growth'
         ? growthSources(state, mode).map(item => item.title + '\n' + item.body).join('\n\n')
         : dialogueMaterial(messages, state.settings.extraction, character);
-    return taskModules(task, state.settings, character, state.characterGrowth.content, material);
+    return taskModules(task, state.settings, character, state.characterGrowth.content, material, mode);
 }
 export async function closeOutput(task, state, transaction, messages, request) {
     const result = await request(task, taskMessages(modulesFor(task, state, transaction.character, messages)));

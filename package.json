@@ -2,7 +2,7 @@
   "name": "scene-and-diary",
   "private": true,
   "type": "module",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "scripts": {
     "build": "vue-tsc --noEmit && vite build",
     "test": "node --test test/*.test.mjs"

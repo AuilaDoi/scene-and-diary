@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2
+
+- Move the workbench entry into Quick Replies, with an Extensions menu entry when Quick Replies is unavailable.
+- Give the two growth modes separate task descriptions. Full rebuild uses the character card as its background.
+
 ## 0.5.1 — 2026-11-23
 
 - Load scene dialogue only when the prompt material preview is open and the dialogue source has changed.
