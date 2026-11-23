@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import SaveAction from '../SaveAction.vue';
 import TextField from '../TextField.vue';
+import RawResponse from '../RawResponse.vue';
 import { writeGrowth } from '../../state-v8.js';
 import { useWorkspace } from '../workspace';
 
@@ -27,6 +28,10 @@ watch(() => view.value.growthPreview, value => candidate.value = value?.content 
         <section class="sd-card sd-stack">
             <header class="sd-section-title"><h3>根据日记更新画像</h3></header>
             <p v-if="view.growthProgress" role="status">{{ view.growthProgress }}</p>
+            <template v-if="view.growthFailure">
+                <p class="sd-alert" role="alert">{{ view.growthFailure.message }}</p>
+                <RawResponse :content="view.growthFailure.rawResponse" />
+            </template>
             <div v-if="view.growthPreview?.changed" class="sd-compare">
                 <label class="sd-field">现画像<textarea :value="profile.content" rows="10" readonly /></label>
                 <TextField v-model="candidate" label="重整后画像" :rows="10" />

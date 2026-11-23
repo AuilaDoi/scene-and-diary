@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { TASKS } from '../../state-v8.js';
 import TextField from '../TextField.vue';
+import RawResponse from '../RawResponse.vue';
 import { useWorkspace } from '../workspace';
 
 const props = defineProps<{ kind: string; part: any; transaction: any }>();
@@ -23,6 +24,7 @@ function review(skip = false, confirm = true) {
     <article class="sd-card sd-stack">
         <header class="sd-section-title"><h3>{{ TASKS[kind] }}</h3><span class="sd-pill">{{ labels[part.status] }}</span></header>
         <p v-if="part.error" class="sd-alert">{{ part.error }}</p>
+        <RawResponse v-if="part.status === 'error'" :content="view.closeRawResponses[kind]" />
         <template v-if="!running">
             <template v-if="kind === 'diary'">
                 <label class="sd-field">标题<input v-model="value.title"></label>

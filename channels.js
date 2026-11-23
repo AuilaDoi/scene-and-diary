@@ -1,4 +1,4 @@
-import { parseResult, taskModules, taskMessages } from './tasks-v8.js';
+import { TaskResponseError, parseResult, taskModules, taskMessages } from './tasks-v8.js';
 import { redactJsonError } from './redact.js';
 import { newId } from './core.js';
 
@@ -72,9 +72,12 @@ export async function generateTask(context, channel, task, messages, signal) {
     }, signal);
     const choice = result?.choices?.[0];
     if (choice?.message?.refusal || choice?.finish_reason === 'content_filter') throw new Error('模型拒绝生成该内容。');
-    if (choice?.finish_reason === 'length') throw new Error('模型输出被截断，请调整渠道最大输出 token 后重试。');
-    if (typeof choice?.message?.content !== 'string') throw new Error('渠道未返回文本。');
-    return parseResult(task, choice.message.content);
+    const content = choice?.message?.content;
+    if (choice?.finish_reason === 'length') {
+        throw new TaskResponseError('模型输出被截断，请调整渠道最大输出 token 后重试。', content);
+    }
+    if (typeof content !== 'string') throw new Error('渠道未返回文本。');
+    return parseResult(task, content);
 }
 export function testChannel(context, channel, signal) {
     const modules = taskModules('test', { prompts: { test: { system: '渠道连通性测试。', description: '按规定格式确认连接。' } } }, {}, '', '');

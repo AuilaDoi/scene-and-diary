@@ -2,7 +2,8 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { blankChannel, fetchModels, saveChannels, testChannel, validatedChannel } from '../../channels.js';
 import { settingsV8, TASKS } from '../../state-v8.js';
-import { validateTagPair } from '../../core.js';
+import { currentAct, validateTagPair } from '../../core.js';
+import { dialogueMaterial, modulesFor, taskModules } from '../../tasks-v8.js';
 import { validateSemanticEndpoint } from '../../semantic.js';
 import SaveAction from '../SaveAction.vue';
 import TextField from '../TextField.vue';
@@ -10,18 +11,47 @@ import { useWorkspace } from '../workspace';
 
 const { view, host, run, notice, select } = useWorkspace();
 const settings = ref(null), draft = ref(null), modelList = ref<string[]>([]);
-const task = ref('diary'), mode = ref('recent'), preview = ref(null), previewError = ref(''), previewOpen = ref(false);
+const task = ref('diary'), mode = ref('recent'), previewOpen = ref(false), materialOpen = ref(false);
+const dialogue = ref(null), dialogueError = ref('');
+const dialogueSource = computed(() => {
+    const act = currentAct(view.value.state);
+    return act ? JSON.stringify([act.id, act.messageIds, view.value.dialogueRevision]) : '';
+});
+const wantsDialogue = computed(() => previewOpen.value && materialOpen.value && task.value !== 'growth');
 const modelOpen = ref(false), search = ref(''), modelStatus = ref('');
 const visibleModels = computed(() => modelList.value.filter(model => model.toLowerCase().includes(search.value.toLowerCase())));
-watch([task, mode, settings, previewOpen, () => view.value.state], async (_values, _old, onCleanup) => {
+watch([wantsDialogue, dialogueSource], async ([enabled, source], _old, onCleanup) => {
+    if (!enabled || !source || dialogue.value?.source === source) return;
     let current = true;
     onCleanup(() => { current = false; });
-    if (!settings.value || !previewOpen.value) return;
+    dialogueError.value = '';
     try {
-        const value = await host.previewModules(task.value, settings.value, mode.value);
-        if (current) { preview.value = value; previewError.value = ''; }
-    } catch (error) { if (current) { preview.value = null; previewError.value = error.message; } }
-}, { deep: true });
+        const messages = await host.readPreviewDialogue();
+        if (current) dialogue.value = { source, messages };
+    } catch (error) {
+        if (current) dialogueError.value = error.message;
+    }
+});
+const preview = computed(() => {
+    const state = view.value.state;
+    if (!state || !settings.value || !previewOpen.value) return null;
+    const character = host.previewCharacter(task.value);
+    return task.value === 'growth'
+        ? modulesFor('growth', { ...state, settings: settings.value }, character, [], mode.value)
+        : taskModules(task.value, settings.value, character, state.characterGrowth.content, '');
+});
+const materialPreview = computed(() => {
+    if (!previewOpen.value || !materialOpen.value) return '';
+    if (task.value === 'growth') return preview.value?.material;
+    if (!dialogueSource.value) return '';
+    if (dialogueError.value) return dialogueError.value;
+    if (dialogue.value?.source !== dialogueSource.value) return '正在读取本幕对话…';
+    try {
+        return dialogueMaterial(dialogue.value.messages, draftExtraction(), host.previewCharacter(task.value));
+    } catch (error) {
+        return error.message;
+    }
+});
 const settingsForm = ref<HTMLFormElement>();
 const working = ref(false);
 let request: AbortController | null = null;
@@ -87,12 +117,17 @@ function tagPairs(text) {
         return pair;
     });
 }
+function draftExtraction() {
+    return Object.fromEntries(['user', 'character'].map(role => [role, {
+        requiredStoryTime: settings.value.extraction[role].requiredStoryTime,
+        bodyTagPairs: tagPairs(tags.value[role].bodyTagPairs),
+        storyTimeTagPairs: tagPairs(tags.value[role].storyTimeTagPairs),
+    }]));
+}
 async function saveSettings() {
     if (!settingsForm.value?.reportValidity()) throw new Error('请检查设置中的数值。');
     const value = JSON.parse(JSON.stringify(settings.value));
-    for (const role of ['user', 'character']) for (const field of ['bodyTagPairs', 'storyTimeTagPairs']) {
-        value.extraction[role][field] = tagPairs(tags.value[role][field]);
-    }
+    value.extraction = draftExtraction();
     if (value.semantic.enabled) {
         value.semantic.endpoint = validateSemanticEndpoint(value.semantic.endpoint);
         if (!value.semantic.model.trim()) throw new Error('请填写 Embedding 模型。');
@@ -208,9 +243,9 @@ async function saveSettings() {
                 <TextField v-model="settings.prompts[task].system" label="系统提示词" />
                 <details><summary>背景参考</summary><p class="sd-prose">{{ preview?.background || '暂无背景' }}</p></details>
                 <TextField v-model="settings.prompts[task].description" label="任务描述" />
-                <details><summary>内容素材</summary>
+                <details @toggle="materialOpen = ($event.target as HTMLDetailsElement).open"><summary>内容素材</summary>
                     <select v-if="task === 'growth'" v-model="mode"><option value="recent">追踪最新动态</option><option value="global">全局重建</option></select>
-                    <p class="sd-prose">{{ previewError || preview?.material || '暂无素材' }}</p>
+                    <p class="sd-prose">{{ materialPreview || '暂无素材' }}</p>
                 </details>
                 <details><summary>格式规定</summary><p class="sd-prose">{{ preview?.format }}</p></details>
             </div>

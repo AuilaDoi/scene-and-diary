@@ -10,7 +10,7 @@ const props = defineProps<{ kind: 'diaries' | 'memory' }>();
 const { view, host, run } = useWorkspace();
 const journal = computed(() => props.kind === 'diaries');
 const label = computed(() => journal.value ? '日记' : '记忆点');
-const query = ref(''), draft = ref(null), creating = ref(false);
+const query = ref(''), draft = ref(null), creating = ref(false), saving = ref(false);
 let opener: HTMLElement;
 let original = '';
 const rows = computed(() => {
@@ -32,21 +32,27 @@ function close() {
     nextTick(() => opener?.focus({ preventScroll: true }));
 }
 async function save() {
-    const value = { ...draft.value };
+    const activeDraft = draft.value;
+    const value = { ...activeDraft };
     if (!clean(journal.value ? value.body : value.content)) throw new Error('请填写正文。');
-    await host.mutate(state => {
-        const list = journal.value ? state.diaries : state.memories;
-        const i = list.findIndex(item => item.id === value.id);
-        if (!creating.value && i < 0) throw new Error('条目已删除。');
-        if (i >= 0 && JSON.stringify(list[i]) !== original) throw new Error('条目已变化，请重新打开核对。');
-        if (journal.value) {
-            const item = diary({ ...value, needsReview: false, updatedAt: Date.now() });
-            if (i < 0) state.diaries.push(item); else state.diaries[i] = item;
-            state.characterGrowth.reviewRecommended = true;
-        } else saveFact(state, value, i >= 0 ? value.id : null);
-        original = JSON.stringify(list.find(item => item.id === value.id));
-    });
-    if (draft.value?.id === value.id) creating.value = false;
+    saving.value = true;
+    try {
+        await host.mutate(state => {
+            const list = journal.value ? state.diaries : state.memories;
+            const i = list.findIndex(item => item.id === value.id);
+            if (!creating.value && i < 0) throw new Error('条目已删除。');
+            if (i >= 0 && JSON.stringify(list[i]) !== original) throw new Error('条目已变化，请重新打开核对。');
+            if (journal.value) {
+                const item = diary({ ...value, needsReview: false, updatedAt: Date.now() });
+                if (i < 0) state.diaries.push(item); else state.diaries[i] = item;
+                state.characterGrowth.reviewRecommended = true;
+            } else saveFact(state, value, i >= 0 ? value.id : null);
+            original = JSON.stringify(list.find(item => item.id === value.id));
+        });
+        if (draft.value === activeDraft) close();
+    } finally {
+        saving.value = false;
+    }
 }
 async function toggleLock() {
     const id = draft.value.id;
@@ -78,12 +84,12 @@ function remove() {
     <template v-else>
         <section class="sd-card sd-stack">
             <SearchField v-model="query" :label="'搜索' + label" />
-            <div><button @click="edit(null, $event)">新建{{ label }}</button></div>
+            <div><button :disabled="saving" @click="edit(null, $event)">新建{{ label }}</button></div>
         </section>
         <article v-for="item in cards" :key="item.id" class="sd-card sd-stack">
             <template v-if="draft?.id === item.id">
-                <header class="sd-section-title"><h3>编辑{{ label }}</h3><button @click="close">关闭编辑</button></header>
-                <fieldset class="sd-stack" :disabled="draft.locked">
+                <h3>编辑{{ label }}</h3>
+                <fieldset class="sd-stack" :disabled="draft.locked || saving">
                     <label class="sd-field">标题<input v-model="draft.title"></label>
                     <TextField v-if="journal" v-model="draft.body" label="日记正文" :rows="12" />
                     <template v-else>
@@ -94,9 +100,9 @@ function remove() {
                     </template>
                 </fieldset>
                 <div class="sd-actions sd-sticky">
-                    <button v-if="!creating && !journal" @click="run(toggleLock)">{{ draft.locked ? '解锁' : '锁定' }}</button>
-                    <button v-if="!creating && !draft.locked" class="sd-danger" @click="remove">删除</button>
-                    <SaveAction :action="save" :label="'保存' + label" :success="label + '已保存'" :disabled="draft.locked" />
+                    <button v-if="!creating && !journal" :disabled="saving" @click="run(toggleLock)">{{ draft.locked ? '解锁' : '锁定' }}</button>
+                    <button v-if="!creating && !draft.locked" class="sd-danger" :disabled="saving" @click="remove">删除</button>
+                    <SaveAction :action="save" :label="'保存' + label" :disabled="draft.locked" />
                 </div>
             </template>
             <template v-else>
@@ -105,7 +111,7 @@ function remove() {
                 <p v-else>重要度 {{ item.importance }} {{ item.storyTime }} {{ item.permanent ? '· 常驻' : '' }} {{ item.locked ? '· 已锁定' : '' }}</p>
                 <p class="sd-snippet">{{ journal ? item.body : item.content }}</p>
             </template>
-            <div v-show="draft?.id !== item.id"><button @click="edit(item, $event)">查看与编辑</button></div>
+            <div v-show="draft?.id !== item.id"><button :disabled="saving" @click="edit(item, $event)">查看与编辑</button></div>
         </article>
         <p v-if="!cards.length" class="sd-card">没有符合条件的{{ label }}。</p>
     </template>

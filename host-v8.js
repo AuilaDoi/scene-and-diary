@@ -6,9 +6,9 @@ import { channels, generateTask } from './channels.js';
 import { semanticErrorDetail } from './semantic.js';
 import { createRetrieval, continuity, localPreview, queryFor } from './recall-v8.js';
 import { VERSION, PARTS, TASKS, clean, diary, validFact, makeBackup, readBackup, migrateState, newState, writeGrowth } from './state-v8.js';
-import { applyProposals, closeOutput, growthSources, modulesFor, taskMessages } from './tasks-v8.js';
+import { applyProposals, closeOutput, growthSources, modulesFor, taskMessages, TaskResponseError } from './tasks-v8.js';
 
-export const VERSION_LABEL = '0.5.0';
+export const VERSION_LABEL = '0.5.1';
 const isReviewed = item => ['confirmed', 'skipped'].includes(item?.status);
 
 export async function readHistory(live, history, from = 0, complete = false, restoreSwipes = false, hasEnough = null) {
@@ -59,7 +59,8 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         return id;
     };
     let current = null, saveQueue = Promise.resolve(), saveError = '', saved = false, pendingSaves = 0, blocker = '', trace = [], prompt = '', recallController, refreshRequest = 0;
-    let growthProgress = '', growthPreview = null;
+    let growthProgress = '', growthPreview = null, growthFailure = null;
+    let closeRawResponses = {}, dialogueRevision = 0;
     const historyHandle = async () => {
         const tauri = environment.__TAURITAVERN__;
         if (!tauri) return null;
@@ -71,7 +72,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
     const contentState = () => state() || metadata()?.[STORAGE_KEY];
     const snapshot = () => ({
         state: state(), persisted: contentState(), chatId: chatId(), blocker, saveError, saved, pendingSaves, trace,
-        growthProgress, growthPreview, busy: [...controllers.keys()],
+        growthProgress, growthPreview, growthFailure, closeRawResponses, dialogueRevision, busy: [...controllers.keys()],
         channels: channels(context()), messages: chat().length,
     });
     const publish = () => subscriptions.forEach(fn => fn(snapshot()));
@@ -125,7 +126,8 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
             recallController?.abort();
             current = { id, metadata: data, messageRevision: 0, savedMessageRevision: 0 };
             saveError = ''; saved = false; pendingSaves = 0; trace = []; prompt = '';
-            growthProgress = ''; growthPreview = null;
+            growthProgress = ''; growthPreview = null; growthFailure = null;
+            closeRawResponses = {}; dialogueRevision++;
             applyPrompt('');
         }
         const scope = current;
@@ -263,6 +265,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         if (!transaction || !PARTS.includes(kind)) return;
         const name = 'close:' + kind, controller = begin(name);
         if (!controller) return;
+        delete closeRawResponses[kind];
         const signal = controller.signal;
         const request = requestWith(input, signal, scope);
         const previous = transaction.results[kind];
@@ -289,6 +292,9 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
             if (!isCurrent()) return;
             const result = state().pendingTransaction.results[kind];
             if (result.status === 'outdated' || result.status === 'skipped') return;
+            if (error instanceof TaskResponseError && typeof error.rawResponse === 'string') {
+                closeRawResponses[kind] = error.rawResponse;
+            }
             await mutate(next => { next.pendingTransaction.results[kind] = { ...previous, status: 'error', error: error.message }; }).catch(() => {});
         } finally { end(name, controller); }
     }
@@ -299,6 +305,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         if (!skip && kind === 'memory' && !Array.isArray(value)) throw new Error('请先提取记忆。');
         if (confirm && !skip && kind === 'memory' && value.some(item => item.accepted && !validFact(item.value))) throw new Error('请检查勾选记忆点的标题、内容和重要度。');
         await mutate(next => {
+            delete closeRawResponses[kind];
             next.pendingTransaction.results[kind] = skip ? { status: 'skipped' } : { status: confirm ? 'confirmed' : 'draft', value };
         });
     }
@@ -319,6 +326,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
                 startMessageIndex: messages[0]?.extra?.scene_diary?.messageIndex ?? act.startMessageIndex,
                 endMessageIndex: messages.at(-1)?.extra?.scene_diary?.messageIndex ?? act.endMessageIndex });
             next.status = 'pending_next_act'; next.pendingTransaction = null;
+            closeRawResponses = {};
         });
     }
 
@@ -328,14 +336,20 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
             controllers.get(name)?.abort();
             controllers.delete(name);
         }
+        closeRawResponses = {};
         return mutate(next => { currentAct(next).status = 'active'; next.status = 'active'; next.pendingTransaction = null; });
     }
 
-    async function previewModules(task, settings, mode = 'recent') {
-        const input = state(), scope = current;
-        const messages = task === 'growth' ? [] : await readAct(currentAct(input), scope);
+    function previewCharacter(task) {
+        return (task !== 'growth' && state()?.pendingTransaction?.character) || character();
+    }
+
+    async function readPreviewDialogue() {
+        const scope = current;
+        await saveQueue;
         assertChat(scope);
-        return modulesFor(task, { ...input, settings }, (task !== 'growth' && input.pendingTransaction?.character) || character(), messages, mode);
+        const act = currentAct(state());
+        return act ? readAct(act, scope) : [];
     }
 
     async function generateGrowth(mode = 'recent') {
@@ -343,6 +357,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
         if (!sources.length) throw new Error('所选范围没有有效日记。');
         const work = begin('growth');
         if (!work) return;
+        growthFailure = null;
         try {
             growthProgress = '正在读取 ' + sources.length + ' 篇日记…'; publish();
             const modules = modulesFor('growth', input, character(), [], mode);
@@ -350,6 +365,11 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
             work.signal.throwIfAborted(); assertChat(scope);
             growthPreview = { ...result, mode, count: sources.length, revision: input.characterGrowth.revision, diaries: JSON.stringify(sources) };
         } catch (error) {
+            work.signal.throwIfAborted(); assertChat(scope);
+            if (error instanceof TaskResponseError && typeof error.rawResponse === 'string') {
+                growthFailure = { message: error.message, rawResponse: error.rawResponse };
+                return;
+            }
             if (mode === 'global' && /context|too many tokens|input.*long|上下文|上下文长度/i.test(error.message)) {
                 throw new Error(error.message + '。请更换长上下文模型后重试。');
             }
@@ -436,8 +456,14 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
 
     function sourceEdited(index) {
         const input = state();
+        if (!input) return;
         const id = chat()[Number(index)]?.extra?.scene_diary?.actId;
-        if (!input || !input.diaries.length || (id && input.acts.find(act => act.id === id)?.status !== 'closed') || input.characterGrowth.reviewRecommended) return;
+        const refreshDialogue = !id || id === input.currentActId;
+        if (refreshDialogue) dialogueRevision++;
+        if (!input.diaries.length || (id && input.acts.find(act => act.id === id)?.status !== 'closed') || input.characterGrowth.reviewRecommended) {
+            if (refreshDialogue) publish();
+            return;
+        }
         return mutate(next => { next.characterGrowth.reviewRecommended = true; });
     }
 
@@ -463,7 +489,7 @@ export function createHost(getContext, applyPrompt, environment = globalThis) {
     return {
         snapshot, subscribe(fn) { subscriptions.add(fn); fn(snapshot()); return () => subscriptions.delete(fn); },
         connect, initialize, takeOver, mutate, save, getContext, rearrange, promptReady, openClose, runClose, reviewPart, confirmClose, cancelClose,
-        previewModules, generateGrowth, acceptGrowth, discardGrowth() { growthPreview = null; publish(); },
+        previewCharacter, readPreviewDialogue, generateGrowth, acceptGrowth, discardGrowth() { growthPreview = null; publish(); },
         cancel(name) { controllers.get(name)?.abort(); }, refresh: publish,
         backup: () => makeBackup(state(), chatId()),
         import: backup => mutate(next => Object.assign(next, readBackup(next, backup, chatId()))),

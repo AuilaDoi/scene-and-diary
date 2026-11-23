@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1 — 2026-11-23
+
+- Load scene dialogue only when the prompt material preview is open and the dialogue source has changed.
+- Show the model’s raw text in the review panel when task output cannot be parsed.
+- Return diary and memory entries to read mode after a successful save.
+
 ## 0.5.0 — 2026-11-23
 
 - Independent memory points, configurable hybrid retrieval and 80/20 relevance–importance ranking.

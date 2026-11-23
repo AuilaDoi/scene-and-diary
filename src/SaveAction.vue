@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-const props = defineProps<{ action: () => unknown; label: string; success: string; disabled?: boolean }>();
+const props = defineProps<{ action: () => unknown; label: string; success?: string; disabled?: boolean }>();
 const pending = ref(false), message = ref(''), failed = ref(false);
 async function save() {
     if (pending.value) return;
     pending.value = true; failed.value = false; message.value = '';
-    try { await props.action(); message.value = props.success; }
+    try { await props.action(); message.value = props.success || ''; }
     catch (error) { failed.value = true; message.value = error.message; }
     finally { pending.value = false; }
 }

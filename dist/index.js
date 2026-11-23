@@ -8,13 +8,13 @@ function e(e) {
 var t = {}, n = [], r = () => {}, i = () => !1, a = (e) => e.charCodeAt(0) === 111 && e.charCodeAt(1) === 110 && (e.charCodeAt(2) > 122 || e.charCodeAt(2) < 97), o = (e) => e.startsWith("onUpdate:"), s = Object.assign, c = (e, t) => {
 	let n = e.indexOf(t);
 	n > -1 && e.splice(n, 1);
-}, l = Object.prototype.hasOwnProperty, u = (e, t) => l.call(e, t), d = Array.isArray, f = (e) => x(e) === "[object Map]", p = (e) => x(e) === "[object Set]", m = (e) => x(e) === "[object Date]", h = (e) => typeof e == "function", g = (e) => typeof e == "string", _ = (e) => typeof e == "symbol", v = (e) => typeof e == "object" && !!e, y = (e) => (v(e) || h(e)) && h(e.then) && h(e.catch), b = Object.prototype.toString, x = (e) => b.call(e), S = (e) => x(e).slice(8, -1), C = (e) => x(e) === "[object Object]", w = (e) => g(e) && e !== "NaN" && e[0] !== "-" && "" + parseInt(e, 10) === e, T = /* @__PURE__ */ e(",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"), E = 1e4, ee = (e) => {
+}, l = Object.prototype.hasOwnProperty, u = (e, t) => l.call(e, t), d = Array.isArray, f = (e) => x(e) === "[object Map]", p = (e) => x(e) === "[object Set]", m = (e) => x(e) === "[object Date]", h = (e) => typeof e == "function", g = (e) => typeof e == "string", _ = (e) => typeof e == "symbol", v = (e) => typeof e == "object" && !!e, y = (e) => (v(e) || h(e)) && h(e.then) && h(e.catch), b = Object.prototype.toString, x = (e) => b.call(e), S = (e) => x(e).slice(8, -1), C = (e) => x(e) === "[object Object]", w = (e) => g(e) && e !== "NaN" && e[0] !== "-" && "" + parseInt(e, 10) === e, T = /* @__PURE__ */ e(",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"), ee = 1e4, te = (e) => {
 	let t = /* @__PURE__ */ Object.create(null), n = 0;
 	return ((r) => {
 		let i = t[r];
-		return i === void 0 ? (++n > E && (t = /* @__PURE__ */ Object.create(null), n = 1), t[r] = e(r)) : i;
+		return i === void 0 ? (++n > ee && (t = /* @__PURE__ */ Object.create(null), n = 1), t[r] = e(r)) : i;
 	});
-}, te = /-\w/g, D = /* @__PURE__ */ ee((e) => e.replace(te, (e) => e.slice(1).toUpperCase())), O = /\B([A-Z])/g, k = /* @__PURE__ */ ee((e) => e.replace(O, "-$1").toLowerCase()), A = /* @__PURE__ */ ee((e) => e.charAt(0).toUpperCase() + e.slice(1)), ne = /* @__PURE__ */ ee((e) => e ? `on${A(e)}` : ""), j = (e, t) => !Object.is(e, t), M = (e, ...t) => {
+}, E = /-\w/g, D = /* @__PURE__ */ te((e) => e.replace(E, (e) => e.slice(1).toUpperCase())), ne = /\B([A-Z])/g, O = /* @__PURE__ */ te((e) => e.replace(ne, "-$1").toLowerCase()), k = /* @__PURE__ */ te((e) => e.charAt(0).toUpperCase() + e.slice(1)), A = /* @__PURE__ */ te((e) => e ? `on${k(e)}` : ""), j = (e, t) => !Object.is(e, t), M = (e, ...t) => {
 	for (let n = 0; n < e.length; n++) e[n](...t);
 }, re = (e, t, n, r = !1) => {
 	Object.defineProperty(e, t, {
@@ -1346,14 +1346,14 @@ function Tr(e, t, n = !0, r = !1) {
 		let n = i.type;
 		if (e === Sr) {
 			let e = Ma(n, !1);
-			if (e && (e === t || e === D(t) || e === A(D(t)))) return n;
+			if (e && (e === t || e === D(t) || e === k(D(t)))) return n;
 		}
 		let a = Er(i[e] || n[e], t) || Er(i.appContext[e], t);
 		return !a && r ? n : a;
 	}
 }
 function Er(e, t) {
-	return e && (e[t] || e[D(t)] || e[A(D(t))]);
+	return e && (e[t] || e[D(t)] || e[k(D(t))]);
 }
 function Dr(e, t, n, r) {
 	let i, a = n && n[r], o = d(e);
@@ -1444,7 +1444,7 @@ var Pr = !0;
 function Fr(e) {
 	let t = zr(e), n = e.proxy, i = e.ctx;
 	Pr = !1, t.beforeCreate && Lr(t.beforeCreate, e, "bc");
-	let { data: a, computed: o, methods: s, watch: c, provide: l, inject: u, created: f, beforeMount: p, mounted: m, beforeUpdate: g, updated: _, activated: y, deactivated: b, beforeDestroy: x, beforeUnmount: S, destroyed: C, unmounted: w, render: T, renderTracked: E, renderTriggered: ee, errorCaptured: te, serverPrefetch: D, expose: O, inheritAttrs: k, components: A, directives: ne, filters: j } = t;
+	let { data: a, computed: o, methods: s, watch: c, provide: l, inject: u, created: f, beforeMount: p, mounted: m, beforeUpdate: g, updated: _, activated: y, deactivated: b, beforeDestroy: x, beforeUnmount: S, destroyed: C, unmounted: w, render: T, renderTracked: ee, renderTriggered: te, errorCaptured: E, serverPrefetch: D, expose: ne, inheritAttrs: O, components: k, directives: A, filters: j } = t;
 	if (u && Ir(u, i, null), s) for (let e in s) {
 		let t = s[e];
 		h(t) && (i[e] = t.bind(n));
@@ -1476,10 +1476,10 @@ function Fr(e) {
 	function M(e, t) {
 		d(t) ? t.forEach((t) => e(t.bind(n))) : t && e(t.bind(n));
 	}
-	if (M(fr, p), M(pr, m), M(mr, g), M(hr, _), M(or, y), M(sr, b), M(xr, te), M(br, E), M(yr, ee), M(gr, S), M(_r, w), M(vr, D), d(O)) {
-		if (O.length) {
+	if (M(fr, p), M(pr, m), M(mr, g), M(hr, _), M(or, y), M(sr, b), M(xr, E), M(br, ee), M(yr, te), M(gr, S), M(_r, w), M(vr, D), d(ne)) {
+		if (ne.length) {
 			let t = e.exposed ||= {};
-			O.forEach((e) => {
+			ne.forEach((e) => {
 				Object.defineProperty(t, e, {
 					get: () => n[e],
 					set: (t) => n[e] = t,
@@ -1488,7 +1488,7 @@ function Fr(e) {
 			});
 		} else e.exposed ||= {};
 	}
-	T && e.render === r && (e.render = T), k != null && (e.inheritAttrs = k), A && (e.components = A), ne && (e.directives = ne), D && $n(e);
+	T && e.render === r && (e.render = T), O != null && (e.inheritAttrs = O), k && (e.components = k), A && (e.directives = A), D && $n(e);
 }
 function Ir(e, t, n = r) {
 	d(e) && (e = Wr(e));
@@ -1669,7 +1669,7 @@ function Zr(e, t) {
 }
 var Qr = null;
 function $r(e, n, r = t) {
-	let i = _a(), a = D(n), o = k(n), s = ei(e, a), c = $t((s, c) => {
+	let i = _a(), a = D(n), o = O(n), s = ei(e, a), c = $t((s, c) => {
 		let l, u = t, d;
 		return Bn(() => {
 			let t = e[a];
@@ -1696,13 +1696,13 @@ function $r(e, n, r = t) {
 		} };
 	}, c;
 }
-var ei = (e, t) => t === "modelValue" || t === "model-value" ? e.modelModifiers : e[`${t}Modifiers`] || e[`${D(t)}Modifiers`] || e[`${k(t)}Modifiers`];
+var ei = (e, t) => t === "modelValue" || t === "model-value" ? e.modelModifiers : e[`${t}Modifiers`] || e[`${D(t)}Modifiers`] || e[`${O(t)}Modifiers`];
 function ti(e, n, ...r) {
 	if (e.isUnmounted) return;
 	let i = e.vnode.props || t, a = r, o = n.startsWith("update:"), s = o && ei(i, n.slice(7));
 	s && (s.trim && (a = r.map((e) => g(e) ? e.trim() : e)), s.number && (a = a.map(ie)));
-	let c, l = i[c = ne(n)] || i[c = ne(D(n))];
-	!l && o && (l = i[c = ne(k(n))]), l && un(l, e, 6, a);
+	let c, l = i[c = A(n)] || i[c = A(D(n))];
+	!l && o && (l = i[c = A(O(n))]), l && un(l, e, 6, a);
 	let u = i[c + "Once"];
 	if (u) {
 		if (!e.emitted) e.emitted = {};
@@ -1725,7 +1725,7 @@ function ri(e, t, n = !1) {
 	return !a && !c ? (v(e) && r.set(e, null), null) : (d(a) ? a.forEach((e) => o[e] = null) : s(o, a), v(e) && r.set(e, o), o);
 }
 function ii(e, t) {
-	return !e || !a(t) ? !1 : (t = t.slice(2), t = t === "Once" ? t : t.replace(/Once$/, ""), u(e, t[0].toLowerCase() + t.slice(1)) || u(e, k(t)) || u(e, t));
+	return !e || !a(t) ? !1 : (t = t.slice(2), t = t === "Once" ? t : t.replace(/Once$/, ""), u(e, t[0].toLowerCase() + t.slice(1)) || u(e, O(t)) || u(e, t));
 }
 function ai(e) {
 	let { type: t, vnode: n, proxy: r, withProxy: i, propsOptions: [a], slots: s, attrs: c, emit: l, render: u, renderCache: d, props: f, data: p, setupState: m, ctx: h, inheritAttrs: g } = e, _ = Nn(e), v, y;
@@ -1838,7 +1838,7 @@ function _i(e, t, n, r) {
 	} else {
 		vi(e, t, i, a) && (l = !0);
 		let r;
-		for (let a in s) t && (u(t, a) || (r = k(a)) !== a && u(t, r)) || (c ? n && (n[a] !== void 0 || n[r] !== void 0) && (i[a] = yi(c, s, a, void 0, e, !0)) : delete i[a]);
+		for (let a in s) t && (u(t, a) || (r = O(a)) !== a && u(t, r)) || (c ? n && (n[a] !== void 0 || n[r] !== void 0) && (i[a] = yi(c, s, a, void 0, e, !0)) : delete i[a]);
 		if (a !== s) for (let e in a) t && u(t, e) || (delete a[e], l = !0);
 	}
 	l && et(e.attrs, "set", "");
@@ -1875,7 +1875,7 @@ function yi(e, t, n, r, i, a) {
 			} else r = e;
 			i.ce && i.ce._setProp(n, r);
 		}
-		o[0] && (a && !e ? r = !1 : o[1] && (r === "" || r === k(n)) && (r = !0));
+		o[0] && (a && !e ? r = !1 : o[1] && (r === "" || r === O(n)) && (r = !0));
 	}
 	return r;
 }
@@ -1974,9 +1974,9 @@ function Ni(e, i) {
 				e ?? x(t, r, i, s);
 				break;
 			case H:
-				A(e, t, r, i, a, o, s, c, l);
+				k(e, t, r, i, a, o, s, c, l);
 				break;
-			default: f & 1 ? w(e, t, r, i, a, o, s, c, l) : f & 6 ? ne(e, t, r, i, a, o, s, c, l) : (f & 64 || f & 128) && u.process(e, t, r, i, a, o, s, c, l, ve);
+			default: f & 1 ? w(e, t, r, i, a, o, s, c, l) : f & 6 ? A(e, t, r, i, a, o, s, c, l) : (f & 64 || f & 128) && u.process(e, t, r, i, a, o, s, c, l, ve);
 		}
 		d != null && a ? nr(d, e && e.ref, o, t || e, !t) : d == null && e && e.ref != null && nr(e.ref, null, o, e, !0);
 	}, y = (e, t, n, r) => {
@@ -1998,7 +1998,7 @@ function Ni(e, i) {
 		for (; e && e !== t;) n = h(e), s(e), e = n;
 		s(t);
 	}, w = (e, t, n, r, i, a, o, s, c) => {
-		if (t.type === "svg" ? o = "svg" : t.type === "math" && (o = "mathml"), e == null) E(t, n, r, i, a, o, s, c);
+		if (t.type === "svg" ? o = "svg" : t.type === "math" && (o = "mathml"), e == null) ee(t, n, r, i, a, o, s, c);
 		else {
 			let n = e.el && e.el._isVueCE ? e.el : null;
 			try {
@@ -2007,9 +2007,9 @@ function Ni(e, i) {
 				n && n._endPatch();
 			}
 		}
-	}, E = (e, t, n, r, i, a, s, u) => {
+	}, ee = (e, t, n, r, i, a, s, u) => {
 		let d, f, { props: m, shapeFlag: h, transition: g, dirs: _ } = e;
-		if (d = e.el = l(e.type, a, m && m.is, m), h & 8 ? p(d, e.children) : h & 16 && te(e.children, d, null, r, i, Pi(e, a), s, u), _ && Fn(e, null, r, "created"), ee(d, e, e.scopeId, s, r), m) {
+		if (d = e.el = l(e.type, a, m && m.is, m), h & 8 ? p(d, e.children) : h & 16 && E(e.children, d, null, r, i, Pi(e, a), s, u), _ && Fn(e, null, r, "created"), te(d, e, e.scopeId, s, r), m) {
 			for (let e in m) e !== "value" && !T(e) && c(d, e, null, m[e], a, r);
 			"value" in m && c(d, "value", null, m.value, a), (f = m.onVnodeBeforeMount) && fa(f, r, e);
 		}
@@ -2020,16 +2020,16 @@ function Ni(e, i) {
 				f && fa(f, r, e), v && g.enter(d), _ && Fn(e, null, r, "mounted");
 			} finally {}
 		}, i);
-	}, ee = (e, t, n, r, i) => {
+	}, te = (e, t, n, r, i) => {
 		if (n && g(e, n), r) for (let t = 0; t < r.length; t++) g(e, r[t]);
 		if (i) {
 			let n = i.subTree;
 			if (t === n || Hi(n.type) && (n.ssContent === t || n.ssFallback === t)) {
 				let t = i.vnode;
-				ee(e, t, t.scopeId, t.slotScopeIds, i.parent);
+				te(e, t, t.scopeId, t.slotScopeIds, i.parent);
 			}
 		}
-	}, te = (e, t, n, r, i, a, o, s, c = 0) => {
+	}, E = (e, t, n, r, i, a, o, s, c = 0) => {
 		for (let l = c; l < e.length; l++) {
 			let c = e[l] = s ? la(e[l]) : ca(e[l]);
 			v(null, c, t, n, r, i, a, o, s);
@@ -2038,8 +2038,8 @@ function Ni(e, i) {
 		let l = n.el = e.el, { patchFlag: u, dynamicChildren: d, dirs: f } = n;
 		u |= e.patchFlag & 16;
 		let m = e.props || t, h = n.props || t, g;
-		if (r && Fi(r, !1), (g = h.onVnodeBeforeUpdate) && fa(g, r, n, e), f && Fn(n, e, r, "beforeUpdate"), r && Fi(r, !0), d && (!e.dynamicChildren || e.dynamicChildren.length !== d.length) && (u = 0, s = !1, d = null), (m.innerHTML && h.innerHTML == null || m.textContent && h.textContent == null) && p(l, ""), d ? O(e.dynamicChildren, d, l, r, i, Pi(n, a), o) : s || se(e, n, l, null, r, i, Pi(n, a), o, !1), u > 0) {
-			if (u & 16) k(l, m, h, r, a);
+		if (r && Fi(r, !1), (g = h.onVnodeBeforeUpdate) && fa(g, r, n, e), f && Fn(n, e, r, "beforeUpdate"), r && Fi(r, !0), d && (!e.dynamicChildren || e.dynamicChildren.length !== d.length) && (u = 0, s = !1, d = null), (m.innerHTML && h.innerHTML == null || m.textContent && h.textContent == null) && p(l, ""), d ? ne(e.dynamicChildren, d, l, r, i, Pi(n, a), o) : s || se(e, n, l, null, r, i, Pi(n, a), o, !1), u > 0) {
+			if (u & 16) O(l, m, h, r, a);
 			else if (u & 2 && m.class !== h.class && c(l, "class", null, h.class, a), u & 4 && c(l, "style", m.style, h.style, a), u & 8) {
 				let e = n.dynamicProps;
 				for (let t = 0; t < e.length; t++) {
@@ -2048,16 +2048,16 @@ function Ni(e, i) {
 				}
 			}
 			u & 1 && e.children !== n.children && p(l, n.children);
-		} else !s && d == null && k(l, m, h, r, a);
+		} else !s && d == null && O(l, m, h, r, a);
 		((g = h.onVnodeUpdated) || f) && ji(() => {
 			g && fa(g, r, n, e), f && Fn(n, e, r, "updated");
 		}, i);
-	}, O = (e, t, n, r, i, a, o) => {
+	}, ne = (e, t, n, r, i, a, o) => {
 		for (let s = 0; s < t.length; s++) {
 			let c = e[s], l = t[s], u = c.el || Vi(c), d = u && (c.type === H || !na(c, l) || c.shapeFlag & 198) ? m(u) : n;
 			v(c, l, d, null, r, i, a, o, !0);
 		}
-	}, k = (e, n, r, i, a) => {
+	}, O = (e, n, r, i, a) => {
 		if (n !== r) {
 			if (n !== t) for (let t in n) !T(t) && !(t in r) && c(e, t, n[t], null, a, i);
 			for (let t in r) {
@@ -2067,10 +2067,10 @@ function Ni(e, i) {
 			}
 			"value" in r && c(e, "value", n.value, r.value, a);
 		}
-	}, A = (e, t, n, r, i, a, s, c, l) => {
+	}, k = (e, t, n, r, i, a, s, c, l) => {
 		let d = t.el = e ? e.el : u(""), f = t.anchor = e ? e.anchor : u(""), { patchFlag: p, dynamicChildren: m, slotScopeIds: h } = t;
-		h && (c = c ? c.concat(h) : h), e == null ? (o(d, n, r), o(f, n, r), te(t.children || [], n, f, i, a, s, c, l)) : p > 0 && p & 64 && m && e.dynamicChildren && e.dynamicChildren.length === m.length ? (O(e.dynamicChildren, m, n, i, a, s, c), (t.key != null || i && t === i.subTree) && Li(e, t, !0)) : se(e, t, n, f, i, a, s, c, l);
-	}, ne = (e, t, n, r, i, a, o, s, c) => {
+		h && (c = c ? c.concat(h) : h), e == null ? (o(d, n, r), o(f, n, r), E(t.children || [], n, f, i, a, s, c, l)) : p > 0 && p & 64 && m && e.dynamicChildren && e.dynamicChildren.length === m.length ? (ne(e.dynamicChildren, m, n, i, a, s, c), (t.key != null || i && t === i.subTree) && Li(e, t, !0)) : se(e, t, n, f, i, a, s, c, l);
+	}, A = (e, t, n, r, i, a, o, s, c) => {
 		t.slotScopeIds = s, e == null ? t.shapeFlag & 512 ? i.ctx.activate(t, n, r, o, c) : j(t, n, r, i, a, o, c) : re(e, t, c);
 	}, j = (e, t, n, r, i, a, o) => {
 		let s = e.component = ga(e, r, i);
@@ -2149,7 +2149,7 @@ function Ni(e, i) {
 				return;
 			}
 		}
-		m & 8 ? (u & 16 && he(l, i, a), d !== l && p(n, d)) : u & 16 ? m & 16 ? le(l, d, n, r, i, a, o, s, c) : he(l, i, a, !0) : (u & 8 && p(n, ""), m & 16 && te(d, n, r, i, a, o, s, c));
+		m & 8 ? (u & 16 && he(l, i, a), d !== l && p(n, d)) : u & 16 ? m & 16 ? le(l, d, n, r, i, a, o, s, c) : he(l, i, a, !0) : (u & 8 && p(n, ""), m & 16 && E(d, n, r, i, a, o, s, c));
 	}, ce = (e, t, r, i, a, o, s, c, l) => {
 		e ||= n, t ||= n;
 		let u = e.length, d = t.length, f = Math.min(u, d), p = 0;
@@ -2157,7 +2157,7 @@ function Ni(e, i) {
 			let n = t[p] = l ? la(t[p]) : ca(t[p]);
 			v(e[p], n, r, null, a, o, s, c, l);
 		}
-		u > d ? he(e, a, o, !0, !1, f) : te(t, r, i, a, o, s, c, l, f);
+		u > d ? he(e, a, o, !0, !1, f) : E(t, r, i, a, o, s, c, l, f);
 	}, le = (e, t, r, i, a, o, s, c, l) => {
 		let u = 0, d = t.length, f = e.length - 1, p = d - 1;
 		for (; u <= f && u <= p;) {
@@ -2291,9 +2291,9 @@ function Ni(e, i) {
 		m: ue,
 		r: fe,
 		mt: j,
-		mc: te,
+		mc: E,
 		pc: se,
-		pbc: O,
+		pbc: ne,
 		n: ge,
 		o: e
 	}, ye, be;
@@ -2792,7 +2792,7 @@ function $a(e, t, n) {
 	else if (n ??= "", t.startsWith("--")) Qa.test(n) ? e.setProperty(t, n.replace(Qa, ""), "important") : e.setProperty(t, n);
 	else {
 		let r = no(e, t);
-		Qa.test(n) ? e.setProperty(k(r), n.replace(Qa, ""), "important") : e[r] = n;
+		Qa.test(n) ? e.setProperty(O(r), n.replace(Qa, ""), "important") : e[r] = n;
 	}
 }
 var eo = [
@@ -2805,7 +2805,7 @@ function no(e, t) {
 	if (n) return n;
 	let r = D(t);
 	if (r !== "filter" && r in e) return to[t] = r;
-	r = A(r);
+	r = k(r);
 	for (let n = 0; n < eo.length; n++) {
 		let i = eo[n] + r;
 		if (i in e) return to[t] = i;
@@ -2859,7 +2859,7 @@ var fo = /(Once|Passive|Capture)$/, po = /^on:?(?:Once|Passive|Capture)$/;
 function mo(e) {
 	let t, n;
 	for (; (n = e.match(fo)) && !po.test(e);) t ||= {}, e = e.slice(0, e.length - n[1].length), t[n[1].toLowerCase()] = !0;
-	return [e[2] === ":" ? e.slice(3) : k(e.slice(2)), t];
+	return [e[2] === ":" ? e.slice(3) : O(e.slice(2)), t];
 }
 var ho = 0, go = /* @__PURE__ */ Promise.resolve(), _o = () => ho ||= (go.then(() => ho = 0), Date.now());
 function vo(e, t) {
@@ -3977,16 +3977,29 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 			readonly: e.readonly
 		}, null, 8, Cc), [[Z, t.value]])]));
 	}
-}), Tc = { class: "sd-card sd-stack" }, Ec = { class: "sd-section-title" }, Dc = { class: "sd-pill" }, Oc = {
+}), Tc = {
+	key: 0,
+	class: "sd-subcard sd-stack"
+}, Ec = {
+	key: 0,
+	class: "sd-raw-response",
+	tabindex: "0"
+}, Dc = { key: 1 }, Oc = /* @__PURE__ */ Qn({
+	__name: "RawResponse",
+	props: { content: {} },
+	setup(e) {
+		return (t, n) => e.content === void 0 ? J("", !0) : (U(), W("section", Tc, [n[0] ||= G("h4", null, "大模型原始回复", -1), e.content ? (U(), W("pre", Ec, N(e.content), 1)) : (U(), W("p", Dc, "模型返回了空文本。"))]));
+	}
+}), kc = { class: "sd-card sd-stack" }, Ac = { class: "sd-section-title" }, jc = { class: "sd-pill" }, Mc = {
 	key: 0,
 	class: "sd-alert"
-}, kc = { class: "sd-field" }, Ac = { key: 0 }, jc = { class: "sd-stack" }, Mc = ["onUpdate:modelValue"], Nc = ["onUpdate:modelValue"], Pc = { class: "sd-field" }, Fc = ["onUpdate:modelValue"], Ic = { class: "sd-form-grid" }, Lc = { class: "sd-field" }, Rc = ["onUpdate:modelValue"], zc = { class: "sd-field" }, Bc = ["onUpdate:modelValue"], Vc = {
-	key: 2,
-	class: "sd-actions"
-}, Hc = {
+}, Nc = { class: "sd-field" }, Pc = { key: 0 }, Fc = { class: "sd-stack" }, Ic = ["onUpdate:modelValue"], Lc = ["onUpdate:modelValue"], Rc = { class: "sd-field" }, zc = ["onUpdate:modelValue"], Bc = { class: "sd-form-grid" }, Vc = { class: "sd-field" }, Hc = ["onUpdate:modelValue"], Uc = { class: "sd-field" }, Wc = ["onUpdate:modelValue"], Gc = {
 	key: 3,
 	class: "sd-actions"
-}, Uc = /* @__PURE__ */ Qn({
+}, Kc = {
+	key: 4,
+	class: "sd-actions"
+}, qc = /* @__PURE__ */ Qn({
 	__name: "Review",
 	props: {
 		kind: {},
@@ -4013,97 +4026,101 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 		function d(e = !1, n = !0) {
 			return i(() => r.reviewPart(t.kind, JSON.parse(JSON.stringify(o.value)), e, n));
 		}
-		return (t, n) => (U(), W("article", Tc, [
-			G("header", Ec, [G("h3", null, N(B(oc)[e.kind]), 1), G("span", Dc, N(c[e.part.status]), 1)]),
-			e.part.error ? (U(), W("p", Oc, N(e.part.error), 1)) : J("", !0),
-			l.value ? J("", !0) : (U(), W(H, { key: 1 }, [e.kind === "diary" ? (U(), W(H, { key: 0 }, [G("label", kc, [n[8] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": n[0] ||= (e) => o.value.title = e }, null, 512), [[Z, o.value.title]])]), K(wc, {
+		return (t, s) => (U(), W("article", kc, [
+			G("header", Ac, [G("h3", null, N(B(oc)[e.kind]), 1), G("span", jc, N(c[e.part.status]), 1)]),
+			e.part.error ? (U(), W("p", Mc, N(e.part.error), 1)) : J("", !0),
+			e.part.status === "error" ? (U(), ea(Oc, {
+				key: 1,
+				content: B(n).closeRawResponses[e.kind]
+			}, null, 8, ["content"])) : J("", !0),
+			l.value ? J("", !0) : (U(), W(H, { key: 2 }, [e.kind === "diary" ? (U(), W(H, { key: 0 }, [G("label", Nc, [s[8] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": s[0] ||= (e) => o.value.title = e }, null, 512), [[Z, o.value.title]])]), K(wc, {
 				modelValue: o.value.body,
-				"onUpdate:modelValue": n[1] ||= (e) => o.value.body = e,
+				"onUpdate:modelValue": s[1] ||= (e) => o.value.body = e,
 				label: "第一人称正文",
 				rows: 9
-			}, null, 8, ["modelValue"])], 64)) : (U(), W(H, { key: 1 }, [e.part.value && !o.value.length ? (U(), W("p", Ac, "本幕没有合格事实。")) : J("", !0), (U(!0), W(H, null, Dr(o.value, (e) => (U(), W("details", {
+			}, null, 8, ["modelValue"])], 64)) : (U(), W(H, { key: 1 }, [e.part.value && !o.value.length ? (U(), W("p", Pc, "本幕没有合格事实。")) : J("", !0), (U(!0), W(H, null, Dr(o.value, (e) => (U(), W("details", {
 				class: "sd-subcard",
 				key: e.id,
 				open: ""
-			}, [G("summary", null, "新增 · " + N(e.value.title), 1), G("div", jc, [
+			}, [G("summary", null, "新增 · " + N(e.value.title), 1), G("div", Fc, [
 				G("label", null, [V(G("input", {
 					type: "checkbox",
 					"onUpdate:modelValue": (t) => e.accepted = t
-				}, null, 8, Mc), [[ko, e.accepted]]), n[9] ||= q(" 保存此记忆点", -1)]),
+				}, null, 8, Ic), [[ko, e.accepted]]), s[9] ||= q(" 保存此记忆点", -1)]),
 				G("label", null, [V(G("input", {
 					type: "checkbox",
 					"onUpdate:modelValue": (t) => e.value.permanent = t
-				}, null, 8, Nc), [[ko, e.value.permanent]]), n[10] ||= q(" 常驻记忆", -1)]),
-				G("label", Pc, [n[11] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": (t) => e.value.title = t }, null, 8, Fc), [[Z, e.value.title]])]),
+				}, null, 8, Lc), [[ko, e.value.permanent]]), s[10] ||= q(" 常驻记忆", -1)]),
+				G("label", Rc, [s[11] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": (t) => e.value.title = t }, null, 8, zc), [[Z, e.value.title]])]),
 				K(wc, {
 					modelValue: e.value.content,
 					"onUpdate:modelValue": (t) => e.value.content = t,
 					label: "拟保存内容",
 					rows: 3
 				}, null, 8, ["modelValue", "onUpdate:modelValue"]),
-				G("div", Ic, [G("label", Lc, [n[12] ||= q("故事时间", -1), V(G("input", { "onUpdate:modelValue": (t) => e.value.storyTime = t }, null, 8, Rc), [[Z, e.value.storyTime]])]), G("label", zc, [n[13] ||= q("重要度", -1), V(G("input", {
+				G("div", Bc, [G("label", Vc, [s[12] ||= q("故事时间", -1), V(G("input", { "onUpdate:modelValue": (t) => e.value.storyTime = t }, null, 8, Hc), [[Z, e.value.storyTime]])]), G("label", Uc, [s[13] ||= q("重要度", -1), V(G("input", {
 					type: "number",
 					"onUpdate:modelValue": (t) => e.value.importance = t,
 					min: "1",
 					max: "5"
-				}, null, 8, Bc), [[
+				}, null, 8, Wc), [[
 					Z,
 					e.value.importance,
 					void 0,
 					{ number: !0 }
 				]])])])
 			])]))), 128))], 64))], 64)),
-			l.value ? (U(), W("div", Vc, [G("button", { onClick: n[2] ||= (t) => B(r).cancel("close:" + e.kind) }, "取消本项请求")])) : (U(), W("div", Hc, [
+			l.value ? (U(), W("div", Gc, [G("button", { onClick: s[2] ||= (t) => B(r).cancel("close:" + e.kind) }, "取消本项请求")])) : (U(), W("div", Kc, [
 				u.value ? (U(), W("button", {
 					key: 0,
-					onClick: n[3] ||= (t) => B(i)(() => B(r).runClose(e.kind))
+					onClick: s[3] ||= (t) => B(i)(() => B(r).runClose(e.kind))
 				}, N(e.part.status === "idle" ? "生成" : "重新生成"), 1)) : (U(), W("button", {
 					key: 1,
-					onClick: n[4] ||= (e) => B(a)("settings")
+					onClick: s[4] ||= (e) => B(a)("settings")
 				}, "配置渠道")),
 				e.kind !== "memory" || e.part.value ? (U(), W("button", {
 					key: 2,
-					onClick: n[5] ||= (e) => d(!1, !1)
+					onClick: s[5] ||= (e) => d(!1, !1)
 				}, "保存草稿")) : J("", !0),
 				e.kind !== "memory" || e.part.value ? (U(), W("button", {
 					key: 3,
 					class: "sd-primary",
-					onClick: n[6] ||= (e) => d()
+					onClick: s[6] ||= (e) => d()
 				}, "确认" + N(B(oc)[e.kind]), 1)) : J("", !0),
-				G("button", { onClick: n[7] ||= (e) => d(!0) }, "跳过本项")
+				G("button", { onClick: s[7] ||= (e) => d(!0) }, "跳过本项")
 			]))
 		]));
 	}
-}), Wc = {
+}), Jc = {
 	key: 0,
 	class: "sd-card sd-stack"
-}, Gc = ["max"], Kc = { class: "sd-hero sd-card" }, qc = { class: "sd-kicker" }, Jc = { key: 0 }, Yc = { key: 1 }, Xc = { key: 0 }, Zc = ["disabled"], Qc = {
+}, Yc = ["max"], Xc = { class: "sd-hero sd-card" }, Zc = { class: "sd-kicker" }, Qc = { key: 0 }, $c = { key: 1 }, el = { key: 0 }, tl = ["disabled"], nl = {
 	key: 0,
 	class: "sd-status"
-}, $c = {
+}, rl = {
 	key: 1,
 	id: "sd-close-review",
 	class: "sd-stack"
-}, el = { class: "sd-sticky sd-actions" }, tl = ["disabled"], nl = { class: "sd-card" }, rl = { class: "sd-actions" }, il = { class: "sd-file" }, al = /* @__PURE__ */ Qn({
+}, il = { class: "sd-sticky sd-actions" }, al = ["disabled"], ol = { class: "sd-card" }, sl = { class: "sd-actions" }, cl = { class: "sd-file" }, ll = /* @__PURE__ */ Qn({
 	__name: "Workbench",
 	setup(e) {
 		let { view: t, host: n, run: r, select: i } = Zs(), a = /* @__PURE__ */ z(1), o = X(() => t.value.state), s = X(() => fs(o.value)), c = X(() => o.value?.pendingTransaction), l = X(() => sc.every((e) => ["confirmed", "skipped"].includes(c.value?.results[e]?.status))), u = () => document.getElementById("sd-close-review")?.scrollIntoView({ block: "start" }), d = (e) => window.confirm(e), f = (e) => t.value.channels.some((t) => t.id === o.value?.settings.bindings[e]);
 		return (e, p) => o.value ? (U(), W(H, { key: 1 }, [
-			G("header", Kc, [G("div", null, [
-				G("p", qc, "第 " + N(s.value?.id) + " 幕", 1),
+			G("header", Xc, [G("div", null, [
+				G("p", Zc, "第 " + N(s.value?.id) + " 幕", 1),
 				G("h3", null, N(c.value ? "本幕待审核" : o.value.status === "pending_next_act" ? "本幕已归档" : "当前幕"), 1),
 				G("p", null, [
 					q(N(s.value?.messageIds.length || 0) + " 条归幕对话", 1),
-					s.value?.startMessageIndex == null ? J("", !0) : (U(), W("span", Jc, " · 起始楼层 " + N(s.value.startMessageIndex + 1), 1)),
-					s.value?.endMessageIndex == null ? J("", !0) : (U(), W("span", Yc, " · 结束楼层 " + N(s.value.endMessageIndex + 1), 1))
+					s.value?.startMessageIndex == null ? J("", !0) : (U(), W("span", Qc, " · 起始楼层 " + N(s.value.startMessageIndex + 1), 1)),
+					s.value?.endMessageIndex == null ? J("", !0) : (U(), W("span", $c, " · 结束楼层 " + N(s.value.endMessageIndex + 1), 1))
 				]),
-				o.value.status === "pending_next_act" ? (U(), W("p", Xc, "下一条玩家消息将开启新幕。")) : J("", !0)
+				o.value.status === "pending_next_act" ? (U(), W("p", el, "下一条玩家消息将开启新幕。")) : J("", !0)
 			]), !c.value && o.value.status === "active" ? (U(), W("button", {
 				key: 0,
 				class: "sd-primary",
 				disabled: !s.value?.messageIds.length,
 				onClick: p[3] ||= (e) => B(r)(B(n).openClose)
-			}, "结束这一幕", 8, Zc)) : c.value ? (U(), W("button", {
+			}, "结束这一幕", 8, tl)) : c.value ? (U(), W("button", {
 				key: 1,
 				class: "sd-primary",
 				onClick: u
@@ -4111,8 +4128,8 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 				key: 2,
 				onClick: p[4] ||= (e) => B(i)("diaries")
 			}, "查看日记档案"))]),
-			o.value.connectionSetupNeeded && Object.keys(B(oc)).some((e) => !f(e)) ? (U(), W("p", Qc, [p[13] ||= q(" 旧版连接已停用。请为尚未绑定的日记、记忆提取和成长任务配置自建渠道。 ", -1), G("button", { onClick: p[5] ||= (e) => B(i)("settings") }, "打开设置")])) : J("", !0),
-			c.value ? (U(), W("section", $c, [(U(!0), W(H, null, Dr(B(sc), (e) => (U(), ea(Uc, {
+			o.value.connectionSetupNeeded && Object.keys(B(oc)).some((e) => !f(e)) ? (U(), W("p", nl, [p[13] ||= q(" 旧版连接已停用。请为尚未绑定的日记、记忆提取和成长任务配置自建渠道。 ", -1), G("button", { onClick: p[5] ||= (e) => B(i)("settings") }, "打开设置")])) : J("", !0),
+			c.value ? (U(), W("section", rl, [(U(!0), W(H, null, Dr(B(sc), (e) => (U(), ea(qc, {
 				key: c.value.id + e,
 				kind: e,
 				part: c.value.results[e],
@@ -4121,14 +4138,14 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 				"kind",
 				"part",
 				"transaction"
-			]))), 128)), G("div", el, [G("button", { onClick: p[6] ||= (e) => B(r)(() => d("取消这次关幕并清除本次审核草稿？") && B(n).cancelClose()) }, "取消关幕"), G("button", {
+			]))), 128)), G("div", il, [G("button", { onClick: p[6] ||= (e) => B(r)(() => d("取消这次关幕并清除本次审核草稿？") && B(n).cancelClose()) }, "取消关幕"), G("button", {
 				class: "sd-primary",
 				disabled: !l.value,
 				onClick: p[7] ||= (e) => B(r)(B(n).confirmClose)
-			}, "确认结束本幕", 8, tl)])])) : J("", !0),
-			G("details", nl, [p[15] ||= G("summary", null, "备份与恢复", -1), G("div", rl, [
+			}, "确认结束本幕", 8, al)])])) : J("", !0),
+			G("details", ol, [p[15] ||= G("summary", null, "备份与恢复", -1), G("div", sl, [
 				G("button", { onClick: p[8] ||= (e) => B(r)(() => B(Qs)(B(n).backup(), "scene-diary-" + B(t).chatId + ".json")) }, "导出内容"),
-				G("label", il, [p[14] ||= q("导入内容 ", -1), G("input", {
+				G("label", cl, [p[14] ||= q("导入内容 ", -1), G("input", {
 					type: "file",
 					accept: ".json,application/json",
 					onChange: p[9] ||= (e) => B(r)(async () => {
@@ -4140,7 +4157,7 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 				}, null, 32)]),
 				G("button", { onClick: p[10] ||= (e) => B(r)(async () => B(Qs)(await B(n).migrationBackup(), "scene-diary-pre-upgrade-" + B(t).chatId + ".json")) }, "导出升级前整聊天备份")
 			])])
-		], 64)) : (U(), W("div", Wc, [
+		], 64)) : (U(), W("div", Jc, [
 			G("p", null, N(B(t).blocker), 1),
 			B(t).blocker.startsWith("已有聊天") ? (U(), W("form", {
 				key: 0,
@@ -4152,7 +4169,7 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 				min: "1",
 				max: Math.max(B(t).messages, 1),
 				required: ""
-			}, null, 8, Gc), [[
+			}, null, 8, Yc), [[
 				Z,
 				a.value,
 				void 0,
@@ -4164,7 +4181,7 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 			}, "重试迁移")) : J("", !0)
 		]));
 	}
-}), ol = ["disabled"], sl = ["role"], cl = /* @__PURE__ */ Qn({
+}), ul = ["disabled"], dl = ["role"], fl = /* @__PURE__ */ Qn({
 	__name: "SaveAction",
 	props: {
 		action: { type: Function },
@@ -4178,7 +4195,7 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 			if (!n.value) {
 				n.value = !0, i.value = !1, r.value = "";
 				try {
-					await t.action(), r.value = t.success;
+					await t.action(), r.value = t.success || "";
 				} catch (e) {
 					i.value = !0, r.value = e.message;
 				} finally {
@@ -4191,62 +4208,66 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 			class: "sd-primary",
 			disabled: e.disabled || n.value,
 			onClick: a
-		}, N(n.value ? "保存中…" : e.label), 9, ol), r.value ? (U(), W("span", {
+		}, N(n.value ? "保存中…" : e.label), 9, ul), r.value ? (U(), W("span", {
 			key: 0,
 			role: i.value ? "alert" : "status"
-		}, N(r.value), 9, sl)) : J("", !0)], 64));
+		}, N(r.value), 9, dl)) : J("", !0)], 64));
 	}
-}), ll = {
+}), pl = {
 	key: 0,
 	class: "sd-card"
-}, ul = {
+}, ml = {
 	key: 0,
 	class: "sd-card"
-}, dl = { class: "sd-prose" }, fl = { class: "sd-card sd-stack" }, pl = {
+}, hl = { class: "sd-prose" }, gl = { class: "sd-card sd-stack" }, _l = {
 	key: 0,
 	class: "sd-status"
-}, ml = { class: "sd-sticky sd-actions" }, hl = { class: "sd-card sd-stack" }, gl = {
+}, vl = { class: "sd-sticky sd-actions" }, yl = { class: "sd-card sd-stack" }, bl = {
 	key: 0,
 	role: "status"
-}, _l = {
-	key: 1,
+}, xl = {
+	class: "sd-alert",
+	role: "alert"
+}, Sl = {
+	key: 2,
 	class: "sd-compare"
-}, vl = { class: "sd-field" }, yl = ["value"], bl = { key: 2 }, xl = { class: "sd-actions" }, Sl = ["disabled"], Cl = ["disabled"], wl = /* @__PURE__ */ Qn({
+}, Cl = { class: "sd-field" }, wl = ["value"], Tl = { key: 3 }, El = { class: "sd-actions" }, Dl = ["disabled"], Ol = ["disabled"], kl = /* @__PURE__ */ Qn({
 	__name: "Growth",
 	setup(e) {
 		let { view: t, host: n, run: r, select: i } = Zs(), a = X(() => Math.min(o.value, t.value.state?.settings.growthDiaryCount ?? 0)), o = X(() => t.value.state?.diaries.filter((e) => !e.needsReview && e.body.trim()).length ?? 0), s = X(() => t.value.state?.characterGrowth), c = /* @__PURE__ */ z(""), l = /* @__PURE__ */ z("");
 		return Vn(() => s.value?.revision, () => c.value = s.value?.content || "", { immediate: !0 }), Vn(() => t.value.growthPreview, (e) => l.value = e?.content || "", { immediate: !0 }), (e, u) => s.value ? (U(), W(H, { key: 1 }, [
-			B(t).state.legacyGrowthDraft ? (U(), W("details", ul, [u[8] ||= G("summary", null, "升级前的成长待审稿", -1), G("p", dl, N(B(t).state.legacyGrowthDraft), 1)])) : J("", !0),
-			G("section", fl, [
+			B(t).state.legacyGrowthDraft ? (U(), W("details", ml, [u[8] ||= G("summary", null, "升级前的成长待审稿", -1), G("p", hl, N(B(t).state.legacyGrowthDraft), 1)])) : J("", !0),
+			G("section", gl, [
 				u[9] ||= G("header", { class: "sd-section-title" }, [G("h3", null, "当前角色画像")], -1),
-				s.value.reviewRecommended ? (U(), W("p", pl, "历史材料有变更，可核对现画像或发起重整。")) : J("", !0),
+				s.value.reviewRecommended ? (U(), W("p", _l, "历史材料有变更，可核对现画像或发起重整。")) : J("", !0),
 				K(wc, {
 					modelValue: c.value,
 					"onUpdate:modelValue": u[0] ||= (e) => c.value = e,
 					label: "人格、关系与当前状态",
 					rows: 12
 				}, null, 8, ["modelValue"]),
-				G("div", ml, [K(cl, {
+				G("div", vl, [K(fl, {
 					action: () => B(n).mutate((e) => B(ac)(e, c.value)),
 					label: "保存画像",
 					success: "画像已保存"
 				}, null, 8, ["action"])])
 			]),
-			G("section", hl, [
+			G("section", yl, [
 				u[11] ||= G("header", { class: "sd-section-title" }, [G("h3", null, "根据日记更新画像")], -1),
-				B(t).growthProgress ? (U(), W("p", gl, N(B(t).growthProgress), 1)) : J("", !0),
-				B(t).growthPreview?.changed ? (U(), W("div", _l, [G("label", vl, [u[10] ||= q("现画像", -1), G("textarea", {
+				B(t).growthProgress ? (U(), W("p", bl, N(B(t).growthProgress), 1)) : J("", !0),
+				B(t).growthFailure ? (U(), W(H, { key: 1 }, [G("p", xl, N(B(t).growthFailure.message), 1), K(Oc, { content: B(t).growthFailure.rawResponse }, null, 8, ["content"])], 64)) : J("", !0),
+				B(t).growthPreview?.changed ? (U(), W("div", Sl, [G("label", Cl, [u[10] ||= q("现画像", -1), G("textarea", {
 					value: s.value.content,
 					rows: "10",
 					readonly: ""
-				}, null, 8, yl)]), K(wc, {
+				}, null, 8, wl)]), K(wc, {
 					modelValue: l.value,
 					"onUpdate:modelValue": u[1] ||= (e) => l.value = e,
 					label: "重整后画像",
 					rows: 10
 				}, null, 8, ["modelValue"])])) : J("", !0),
-				B(t).growthPreview ? (U(), W("p", bl, "使用了 " + N(B(t).growthPreview.count) + " 篇日记。" + N(B(t).growthPreview.changed ? "" : "没有实质变化。"), 1)) : J("", !0),
-				G("div", xl, [B(t).busy.includes("growth") ? (U(), W("button", {
+				B(t).growthPreview ? (U(), W("p", Tl, "使用了 " + N(B(t).growthPreview.count) + " 篇日记。" + N(B(t).growthPreview.changed ? "" : "没有实质变化。"), 1)) : J("", !0),
+				G("div", El, [B(t).busy.includes("growth") ? (U(), W("button", {
 					key: 0,
 					onClick: u[2] ||= (e) => B(n).cancel("growth")
 				}, "取消重整")) : B(t).growthPreview ? (U(), W(H, { key: 1 }, [G("button", { onClick: u[3] ||= (...e) => B(n).discardGrowth && B(n).discardGrowth(...e) }, "保留现稿"), B(t).growthPreview.changed ? (U(), W("button", {
@@ -4256,17 +4277,17 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 				}, "应用候选画像")) : J("", !0)], 64)) : B(t).channels.some((e) => e.id === B(t).state?.settings.bindings.growth) ? (U(), W(H, { key: 2 }, [G("button", {
 					disabled: !a.value,
 					onClick: u[5] ||= (e) => B(r)(() => B(n).generateGrowth("recent"))
-				}, "追踪最新动态（" + N(a.value) + " 篇）", 9, Sl), G("button", {
+				}, "追踪最新动态（" + N(a.value) + " 篇）", 9, Dl), G("button", {
 					disabled: !o.value,
 					onClick: u[6] ||= (e) => B(r)(() => B(n).generateGrowth("global"))
-				}, "全局重建（" + N(o.value) + " 篇）", 9, Cl)], 64)) : (U(), W("button", {
+				}, "全局重建（" + N(o.value) + " 篇）", 9, Ol)], 64)) : (U(), W("button", {
 					key: 3,
 					onClick: u[7] ||= (e) => B(i)("settings")
 				}, "配置成长渠道"))])
 			])
-		], 64)) : (U(), W("p", ll, N(B(t).blocker), 1));
+		], 64)) : (U(), W("p", pl, N(B(t).blocker), 1));
 	}
-}), Tl = { class: "sd-search" }, El = ["aria-label", "placeholder"], Dl = /* @__PURE__ */ Qn({
+}), Al = { class: "sd-search" }, jl = ["aria-label", "placeholder"], Ml = /* @__PURE__ */ Qn({
 	__name: "SearchField",
 	props: /*@__PURE__*/ Nr({ label: {} }, {
 		modelValue: {},
@@ -4275,7 +4296,7 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 	emits: ["update:modelValue"],
 	setup(e) {
 		let t = $r(e, "modelValue");
-		return (n, r) => (U(), W("label", Tl, [r[1] ||= G("i", {
+		return (n, r) => (U(), W("label", Al, [r[1] ||= G("i", {
 			class: "fa-solid fa-magnifying-glass",
 			"aria-hidden": "true"
 		}, null, -1), V(G("input", {
@@ -4283,19 +4304,19 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 			type: "search",
 			"aria-label": e.label,
 			placeholder: e.label
-		}, null, 8, El), [[Z, t.value]])]));
+		}, null, 8, jl), [[Z, t.value]])]));
 	}
-}), Ol = {
+}), Nl = {
 	key: 0,
 	class: "sd-card"
-}, kl = { class: "sd-card sd-stack" }, Al = { class: "sd-section-title" }, jl = ["disabled"], Ml = { class: "sd-field" }, Nl = { class: "sd-field" }, Pl = { class: "sd-field" }, Fl = { class: "sd-actions sd-sticky" }, Il = { key: 0 }, Ll = { key: 1 }, Rl = { class: "sd-snippet" }, zl = ["onClick"], Bl = {
+}, Pl = { class: "sd-card sd-stack" }, Fl = ["disabled"], Il = ["disabled"], Ll = { class: "sd-field" }, Rl = { class: "sd-field" }, zl = { class: "sd-field" }, Bl = { class: "sd-actions sd-sticky" }, Vl = ["disabled"], Hl = ["disabled"], Ul = { key: 0 }, Wl = { key: 1 }, Gl = { class: "sd-snippet" }, Kl = ["disabled", "onClick"], ql = {
 	key: 0,
 	class: "sd-card"
-}, Vl = /* @__PURE__ */ Qn({
+}, Jl = /* @__PURE__ */ Qn({
 	__name: "Archive",
 	props: { kind: {} },
 	setup(e) {
-		let t = e, { view: n, host: r, run: i } = Zs(), a = X(() => t.kind === "diaries"), o = X(() => a.value ? "日记" : "记忆点"), s = /* @__PURE__ */ z(""), c = /* @__PURE__ */ z(null), l = /* @__PURE__ */ z(!1), u, d = "", f = X(() => {
+		let t = e, { view: n, host: r, run: i } = Zs(), a = X(() => t.kind === "diaries"), o = X(() => a.value ? "日记" : "记忆点"), s = /* @__PURE__ */ z(""), c = /* @__PURE__ */ z(null), l = /* @__PURE__ */ z(!1), u = /* @__PURE__ */ z(!1), d, f = "", p = X(() => {
 			let e = n.value.state;
 			if (!e) return [];
 			let t = a.value ? [...e.diaries].sort((e, t) => t.createdAt - e.createdAt) : e.memories, r = s.value.trim().toLowerCase();
@@ -4305,40 +4326,45 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 				e.content,
 				e.storyTime
 			].join("\n").toLowerCase().includes(r));
-		}), p = X(() => l.value ? [c.value, ...f.value.filter((e) => e.id !== c.value.id)] : f.value);
-		function m(e, t) {
-			u = t.currentTarget, l.value = !e, d = e ? JSON.stringify(e) : "", c.value = e ? { ...e } : a.value ? gc({ title: "新日记" }) : pc();
+		}), m = X(() => l.value ? [c.value, ...p.value.filter((e) => e.id !== c.value.id)] : p.value);
+		function h(e, t) {
+			d = t.currentTarget, l.value = !e, f = e ? JSON.stringify(e) : "", c.value = e ? { ...e } : a.value ? gc({ title: "新日记" }) : pc();
 		}
-		function h() {
-			c.value = null, l.value = !1, bn(() => u?.focus({ preventScroll: !0 }));
-		}
-		async function g() {
-			let e = { ...c.value };
-			if (!$(a.value ? e.body : e.content)) throw Error("请填写正文。");
-			await r.mutate((t) => {
-				let n = a.value ? t.diaries : t.memories, r = n.findIndex((t) => t.id === e.id);
-				if (!l.value && r < 0) throw Error("条目已删除。");
-				if (r >= 0 && JSON.stringify(n[r]) !== d) throw Error("条目已变化，请重新打开核对。");
-				if (a.value) {
-					let n = gc({
-						...e,
-						needsReview: !1,
-						updatedAt: Date.now()
-					});
-					r < 0 ? t.diaries.push(n) : t.diaries[r] = n, t.characterGrowth.reviewRecommended = !0;
-				} else yc(t, e, r >= 0 ? e.id : null);
-				d = JSON.stringify(n.find((t) => t.id === e.id));
-			}), c.value?.id === e.id && (l.value = !1);
+		function g() {
+			c.value = null, l.value = !1, bn(() => d?.focus({ preventScroll: !0 }));
 		}
 		async function _() {
+			let e = c.value, t = { ...e };
+			if (!$(a.value ? t.body : t.content)) throw Error("请填写正文。");
+			u.value = !0;
+			try {
+				await r.mutate((e) => {
+					let n = a.value ? e.diaries : e.memories, r = n.findIndex((e) => e.id === t.id);
+					if (!l.value && r < 0) throw Error("条目已删除。");
+					if (r >= 0 && JSON.stringify(n[r]) !== f) throw Error("条目已变化，请重新打开核对。");
+					if (a.value) {
+						let n = gc({
+							...t,
+							needsReview: !1,
+							updatedAt: Date.now()
+						});
+						r < 0 ? e.diaries.push(n) : e.diaries[r] = n, e.characterGrowth.reviewRecommended = !0;
+					} else yc(e, t, r >= 0 ? t.id : null);
+					f = JSON.stringify(n.find((e) => e.id === t.id));
+				}), c.value === e && g();
+			} finally {
+				u.value = !1;
+			}
+		}
+		async function v() {
 			let e = c.value.id;
 			await r.mutate((t) => {
 				let n = t.memories.find((t) => t.id === e);
-				if (!n || JSON.stringify(n) !== d) throw Error("条目已变化，请重新打开核对。");
-				n.locked = !n.locked, d = JSON.stringify(n);
+				if (!n || JSON.stringify(n) !== f) throw Error("条目已变化，请重新打开核对。");
+				n.locked = !n.locked, f = JSON.stringify(n);
 			}), c.value.locked = n.value.state.memories.find((t) => t.id === e).locked;
 		}
-		function v() {
+		function y() {
 			if (window.confirm("删除此" + o.value + "？")) return i(async () => {
 				let e = c.value.id;
 				await r.mutate((t) => {
@@ -4347,24 +4373,27 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 						if (t.memories.find((t) => t.id === e)?.locked) throw Error("请先解锁。");
 						t.memories = t.memories.filter((t) => t.id !== e), t.memoryRevision++;
 					}
-				}), h();
+				}), g();
 			});
 		}
 		return (e, t) => B(n).state ? (U(), W(H, { key: 1 }, [
-			G("section", kl, [K(Dl, {
+			G("section", Pl, [K(Ml, {
 				modelValue: s.value,
 				"onUpdate:modelValue": t[0] ||= (e) => s.value = e,
 				label: "搜索" + o.value
-			}, null, 8, ["modelValue", "label"]), G("div", null, [G("button", { onClick: t[1] ||= (e) => m(null, e) }, "新建" + N(o.value), 1)])]),
-			(U(!0), W(H, null, Dr(p.value, (e) => (U(), W("article", {
+			}, null, 8, ["modelValue", "label"]), G("div", null, [G("button", {
+				disabled: u.value,
+				onClick: t[1] ||= (e) => h(null, e)
+			}, "新建" + N(o.value), 9, Fl)])]),
+			(U(!0), W(H, null, Dr(m.value, (e) => (U(), W("article", {
 				key: e.id,
 				class: "sd-card sd-stack"
 			}, [c.value?.id === e.id ? (U(), W(H, { key: 0 }, [
-				G("header", Al, [G("h3", null, "编辑" + N(o.value), 1), G("button", { onClick: h }, "关闭编辑")]),
+				G("h3", null, "编辑" + N(o.value), 1),
 				G("fieldset", {
 					class: "sd-stack",
-					disabled: c.value.locked
-				}, [G("label", Ml, [t[9] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": t[2] ||= (e) => c.value.title = e }, null, 512), [[Z, c.value.title]])]), a.value ? (U(), ea(wc, {
+					disabled: c.value.locked || u.value
+				}, [G("label", Ll, [t[9] ||= q("标题", -1), V(G("input", { "onUpdate:modelValue": t[2] ||= (e) => c.value.title = e }, null, 512), [[Z, c.value.title]])]), a.value ? (U(), ea(wc, {
 					key: 0,
 					modelValue: c.value.body,
 					"onUpdate:modelValue": t[3] ||= (e) => c.value.body = e,
@@ -4376,8 +4405,8 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 						"onUpdate:modelValue": t[4] ||= (e) => c.value.content = e,
 						label: "内容"
 					}, null, 8, ["modelValue"]),
-					G("label", Nl, [t[10] ||= q("故事时间", -1), V(G("input", { "onUpdate:modelValue": t[5] ||= (e) => c.value.storyTime = e }, null, 512), [[Z, c.value.storyTime]])]),
-					G("label", Pl, [t[11] ||= q("重要度", -1), V(G("input", {
+					G("label", Rl, [t[10] ||= q("故事时间", -1), V(G("input", { "onUpdate:modelValue": t[5] ||= (e) => c.value.storyTime = e }, null, 512), [[Z, c.value.storyTime]])]),
+					G("label", zl, [t[11] ||= q("重要度", -1), V(G("input", {
 						type: "number",
 						"onUpdate:modelValue": t[6] ||= (e) => c.value.importance = e,
 						min: "1",
@@ -4392,63 +4421,63 @@ var Sc = { class: "sd-field" }, Cc = ["rows", "readonly"], wc = /* @__PURE__ */ 
 						type: "checkbox",
 						"onUpdate:modelValue": t[7] ||= (e) => c.value.permanent = e
 					}, null, 512), [[ko, c.value.permanent]]), t[12] ||= q(" 常驻", -1)])
-				], 64))], 8, jl),
-				G("div", Fl, [
+				], 64))], 8, Il),
+				G("div", Bl, [
 					!l.value && !a.value ? (U(), W("button", {
 						key: 0,
-						onClick: t[8] ||= (e) => B(i)(_)
-					}, N(c.value.locked ? "解锁" : "锁定"), 1)) : J("", !0),
+						disabled: u.value,
+						onClick: t[8] ||= (e) => B(i)(v)
+					}, N(c.value.locked ? "解锁" : "锁定"), 9, Vl)) : J("", !0),
 					!l.value && !c.value.locked ? (U(), W("button", {
 						key: 1,
 						class: "sd-danger",
-						onClick: v
-					}, "删除")) : J("", !0),
-					K(cl, {
-						action: g,
+						disabled: u.value,
+						onClick: y
+					}, "删除", 8, Hl)) : J("", !0),
+					K(fl, {
+						action: _,
 						label: "保存" + o.value,
-						success: o.value + "已保存",
 						disabled: c.value.locked
-					}, null, 8, [
-						"label",
-						"success",
-						"disabled"
-					])
+					}, null, 8, ["label", "disabled"])
 				])
 			], 64)) : (U(), W(H, { key: 1 }, [
 				G("h3", null, N(e.title), 1),
-				a.value ? (U(), W("p", Il, N(new Date(e.createdAt).toLocaleDateString()) + " " + N(e.needsReview ? "· 待复核" : ""), 1)) : (U(), W("p", Ll, "重要度 " + N(e.importance) + " " + N(e.storyTime) + " " + N(e.permanent ? "· 常驻" : "") + " " + N(e.locked ? "· 已锁定" : ""), 1)),
-				G("p", Rl, N(a.value ? e.body : e.content), 1)
-			], 64)), V(G("div", null, [G("button", { onClick: (t) => m(e, t) }, "查看与编辑", 8, zl)], 512), [[qa, c.value?.id !== e.id]])]))), 128)),
-			p.value.length ? J("", !0) : (U(), W("p", Bl, "没有符合条件的" + N(o.value) + "。", 1))
-		], 64)) : (U(), W("p", Ol, N(B(n).blocker), 1));
+				a.value ? (U(), W("p", Ul, N(new Date(e.createdAt).toLocaleDateString()) + " " + N(e.needsReview ? "· 待复核" : ""), 1)) : (U(), W("p", Wl, "重要度 " + N(e.importance) + " " + N(e.storyTime) + " " + N(e.permanent ? "· 常驻" : "") + " " + N(e.locked ? "· 已锁定" : ""), 1)),
+				G("p", Gl, N(a.value ? e.body : e.content), 1)
+			], 64)), V(G("div", null, [G("button", {
+				disabled: u.value,
+				onClick: (t) => h(e, t)
+			}, "查看与编辑", 8, Kl)], 512), [[qa, c.value?.id !== e.id]])]))), 128)),
+			m.value.length ? J("", !0) : (U(), W("p", ql, "没有符合条件的" + N(o.value) + "。", 1))
+		], 64)) : (U(), W("p", Nl, N(B(n).blocker), 1));
 	}
-}), Hl = /* @__PURE__ */ Qn({
+}), Yl = /* @__PURE__ */ Qn({
 	__name: "Diaries",
 	setup(e) {
-		return (e, t) => (U(), ea(Vl, { kind: "diaries" }));
+		return (e, t) => (U(), ea(Jl, { kind: "diaries" }));
 	}
-}), Ul = /* @__PURE__ */ Qn({
+}), Xl = /* @__PURE__ */ Qn({
 	__name: "Memory",
 	setup(e) {
-		return (e, t) => (U(), ea(Vl, { kind: "memory" }));
+		return (e, t) => (U(), ea(Jl, { kind: "memory" }));
 	}
-}), Wl = {
+}), Zl = {
 	diary: "{\"title\":\"标题\",\"body\":\"日记正文\"}",
 	memory: "{\"memories\":[{\"title\":\"标题\",\"content\":\"记忆内容\",\"storyTime\":null,\"importance\":3}]}，importance 是 1–5 的整数；storyTime 是字符串或 null；没有记忆点时返回 {\"memories\":[]}。",
 	growth: "{\"changed\":true,\"content\":\"完整候选画像\"} 或 {\"changed\":false,\"content\":\"\"}",
 	test: "{\"ok\":true}"
 };
-function Gl(e, t, n, r, i) {
+function Ql(e, t, n, r, i) {
 	let a = t.prompts[e], o = "sd_" + e;
 	return {
 		system: Es(a.system, n),
 		background: [n.context, r && "[当前角色画像]\n" + r].filter(Boolean).join("\n\n"),
 		description: Es(a.description, n),
 		material: i,
-		format: "返回一个用 <" + o + "> 和 </" + o + "> 包裹的 JSON 对象。结构如下：\n" + Wl[e]
+		format: "返回一个用 <" + o + "> 和 </" + o + "> 包裹的 JSON 对象。结构如下：\n" + Zl[e]
 	};
 }
-function Kl(e) {
+function $l(e) {
 	let { system: t, background: n, description: r, material: i, format: a } = e;
 	return [{
 		role: "system",
@@ -4463,39 +4492,43 @@ function Kl(e) {
 		].join("\n\n")
 	}];
 }
-function ql(e, t) {
+var eu = class extends Error {
+	constructor(e, t) {
+		super(e), this.rawResponse = t;
+	}
+};
+function tu(e, t) {
 	let n = [...t.matchAll(RegExp("<sd_" + e + ">([\\s\\S]*?)</sd_" + e + ">", "g"))];
-	if (n.length !== 1) throw Error("需要一个完整的任务结果标签块，可重试本项。");
+	if (n.length !== 1) throw new eu("需要一个完整的任务结果标签块，可重试本项。", t);
 	let r;
 	try {
 		r = JSON.parse(n[0][1]);
 	} catch {
-		throw Error("标签内 JSON 无法解析，可重试本项。");
+		throw new eu("标签内 JSON 无法解析，可重试本项。", t);
 	}
 	if (!{
 		diary: () => $(r?.title) && $(r?.body),
 		memory: () => Array.isArray(r?.memories) && r.memories.every((e) => hc(e) && (e.storyTime === null || typeof e.storyTime == "string")),
 		growth: () => typeof r?.changed == "boolean" && (r.changed ? !!$(r.content) : r.content === ""),
 		test: () => r?.ok === !0
-	}[e]()) throw Error("结果字段与格式规定不符，可重试本项。");
+	}[e]()) throw new eu("结果字段与格式规定不符，可重试本项。", t);
 	return r;
 }
-function Jl(e, t) {
+function nu(e, t) {
 	let n = e.diaries.filter((e) => !e.needsReview && $(e.body)).sort((e, t) => t.createdAt - e.createdAt);
 	return (t === "global" ? n : n.slice(0, e.settings.growthDiaryCount)).reverse();
 }
-function Yl(e, t, n, r = [], i = "recent") {
-	let a;
-	if (e === "growth") a = Jl(t, i).map((e) => e.title + "\n" + e.body).join("\n\n");
-	else {
-		let e = ws(r, t.settings.extraction, n.char, n.user);
-		if (e.errors.length) throw Error("正文或故事时间标签未匹配：" + e.errors.map((e) => "楼层 " + (e.index + 1)).join("、"));
-		a = e.text;
-	}
-	return Gl(e, t.settings, n, t.characterGrowth.content, a);
+function ru(e, t, n) {
+	let r = ws(e, t, n.char, n.user);
+	if (r.errors.length) throw Error("正文或故事时间标签未匹配：" + r.errors.map((e) => "楼层 " + (e.index + 1)).join("、"));
+	return r.text;
 }
-async function Xl(e, t, n, r, i) {
-	let a = await i(e, Kl(Yl(e, t, n.character, r)));
+function iu(e, t, n, r = [], i = "recent") {
+	let a = e === "growth" ? nu(t, i).map((e) => e.title + "\n" + e.body).join("\n\n") : ru(r, t.settings.extraction, n);
+	return Ql(e, t.settings, n, t.characterGrowth.content, a);
+}
+async function au(e, t, n, r, i) {
+	let a = await i(e, $l(iu(e, t, n.character, r)));
 	return e === "diary" ? {
 		title: a.title,
 		body: a.body
@@ -4510,7 +4543,7 @@ async function Xl(e, t, n, r, i) {
 		})
 	}));
 }
-function Zl(e, t) {
+function ou(e, t) {
 	for (let n of t.filter((e) => e.accepted)) yc(e, {
 		...n.value,
 		id: $o("fact"),
@@ -4518,13 +4551,13 @@ function Zl(e, t) {
 	});
 }
 // redact.js
-function Ql(e, t = []) {
+function su(e, t = []) {
 	let n = String(e ?? "");
 	for (let e of t.filter((e) => typeof e == "string" && e.length)) n = n.split(e).join("[已隐藏]");
 	return n.replace(/https?:\/\/[^\s"'<>]+/gi, "[地址已隐藏]").replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, "[已隐藏]").replace(/\bBearer\s+[^\s,"'}]+/gi, "Bearer [已隐藏]").replace(/((?:api[_-]?key|authorization|proxy_password|password|secret|token)\s*["']?\s*[:=]\s*)["']?[^\s,"'}]+/gi, "$1[已隐藏]").slice(0, 600);
 }
 // channels.js
-var $l = "scene_diary_channels", eu = "/api/backends/chat-completions/", tu = () => ({
+var cu = "scene_diary_channels", lu = "/api/backends/chat-completions/", uu = () => ({
 	id: $o("channel"),
 	name: "",
 	url: "",
@@ -4533,20 +4566,20 @@ var $l = "scene_diary_channels", eu = "/api/backends/chat-completions/", tu = ()
 	temperature: .4,
 	maxTokens: 4096
 });
-function nu(e) {
-	return e.extensionSettings?.[$l] || [];
+function du(e) {
+	return e.extensionSettings?.[cu] || [];
 }
-function ru(e, t) {
-	e.extensionSettings[$l] = t, e.saveSettingsDebounced();
+function fu(e, t) {
+	e.extensionSettings[cu] = t, e.saveSettingsDebounced();
 }
-function iu(e) {
+function pu(e) {
 	let t = new URL(e);
 	if (!["http:", "https:"].includes(t.protocol) || t.username || t.password || t.search || t.hash) throw Error("请输入不含认证信息的 HTTP(S) API 地址。");
 	let n = t.pathname.replace(/\/+$/, "").replace(/\/(?:chat\/completions|models)$/, "");
 	return n ||= "/v1", t.origin + n;
 }
-function au(e) {
-	let t = iu(e.url);
+function mu(e) {
+	let t = pu(e.url);
 	if (!e.name.trim() || !e.model.trim()) throw Error("请填写渠道名称和模型。");
 	if (!Number.isFinite(e.temperature) || e.temperature < 0 || e.temperature > 2 || !Number.isInteger(e.maxTokens) || e.maxTokens < 1) throw Error("请检查温度与最大输出 token。");
 	return {
@@ -4557,16 +4590,16 @@ function au(e) {
 		key: e.key.trim()
 	};
 }
-async function ou(e, t, n, r, i) {
+async function hu(e, t, n, r, i) {
 	let a = t.key ? { Authorization: "Bearer " + t.key } : {}, o = {
 		chat_completion_source: "custom",
 		custom_api_format: "openai_compat",
-		custom_url: iu(t.url),
+		custom_url: pu(t.url),
 		custom_include_headers: JSON.stringify(a),
 		...r
 	};
 	try {
-		let r = await fetch(eu + n, {
+		let r = await fetch(lu + n, {
 			method: "POST",
 			headers: e.getRequestHeaders(),
 			signal: i,
@@ -4579,26 +4612,26 @@ async function ou(e, t, n, r, i) {
 		}
 		if (!r.ok || s?.error) {
 			let e = s.error || s;
-			throw Object.assign(Error(Ql(e.message || (typeof e == "string" ? e : "HTTP " + r.status), [t.key])), {
+			throw Object.assign(Error(su(e.message || (typeof e == "string" ? e : "HTTP " + r.status), [t.key])), {
 				bridgeStatus: r.status,
 				providerStatus: e.status || e.status_code,
-				providerCode: Ql(e.code || "", [t.key]),
+				providerCode: su(e.code || "", [t.key]),
 				param: e.param
 			});
 		}
 		if (String(s?.id || "").startsWith("tauritavern-error-")) throw Error("TauriTavern 代理未返回有效补全，请检查渠道或更新宿主。");
 		return s;
 	} catch (e) {
-		throw i?.throwIfAborted(), e.message = Ql(e.message, [t.key]), e;
+		throw i?.throwIfAborted(), e.message = su(e.message, [t.key]), e;
 	}
 }
-async function su(e, t, n) {
-	let r = await ou(e, t, "status", {}, n), i = r?.data ?? r?.models;
+async function gu(e, t, n) {
+	let r = await hu(e, t, "status", {}, n), i = r?.data ?? r?.models;
 	if (!Array.isArray(i)) throw Error("代理未返回模型列表，可手动填写模型。");
 	return [...new Set(i.map((e) => typeof e == "string" ? e : e?.id).filter((e) => typeof e == "string" && e.trim()))].sort();
 }
-async function cu(e, t, n, r, i) {
-	let a = (await ou(e, t, "generate", {
+async function _u(e, t, n, r, i) {
+	let a = (await hu(e, t, "generate", {
 		model: t.model,
 		messages: r,
 		stream: !1,
@@ -4607,94 +4640,120 @@ async function cu(e, t, n, r, i) {
 		temperature: t.temperature
 	}, i))?.choices?.[0];
 	if (a?.message?.refusal || a?.finish_reason === "content_filter") throw Error("模型拒绝生成该内容。");
-	if (a?.finish_reason === "length") throw Error("模型输出被截断，请调整渠道最大输出 token 后重试。");
-	if (typeof a?.message?.content != "string") throw Error("渠道未返回文本。");
-	return ql(n, a.message.content);
+	let o = a?.message?.content;
+	if (a?.finish_reason === "length") throw new eu("模型输出被截断，请调整渠道最大输出 token 后重试。", o);
+	if (typeof o != "string") throw Error("渠道未返回文本。");
+	return tu(n, o);
 }
-function lu(e, t, n) {
-	let r = Gl("test", { prompts: { test: {
+function vu(e, t, n) {
+	let r = Ql("test", { prompts: { test: {
 		system: "渠道连通性测试。",
 		description: "按规定格式确认连接。"
 	} } }, {}, "", "");
-	return cu(e, au(t), "test", Kl(r), n);
+	return _u(e, mu(t), "test", $l(r), n);
 }
 // src/pages/Settings.vue?vue&type=script&setup=true&lang.ts
-var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu = ["disabled"], pu = ["disabled", "onClick"], mu = { class: "sd-form-grid" }, hu = { class: "sd-field" }, gu = { class: "sd-field" }, _u = { class: "sd-field" }, vu = { class: "sd-field" }, yu = { class: "sd-field" }, bu = { class: "sd-field" }, xu = {
+var yu = { class: "sd-card sd-stack" }, bu = { class: "sd-section-title" }, xu = ["disabled"], Su = ["disabled", "onClick"], Cu = { class: "sd-form-grid" }, wu = { class: "sd-field" }, Tu = { class: "sd-field" }, Eu = { class: "sd-field" }, Du = { class: "sd-field" }, Ou = { class: "sd-field" }, ku = { class: "sd-field" }, Au = {
 	key: 0,
 	role: "status"
-}, Su = {
+}, ju = {
 	key: 1,
 	class: "sd-subcard sd-stack"
-}, Cu = { class: "sd-field" }, wu = { class: "sd-model-list" }, Tu = ["aria-pressed", "onClick"], Eu = { key: 0 }, Du = { class: "sd-actions" }, Ou = ["disabled"], ku = ["disabled"], Au = ["disabled"], ju = {
+}, Mu = { class: "sd-field" }, Nu = { class: "sd-model-list" }, Pu = ["aria-pressed", "onClick"], Fu = { key: 0 }, Iu = { class: "sd-actions" }, Lu = ["disabled"], Ru = ["disabled"], zu = ["disabled"], Bu = {
 	key: 0,
 	class: "sd-card"
-}, Mu = { class: "sd-card sd-stack" }, Nu = { class: "sd-form-grid" }, Pu = ["onUpdate:modelValue"], Fu = ["value"], Iu = {
+}, Vu = { class: "sd-card sd-stack" }, Hu = { class: "sd-form-grid" }, Uu = ["onUpdate:modelValue"], Wu = ["value"], Gu = {
 	class: "sd-card",
 	open: ""
-}, Lu = { class: "sd-stack" }, Ru = { class: "sd-form-grid" }, zu = { class: "sd-field" }, Bu = { class: "sd-field" }, Vu = { class: "sd-field" }, Hu = { class: "sd-field" }, Uu = { class: "sd-field" }, Wu = { class: "sd-field" }, Gu = { class: "sd-card" }, Ku = { class: "sd-stack" }, qu = { class: "sd-form-grid" }, Ju = { class: "sd-field" }, Yu = { class: "sd-field" }, Xu = { class: "sd-field" }, Zu = { class: "sd-field" }, Qu = { class: "sd-form-grid" }, $u = { class: "sd-field" }, ed = { class: "sd-field" }, td = { class: "sd-field" }, nd = { class: "sd-card" }, rd = { class: "sd-stack" }, id = ["onUpdate:modelValue"], ad = { class: "sd-stack" }, od = { class: "sd-segments" }, sd = ["aria-pressed", "onClick"], cd = { class: "sd-prose" }, ld = { class: "sd-prose" }, ud = { class: "sd-prose" }, dd = { class: "sd-actions sd-sticky" }, fd = /* @__PURE__ */ Qn({
+}, Ku = { class: "sd-stack" }, qu = { class: "sd-form-grid" }, Ju = { class: "sd-field" }, Yu = { class: "sd-field" }, Xu = { class: "sd-field" }, Zu = { class: "sd-field" }, Qu = { class: "sd-field" }, $u = { class: "sd-field" }, ed = { class: "sd-card" }, td = { class: "sd-stack" }, nd = { class: "sd-form-grid" }, rd = { class: "sd-field" }, id = { class: "sd-field" }, ad = { class: "sd-field" }, od = { class: "sd-field" }, sd = { class: "sd-form-grid" }, cd = { class: "sd-field" }, ld = { class: "sd-field" }, ud = { class: "sd-field" }, dd = { class: "sd-card" }, fd = { class: "sd-stack" }, pd = ["onUpdate:modelValue"], md = { class: "sd-stack" }, hd = { class: "sd-segments" }, gd = ["aria-pressed", "onClick"], _d = { class: "sd-prose" }, vd = { class: "sd-prose" }, yd = { class: "sd-prose" }, bd = { class: "sd-actions sd-sticky" }, xd = /* @__PURE__ */ Qn({
 	__name: "Settings",
 	setup(e) {
-		let { view: t, host: n, run: r, notice: i, select: a } = Zs(), o = /* @__PURE__ */ z(null), s = /* @__PURE__ */ z(null), c = /* @__PURE__ */ z([]), l = /* @__PURE__ */ z("diary"), u = /* @__PURE__ */ z("recent"), d = /* @__PURE__ */ z(null), f = /* @__PURE__ */ z(""), p = /* @__PURE__ */ z(!1), m = /* @__PURE__ */ z(!1), h = /* @__PURE__ */ z(""), g = /* @__PURE__ */ z(""), _ = X(() => c.value.filter((e) => e.toLowerCase().includes(h.value.toLowerCase())));
-		Vn([
-			l,
-			u,
-			o,
-			p,
-			() => t.value.state
-		], async (e, t, r) => {
-			let i = !0;
-			if (r(() => {
-				i = !1;
-			}), o.value && p.value) try {
-				let e = await n.previewModules(l.value, o.value, u.value);
-				i && (d.value = e, f.value = "");
+		let { view: t, host: n, run: r, notice: i, select: a } = Zs(), o = /* @__PURE__ */ z(null), s = /* @__PURE__ */ z(null), c = /* @__PURE__ */ z([]), l = /* @__PURE__ */ z("diary"), u = /* @__PURE__ */ z("recent"), d = /* @__PURE__ */ z(!1), f = /* @__PURE__ */ z(!1), p = /* @__PURE__ */ z(null), m = /* @__PURE__ */ z(""), h = X(() => {
+			let e = fs(t.value.state);
+			return e ? JSON.stringify([
+				e.id,
+				e.messageIds,
+				t.value.dialogueRevision
+			]) : "";
+		}), g = X(() => d.value && f.value && l.value !== "growth"), _ = /* @__PURE__ */ z(!1), v = /* @__PURE__ */ z(""), y = /* @__PURE__ */ z(""), b = X(() => c.value.filter((e) => e.toLowerCase().includes(v.value.toLowerCase())));
+		Vn([g, h], async ([e, t], r, i) => {
+			if (!e || !t || p.value?.source === t) return;
+			let a = !0;
+			i(() => {
+				a = !1;
+			}), m.value = "";
+			try {
+				let e = await n.readPreviewDialogue();
+				a && (p.value = {
+					source: t,
+					messages: e
+				});
 			} catch (e) {
-				i && (d.value = null, f.value = e.message);
+				a && (m.value = e.message);
 			}
-		}, { deep: !0 });
-		let v = /* @__PURE__ */ z(), y = /* @__PURE__ */ z(!1), b = null;
-		gr(() => b?.abort());
-		let x = n.getContext, S = () => x().accountStorage, C = /* @__PURE__ */ z(S()?.getItem("scene_diary_embedding_key") || ""), w = /* @__PURE__ */ z(S()?.getItem("scene_diary_rerank_key") || ""), T = X(() => JSON.stringify(t.value.state?.settings || null)), E = /* @__PURE__ */ z({});
-		Vn(T, (e) => {
+		});
+		let x = X(() => {
+			let e = t.value.state;
+			if (!e || !o.value || !d.value) return null;
+			let r = n.previewCharacter(l.value);
+			return l.value === "growth" ? iu("growth", {
+				...e,
+				settings: o.value
+			}, r, [], u.value) : Ql(l.value, o.value, r, e.characterGrowth.content, "");
+		}), S = X(() => {
+			if (!d.value || !f.value) return "";
+			if (l.value === "growth") return x.value?.material;
+			if (!h.value) return "";
+			if (m.value) return m.value;
+			if (p.value?.source !== h.value) return "正在读取本幕对话…";
+			try {
+				return ru(p.value.messages, ie(), n.previewCharacter(l.value));
+			} catch (e) {
+				return e.message;
+			}
+		}), C = /* @__PURE__ */ z(), w = /* @__PURE__ */ z(!1), T = null;
+		gr(() => T?.abort());
+		let ee = n.getContext, te = () => ee().accountStorage, E = /* @__PURE__ */ z(te()?.getItem("scene_diary_embedding_key") || ""), D = /* @__PURE__ */ z(te()?.getItem("scene_diary_rerank_key") || ""), ne = X(() => JSON.stringify(t.value.state?.settings || null)), O = /* @__PURE__ */ z({});
+		Vn(ne, (e) => {
 			if (o.value = JSON.parse(e), !o.value) return;
 			let t = {};
 			for (let e of ["user", "character"]) {
 				t[e] = {};
 				for (let n of ["bodyTagPairs", "storyTimeTagPairs"]) t[e][n] = o.value.extraction[e][n].map((e) => e.open + " " + e.close).join("\n");
 			}
-			E.value = t;
+			O.value = t;
 		}, { immediate: !0 });
-		function ee(e = tu()) {
-			s.value = { ...e }, c.value = [], m.value = !1, g.value = "", h.value = "";
+		function k(e = uu()) {
+			s.value = { ...e }, c.value = [], _.value = !1, y.value = "", v.value = "";
 		}
-		function te() {
+		function A() {
 			return r(() => {
-				let e = au(s.value);
-				ru(x(), [...t.value.channels.filter((t) => t.id !== e.id), e]), n.refresh(), s.value = null, i.value = "渠道已提交保存。";
+				let e = mu(s.value);
+				fu(ee(), [...t.value.channels.filter((t) => t.id !== e.id), e]), n.refresh(), s.value = null, i.value = "渠道已提交保存。";
 			});
 		}
-		function D() {
+		function j() {
 			if (s.value && window.confirm("删除该渠道？已绑定的任务需要重新选择。")) return r(() => {
-				ru(x(), t.value.channels.filter((e) => e.id !== s.value.id)), n.refresh(), s.value = null;
+				fu(ee(), t.value.channels.filter((e) => e.id !== s.value.id)), n.refresh(), s.value = null;
 			});
 		}
-		async function O(e) {
-			let t = b = new AbortController();
-			y.value = !0;
+		async function M(e) {
+			let t = T = new AbortController();
+			w.value = !0;
 			let n = { ...s.value };
 			try {
-				if (g.value = "", m.value = !1, e === "models") c.value = await su(x(), n, t.signal), h.value = "", m.value = c.value.length > 0, g.value = m.value ? "返回 " + c.value.length + " 个模型。" : "渠道未提供模型，可手动填写。";
+				if (y.value = "", _.value = !1, e === "models") c.value = await gu(ee(), n, t.signal), v.value = "", _.value = c.value.length > 0, y.value = _.value ? "返回 " + c.value.length + " 个模型。" : "渠道未提供模型，可手动填写。";
 				else {
-					if ((await lu(x(), n, t.signal)).ok !== !0) throw Error("渠道返回了意外的测试结果。");
-					g.value = "渠道测试通过。";
+					if ((await vu(ee(), n, t.signal)).ok !== !0) throw Error("渠道返回了意外的测试结果。");
+					y.value = "渠道测试通过。";
 				}
 			} catch (e) {
-				g.value = t.signal.aborted ? "请求已取消。" : e.message;
+				y.value = t.signal.aborted ? "请求已取消。" : e.message;
 			} finally {
-				b = null, y.value = !1;
+				T = null, w.value = !1;
 			}
 		}
-		function k(e) {
+		function re(e) {
 			return e.split(/\r?\n/).map((e) => e.trim()).filter(Boolean).map((e) => {
 				let [t, n] = e.split(/\s+/), r = as({
 					open: t,
@@ -4704,14 +4763,20 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 				return r;
 			});
 		}
-		async function A() {
-			if (!v.value?.reportValidity()) throw Error("请检查设置中的数值。");
+		function ie() {
+			return Object.fromEntries(["user", "character"].map((e) => [e, {
+				requiredStoryTime: o.value.extraction[e].requiredStoryTime,
+				bodyTagPairs: re(O.value[e].bodyTagPairs),
+				storyTimeTagPairs: re(O.value[e].storyTimeTagPairs)
+			}]));
+		}
+		async function ae() {
+			if (!C.value?.reportValidity()) throw Error("请检查设置中的数值。");
 			let e = JSON.parse(JSON.stringify(o.value));
-			for (let t of ["user", "character"]) for (let n of ["bodyTagPairs", "storyTimeTagPairs"]) e.extraction[t][n] = k(E.value[t][n]);
-			if (e.semantic.enabled && (e.semantic.endpoint = Hs(e.semantic.endpoint), !e.semantic.model.trim())) throw Error("请填写 Embedding 模型。");
+			if (e.extraction = ie(), e.semantic.enabled && (e.semantic.endpoint = Hs(e.semantic.endpoint), !e.semantic.model.trim())) throw Error("请填写 Embedding 模型。");
 			if (e.semantic.rerank && (e.semantic.rerankEndpoint = Hs(e.semantic.rerankEndpoint, "重排"), !e.semantic.rerankModel.trim())) throw Error("请填写重排模型。");
-			let r = Object.fromEntries(Object.entries(e.bindings).filter(([, e]) => t.value.channels.some((t) => t.id === e))), i = S();
-			for (let [e, t] of [["scene_diary_embedding_key", C.value], ["scene_diary_rerank_key", w.value]]) t.trim() ? i?.setItem(e, t.trim()) : i?.removeItem(e);
+			let r = Object.fromEntries(Object.entries(e.bindings).filter(([, e]) => t.value.channels.some((t) => t.id === e))), i = te();
+			for (let [e, t] of [["scene_diary_embedding_key", E.value], ["scene_diary_rerank_key", D.value]]) t.trim() ? i?.setItem(e, t.trim()) : i?.removeItem(e);
 			await n.mutate((t) => {
 				t.settings = fc({
 					...e,
@@ -4719,32 +4784,32 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 				}), Object.keys(oc).every((e) => t.settings.bindings[e]) && (t.connectionSetupNeeded = !1);
 			});
 		}
-		return (e, n) => (U(), W(H, null, [G("section", uu, [
-			G("header", du, [n[35] ||= G("h3", null, "API 渠道", -1), G("button", {
+		return (e, n) => (U(), W(H, null, [G("section", yu, [
+			G("header", bu, [n[36] ||= G("h3", null, "API 渠道", -1), G("button", {
 				class: "sd-primary",
-				disabled: y.value,
-				onClick: n[0] ||= (e) => ee()
-			}, "新增渠道", 8, fu)]),
-			n[43] ||= G("p", null, "渠道在当前酒馆账户内共用，任务分派按聊天保存。", -1),
+				disabled: w.value,
+				onClick: n[0] ||= (e) => k()
+			}, "新增渠道", 8, xu)]),
+			n[44] ||= G("p", null, "渠道在当前酒馆账户内共用，任务分派按聊天保存。", -1),
 			(U(!0), W(H, null, Dr(B(t).channels, (e) => (U(), W("div", {
 				class: "sd-listrow",
 				key: e.id
 			}, [G("div", null, [G("strong", null, N(e.name), 1), G("p", null, N(e.model), 1)]), G("button", {
-				disabled: y.value,
-				onClick: (t) => ee(e)
-			}, "编辑", 8, pu)]))), 128)),
+				disabled: w.value,
+				onClick: (t) => k(e)
+			}, "编辑", 8, Su)]))), 128)),
 			s.value ? (U(), W("form", {
 				key: 0,
 				class: "sd-subcard sd-stack",
-				onSubmit: Ro(te, ["prevent"])
+				onSubmit: Ro(A, ["prevent"])
 			}, [
-				G("div", mu, [
-					G("label", hu, [n[36] ||= q("名称", -1), V(G("input", {
+				G("div", Cu, [
+					G("label", wu, [n[37] ||= q("名称", -1), V(G("input", {
 						"onUpdate:modelValue": n[1] ||= (e) => s.value.name = e,
 						autocomplete: "off",
 						required: ""
 					}, null, 512), [[Z, s.value.name]])]),
-					G("label", gu, [n[37] ||= q("OpenAI 兼容 API 地址", -1), V(G("input", {
+					G("label", Tu, [n[38] ||= q("OpenAI 兼容 API 地址", -1), V(G("input", {
 						"onUpdate:modelValue": n[2] ||= (e) => s.value.url = e,
 						type: "url",
 						placeholder: "https://example.com/v1",
@@ -4755,16 +4820,16 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", _u, [n[38] ||= q("API Key", -1), V(G("input", {
+					G("label", Eu, [n[39] ||= q("API Key", -1), V(G("input", {
 						"onUpdate:modelValue": n[3] ||= (e) => s.value.key = e,
 						type: "password",
 						autocomplete: "new-password"
 					}, null, 512), [[Z, s.value.key]])]),
-					G("label", vu, [n[39] ||= q("模型", -1), V(G("input", {
+					G("label", Du, [n[40] ||= q("模型", -1), V(G("input", {
 						"onUpdate:modelValue": n[4] ||= (e) => s.value.model = e,
 						required: ""
 					}, null, 512), [[Z, s.value.model]])]),
-					G("label", yu, [n[40] ||= q("温度", -1), V(G("input", {
+					G("label", Ou, [n[41] ||= q("温度", -1), V(G("input", {
 						"onUpdate:modelValue": n[5] ||= (e) => s.value.temperature = e,
 						type: "number",
 						min: "0",
@@ -4777,7 +4842,7 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 						void 0,
 						{ number: !0 }
 					]])]),
-					G("label", bu, [n[41] ||= q("最大输出 token", -1), V(G("input", {
+					G("label", ku, [n[42] ||= q("最大输出 token", -1), V(G("input", {
 						"onUpdate:modelValue": n[6] ||= (e) => s.value.maxTokens = e,
 						type: "number",
 						min: "1",
@@ -4790,75 +4855,75 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 						{ number: !0 }
 					]])])
 				]),
-				g.value ? (U(), W("p", xu, N(g.value), 1)) : J("", !0),
-				m.value ? (U(), W("section", Su, [
-					G("label", Cu, [n[42] ||= q("搜索模型", -1), V(G("input", {
-						"onUpdate:modelValue": n[7] ||= (e) => h.value = e,
+				y.value ? (U(), W("p", Au, N(y.value), 1)) : J("", !0),
+				_.value ? (U(), W("section", ju, [
+					G("label", Mu, [n[43] ||= q("搜索模型", -1), V(G("input", {
+						"onUpdate:modelValue": n[7] ||= (e) => v.value = e,
 						type: "search"
-					}, null, 512), [[Z, h.value]])]),
-					G("div", wu, [(U(!0), W(H, null, Dr(_.value, (e) => (U(), W("button", {
+					}, null, 512), [[Z, v.value]])]),
+					G("div", Nu, [(U(!0), W(H, null, Dr(b.value, (e) => (U(), W("button", {
 						type: "button",
 						key: e,
 						"aria-pressed": e === s.value.model,
 						onClick: (t) => {
-							s.value.model = e, m.value = !1, g.value = "已选择 " + e;
+							s.value.model = e, _.value = !1, y.value = "已选择 " + e;
 						}
-					}, N(e) + " " + N(e === s.value.model ? "✓" : ""), 9, Tu))), 128))]),
-					_.value.length ? J("", !0) : (U(), W("p", Eu, "没有匹配的模型。")),
+					}, N(e) + " " + N(e === s.value.model ? "✓" : ""), 9, Pu))), 128))]),
+					b.value.length ? J("", !0) : (U(), W("p", Fu, "没有匹配的模型。")),
 					G("button", {
 						type: "button",
-						onClick: n[8] ||= (e) => m.value = !1
+						onClick: n[8] ||= (e) => _.value = !1
 					}, "收起列表")
 				])) : J("", !0),
-				G("div", Du, [
-					y.value ? (U(), W("button", {
+				G("div", Iu, [
+					w.value ? (U(), W("button", {
 						key: 0,
 						type: "button",
-						onClick: n[9] ||= (e) => B(b)?.abort()
+						onClick: n[9] ||= (e) => B(T)?.abort()
 					}, "取消请求")) : (U(), W(H, { key: 1 }, [G("button", {
 						type: "button",
-						onClick: n[10] ||= (e) => O("models")
+						onClick: n[10] ||= (e) => M("models")
 					}, "获取模型列表"), G("button", {
 						type: "button",
-						onClick: n[11] ||= (e) => O("test")
+						onClick: n[11] ||= (e) => M("test")
 					}, "测试渠道")], 64)),
 					G("button", {
 						type: "button",
-						disabled: y.value,
+						disabled: w.value,
 						onClick: n[12] ||= (e) => s.value = null
-					}, "关闭", 8, Ou),
+					}, "关闭", 8, Lu),
 					B(t).channels.some((e) => e.id === s.value.id) ? (U(), W("button", {
 						key: 2,
 						type: "button",
 						class: "sd-danger",
-						disabled: y.value,
-						onClick: D
-					}, "删除", 8, ku)) : J("", !0),
+						disabled: w.value,
+						onClick: j
+					}, "删除", 8, Ru)) : J("", !0),
 					G("button", {
 						class: "sd-primary",
-						disabled: y.value
-					}, "保存渠道", 8, Au)
+						disabled: w.value
+					}, "保存渠道", 8, zu)
 				])
 			], 32)) : J("", !0)
 		]), o.value ? (U(), W("form", {
 			key: 1,
 			ref_key: "settingsForm",
-			ref: v,
+			ref: C,
 			class: "sd-stack",
-			onSubmit: n[34] ||= Ro(() => {}, ["prevent"])
+			onSubmit: n[35] ||= Ro(() => {}, ["prevent"])
 		}, [
-			G("section", Mu, [n[45] ||= G("h3", null, "任务分派", -1), G("div", Nu, [(U(!0), W(H, null, Dr(B(oc), (e, r) => (U(), W("label", {
+			G("section", Vu, [n[46] ||= G("h3", null, "任务分派", -1), G("div", Hu, [(U(!0), W(H, null, Dr(B(oc), (e, r) => (U(), W("label", {
 				key: r,
 				class: "sd-field"
-			}, [q(N(e) + " ", 1), V(G("select", { "onUpdate:modelValue": (e) => o.value.bindings[r] = e }, [n[44] ||= G("option", { value: void 0 }, "请选择渠道", -1), (U(!0), W(H, null, Dr(B(t).channels, (e) => (U(), W("option", {
+			}, [q(N(e) + " ", 1), V(G("select", { "onUpdate:modelValue": (e) => o.value.bindings[r] = e }, [n[45] ||= G("option", { value: void 0 }, "请选择渠道", -1), (U(!0), W(H, null, Dr(B(t).channels, (e) => (U(), W("option", {
 				key: e.id,
 				value: e.id
-			}, N(e.name), 9, Fu))), 128))], 8, Pu), [[jo, o.value.bindings[r]]])]))), 128))])]),
-			G("details", Iu, [n[53] ||= G("summary", null, "上下文与召回", -1), G("div", Lu, [G("label", null, [V(G("input", {
+			}, N(e.name), 9, Wu))), 128))], 8, Uu), [[jo, o.value.bindings[r]]])]))), 128))])]),
+			G("details", Gu, [n[54] ||= G("summary", null, "上下文与召回", -1), G("div", Ku, [G("label", null, [V(G("input", {
 				type: "checkbox",
 				"onUpdate:modelValue": n[13] ||= (e) => o.value.growthEnabled = e
-			}, null, 512), [[ko, o.value.growthEnabled]]), n[46] ||= q(" 注入当前画像", -1)]), G("div", Ru, [
-				G("label", zu, [n[47] ||= q("近期日记篇数", -1), V(G("input", {
+			}, null, 512), [[ko, o.value.growthEnabled]]), n[47] ||= q(" 注入当前画像", -1)]), G("div", qu, [
+				G("label", Ju, [n[48] ||= q("近期日记篇数", -1), V(G("input", {
 					"onUpdate:modelValue": n[14] ||= (e) => o.value.recentDiaryCount = e,
 					type: "number",
 					min: "0",
@@ -4869,7 +4934,7 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 					void 0,
 					{ number: !0 }
 				]])]),
-				G("label", Bu, [n[48] ||= q("成长追踪日记篇数", -1), V(G("input", {
+				G("label", Yu, [n[49] ||= q("成长追踪日记篇数", -1), V(G("input", {
 					"onUpdate:modelValue": n[15] ||= (e) => o.value.growthDiaryCount = e,
 					type: "number",
 					min: "0",
@@ -4880,7 +4945,7 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 					void 0,
 					{ number: !0 }
 				]])]),
-				G("label", Vu, [n[49] ||= q("查询深度 d", -1), V(G("input", {
+				G("label", Xu, [n[50] ||= q("查询深度 d", -1), V(G("input", {
 					"onUpdate:modelValue": n[16] ||= (e) => o.value.queryDepth = e,
 					type: "number",
 					min: "0",
@@ -4891,7 +4956,7 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 					void 0,
 					{ number: !0 }
 				]])]),
-				G("label", Hu, [n[50] ||= q("初检数量 q", -1), V(G("input", {
+				G("label", Zu, [n[51] ||= q("初检数量 q", -1), V(G("input", {
 					"onUpdate:modelValue": n[17] ||= (e) => o.value.retrievalCount = e,
 					type: "number",
 					min: "0",
@@ -4902,7 +4967,7 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 					void 0,
 					{ number: !0 }
 				]])]),
-				G("label", Uu, [n[51] ||= q("精排候选数 r", -1), V(G("input", {
+				G("label", Qu, [n[52] ||= q("精排候选数 r", -1), V(G("input", {
 					"onUpdate:modelValue": n[18] ||= (e) => o.value.candidateCount = e,
 					type: "number",
 					min: "0",
@@ -4913,7 +4978,7 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 					void 0,
 					{ number: !0 }
 				]])]),
-				G("label", Wu, [n[52] ||= q("召回分数门槛", -1), V(G("input", {
+				G("label", $u, [n[53] ||= q("召回分数门槛", -1), V(G("input", {
 					"onUpdate:modelValue": n[19] ||= (e) => o.value.recallScoreThreshold = e,
 					type: "number",
 					min: "0",
@@ -4927,13 +4992,13 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 					{ number: !0 }
 				]])])
 			])])]),
-			G("details", Gu, [n[63] ||= G("summary", null, "Embedding 与重排", -1), G("div", Ku, [
+			G("details", ed, [n[64] ||= G("summary", null, "Embedding 与重排", -1), G("div", td, [
 				G("label", null, [V(G("input", {
 					type: "checkbox",
 					"onUpdate:modelValue": n[20] ||= (e) => o.value.semantic.enabled = e
-				}, null, 512), [[ko, o.value.semantic.enabled]]), n[54] ||= q(" 使用向量检索", -1)]),
-				G("div", qu, [
-					G("label", Ju, [n[55] ||= q("Embedding 完整地址", -1), V(G("input", {
+				}, null, 512), [[ko, o.value.semantic.enabled]]), n[55] ||= q(" 使用向量检索", -1)]),
+				G("div", nd, [
+					G("label", rd, [n[56] ||= q("Embedding 完整地址", -1), V(G("input", {
 						"onUpdate:modelValue": n[21] ||= (e) => o.value.semantic.endpoint = e,
 						type: "url",
 						placeholder: "https://example.com/v1/embeddings"
@@ -4943,18 +5008,18 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", Yu, [n[56] ||= q("Embedding 模型", -1), V(G("input", { "onUpdate:modelValue": n[22] ||= (e) => o.value.semantic.model = e }, null, 512), [[
+					G("label", id, [n[57] ||= q("Embedding 模型", -1), V(G("input", { "onUpdate:modelValue": n[22] ||= (e) => o.value.semantic.model = e }, null, 512), [[
 						Z,
 						o.value.semantic.model,
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", Xu, [n[57] ||= q("Embedding 密钥", -1), V(G("input", {
-						"onUpdate:modelValue": n[23] ||= (e) => C.value = e,
+					G("label", ad, [n[58] ||= q("Embedding 密钥", -1), V(G("input", {
+						"onUpdate:modelValue": n[23] ||= (e) => E.value = e,
 						type: "password",
 						autocomplete: "new-password"
-					}, null, 512), [[Z, C.value]])]),
-					G("label", Zu, [n[58] ||= q("向量维度（可选）", -1), V(G("input", {
+					}, null, 512), [[Z, E.value]])]),
+					G("label", od, [n[59] ||= q("向量维度（可选）", -1), V(G("input", {
 						"onUpdate:modelValue": n[24] ||= (e) => o.value.semantic.dimensions = e,
 						type: "number",
 						min: "1"
@@ -4968,9 +5033,9 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 				G("label", null, [V(G("input", {
 					type: "checkbox",
 					"onUpdate:modelValue": n[25] ||= (e) => o.value.semantic.rerank = e
-				}, null, 512), [[ko, o.value.semantic.rerank]]), n[59] ||= q(" 使用 rerank 重排", -1)]),
-				G("div", Qu, [
-					G("label", $u, [n[60] ||= q("Rerank 完整地址", -1), V(G("input", {
+				}, null, 512), [[ko, o.value.semantic.rerank]]), n[60] ||= q(" 使用 rerank 重排", -1)]),
+				G("div", sd, [
+					G("label", cd, [n[61] ||= q("Rerank 完整地址", -1), V(G("input", {
 						"onUpdate:modelValue": n[26] ||= (e) => o.value.semantic.rerankEndpoint = e,
 						type: "url",
 						placeholder: "https://example.com/v1/rerank"
@@ -4980,132 +5045,132 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", ed, [n[61] ||= q("Rerank 模型", -1), V(G("input", { "onUpdate:modelValue": n[27] ||= (e) => o.value.semantic.rerankModel = e }, null, 512), [[
+					G("label", ld, [n[62] ||= q("Rerank 模型", -1), V(G("input", { "onUpdate:modelValue": n[27] ||= (e) => o.value.semantic.rerankModel = e }, null, 512), [[
 						Z,
 						o.value.semantic.rerankModel,
 						void 0,
 						{ trim: !0 }
 					]])]),
-					G("label", td, [n[62] ||= q("Rerank 密钥", -1), V(G("input", {
-						"onUpdate:modelValue": n[28] ||= (e) => w.value = e,
+					G("label", ud, [n[63] ||= q("Rerank 密钥", -1), V(G("input", {
+						"onUpdate:modelValue": n[28] ||= (e) => D.value = e,
 						type: "password",
 						autocomplete: "new-password"
-					}, null, 512), [[Z, w.value]])])
+					}, null, 512), [[Z, D.value]])])
 				])
 			])]),
-			G("details", nd, [n[66] ||= G("summary", null, "正文和故事时间标签", -1), G("div", rd, [n[65] ||= G("p", null, "每行填写一对开始和结束标签，中间用空格分隔。正文标签留空时使用完整消息。", -1), (U(), W(H, null, Dr(["user", "character"], (e) => G("div", {
+			G("details", dd, [n[67] ||= G("summary", null, "正文和故事时间标签", -1), G("div", fd, [n[66] ||= G("p", null, "每行填写一对开始和结束标签，中间用空格分隔。正文标签留空时使用完整消息。", -1), (U(), W(H, null, Dr(["user", "character"], (e) => G("div", {
 				key: e,
 				class: "sd-stack"
 			}, [
 				G("h3", null, N(e === "user" ? "玩家" : "角色"), 1),
 				K(wc, {
-					modelValue: E.value[e].bodyTagPairs,
-					"onUpdate:modelValue": (t) => E.value[e].bodyTagPairs = t,
+					modelValue: O.value[e].bodyTagPairs,
+					"onUpdate:modelValue": (t) => O.value[e].bodyTagPairs = t,
 					label: "正文标签",
 					rows: 2
 				}, null, 8, ["modelValue", "onUpdate:modelValue"]),
 				K(wc, {
-					modelValue: E.value[e].storyTimeTagPairs,
-					"onUpdate:modelValue": (t) => E.value[e].storyTimeTagPairs = t,
+					modelValue: O.value[e].storyTimeTagPairs,
+					"onUpdate:modelValue": (t) => O.value[e].storyTimeTagPairs = t,
 					label: "故事时间标签",
 					rows: 2
 				}, null, 8, ["modelValue", "onUpdate:modelValue"]),
 				G("label", null, [V(G("input", {
 					type: "checkbox",
 					"onUpdate:modelValue": (t) => o.value.extraction[e].requiredStoryTime = t
-				}, null, 8, id), [[ko, o.value.extraction[e].requiredStoryTime]]), n[64] ||= q(" 故事时间必填", -1)])
+				}, null, 8, pd), [[ko, o.value.extraction[e].requiredStoryTime]]), n[65] ||= q(" 故事时间必填", -1)])
 			])), 64))])]),
 			G("details", {
 				class: "sd-card",
-				onToggle: n[32] ||= (e) => p.value = e.target.open
-			}, [n[71] ||= G("summary", null, "任务提示词", -1), G("div", ad, [
-				G("nav", od, [(U(!0), W(H, null, Dr(B(oc), (e, t) => (U(), W("button", {
+				onToggle: n[33] ||= (e) => d.value = e.target.open
+			}, [n[72] ||= G("summary", null, "任务提示词", -1), G("div", md, [
+				G("nav", hd, [(U(!0), W(H, null, Dr(B(oc), (e, t) => (U(), W("button", {
 					type: "button",
 					key: t,
 					"aria-pressed": l.value === t,
 					onClick: (e) => l.value = t
-				}, N(e), 9, sd))), 128))]),
+				}, N(e), 9, gd))), 128))]),
 				K(wc, {
 					modelValue: o.value.prompts[l.value].system,
 					"onUpdate:modelValue": n[29] ||= (e) => o.value.prompts[l.value].system = e,
 					label: "系统提示词"
 				}, null, 8, ["modelValue"]),
-				G("details", null, [n[67] ||= G("summary", null, "背景参考", -1), G("p", cd, N(d.value?.background || "暂无背景"), 1)]),
+				G("details", null, [n[68] ||= G("summary", null, "背景参考", -1), G("p", _d, N(x.value?.background || "暂无背景"), 1)]),
 				K(wc, {
 					modelValue: o.value.prompts[l.value].description,
 					"onUpdate:modelValue": n[30] ||= (e) => o.value.prompts[l.value].description = e,
 					label: "任务描述"
 				}, null, 8, ["modelValue"]),
-				G("details", null, [
-					n[69] ||= G("summary", null, "内容素材", -1),
+				G("details", { onToggle: n[32] ||= (e) => f.value = e.target.open }, [
+					n[70] ||= G("summary", null, "内容素材", -1),
 					l.value === "growth" ? V((U(), W("select", {
 						key: 0,
 						"onUpdate:modelValue": n[31] ||= (e) => u.value = e
-					}, [...n[68] ||= [G("option", { value: "recent" }, "追踪最新动态", -1), G("option", { value: "global" }, "全局重建", -1)]], 512)), [[jo, u.value]]) : J("", !0),
-					G("p", ld, N(f.value || d.value?.material || "暂无素材"), 1)
-				]),
-				G("details", null, [n[70] ||= G("summary", null, "格式规定", -1), G("p", ud, N(d.value?.format), 1)])
+					}, [...n[69] ||= [G("option", { value: "recent" }, "追踪最新动态", -1), G("option", { value: "global" }, "全局重建", -1)]], 512)), [[jo, u.value]]) : J("", !0),
+					G("p", vd, N(S.value || "暂无素材"), 1)
+				], 32),
+				G("details", null, [n[71] ||= G("summary", null, "格式规定", -1), G("p", yd, N(x.value?.format), 1)])
 			])], 32),
-			G("div", dd, [G("button", {
+			G("div", bd, [G("button", {
 				type: "button",
-				onClick: n[33] ||= (e) => B(a)("diagnostics")
-			}, "查看诊断"), K(cl, {
-				action: A,
+				onClick: n[34] ||= (e) => B(a)("diagnostics")
+			}, "查看诊断"), K(fl, {
+				action: ae,
 				label: "保存聊天设置",
 				success: "聊天设置已保存"
 			})])
-		], 544)) : (U(), W("p", ju, N(B(t).blocker), 1))], 64));
+		], 544)) : (U(), W("p", Bu, N(B(t).blocker), 1))], 64));
 	}
-}), pd = { class: "sd-card sd-stack" }, md = { class: "sd-section-title" }, hd = { key: 0 }, gd = {
+}), Sd = { class: "sd-card sd-stack" }, Cd = { class: "sd-section-title" }, wd = { key: 0 }, Td = {
 	key: 0,
 	class: "sd-log"
-}, _d = { key: 0 }, vd = { key: 0 }, yd = /* @__PURE__ */ Qn({
+}, Ed = { key: 0 }, Dd = { key: 0 }, Od = /* @__PURE__ */ Qn({
 	__name: "Diagnostics",
 	setup(e) {
 		let { view: t, host: n } = Zs();
-		return (e, r) => (U(), W("section", pd, [
-			G("header", md, [r[1] ||= G("h3", null, "运行诊断", -1), G("button", { onClick: r[0] ||= (...e) => B(n).cancelRecall && B(n).cancelRecall(...e) }, "取消当前召回")]),
-			B(t).trace.length ? J("", !0) : (U(), W("p", hd, "暂无任务或召回记录。")),
-			(U(!0), W(H, null, Dr(B(t).trace, (e, t) => (U(), W(H, { key: t }, [e.details?.length ? (U(), W("details", gd, [G("summary", null, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", _d, N(Math.round(e.ms)) + " ms", 1))]), G("ul", null, [(U(!0), W(H, null, Dr(e.details, (e, t) => (U(), W("li", { key: t }, N(e), 1))), 128))])])) : (U(), W("p", {
+		return (e, r) => (U(), W("section", Sd, [
+			G("header", Cd, [r[1] ||= G("h3", null, "运行诊断", -1), G("button", { onClick: r[0] ||= (...e) => B(n).cancelRecall && B(n).cancelRecall(...e) }, "取消当前召回")]),
+			B(t).trace.length ? J("", !0) : (U(), W("p", wd, "暂无任务或召回记录。")),
+			(U(!0), W(H, null, Dr(B(t).trace, (e, t) => (U(), W(H, { key: t }, [e.details?.length ? (U(), W("details", Td, [G("summary", null, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", Ed, N(Math.round(e.ms)) + " ms", 1))]), G("ul", null, [(U(!0), W(H, null, Dr(e.details, (e, t) => (U(), W("li", { key: t }, N(e), 1))), 128))])])) : (U(), W("p", {
 				key: 1,
 				class: fe(["sd-log", { "sd-alert": e.status === "error" || e.status === "warning" }])
-			}, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", vd, N(Math.round(e.ms)) + " ms", 1))], 2))], 64))), 128))
+			}, [q(N(e.stage) + " · " + N(e.title) + " ", 1), e.ms == null ? J("", !0) : (U(), W("small", Dd, N(Math.round(e.ms)) + " ms", 1))], 2))], 64))), 128))
 		]));
 	}
-}), bd = {
+}), kd = {
 	class: "sd-window",
 	"data-tt-mobile-surface": "fullscreen-window",
 	role: "dialog",
 	"aria-modal": "true",
 	"aria-labelledby": "sd-title"
-}, xd = { class: "sd-header" }, Sd = { class: "sd-heading" }, Cd = {
+}, Ad = { class: "sd-header" }, jd = { class: "sd-heading" }, Md = {
 	id: "sd-title",
 	tabindex: "-1"
-}, wd = { class: "sd-actions" }, Td = ["aria-pressed"], Ed = ["aria-pressed"], Dd = {
+}, Nd = { class: "sd-actions" }, Pd = ["aria-pressed"], Fd = ["aria-pressed"], Id = {
 	class: "sd-tabs",
 	"aria-label": "剧幕工作台导航"
-}, Od = ["aria-current", "onClick"], kd = { class: "sd-body" }, Ad = {
+}, Ld = ["aria-current", "onClick"], Rd = { class: "sd-body" }, zd = {
 	key: 0,
 	class: "sd-alert",
 	role: "alert"
-}, jd = { class: "sd-actions" }, Md = {
+}, Bd = { class: "sd-actions" }, Vd = {
 	key: 1,
 	class: "sd-alert",
 	role: "alert"
-}, Nd = {
+}, Hd = {
 	key: 2,
 	class: "sd-status",
 	role: "status"
-}, Pd = { class: "sd-status" }, Fd = {
+}, Ud = { class: "sd-status" }, Wd = {
 	key: 0,
 	class: "sd-card sd-stack"
-}, Id = { class: "sd-prose" }, Ld = { class: "sd-prose" }, Rd = { class: "sd-prose" }, zd = {
+}, Gd = { class: "sd-prose" }, Kd = { class: "sd-prose" }, qd = { class: "sd-prose" }, Jd = {
 	key: 4,
 	class: "sd-card"
-}, Bd = {
+}, Yd = {
 	class: "sd-footer",
 	"aria-live": "polite"
-}, Vd = { key: 0 }, Hd = { key: 1 }, Ud = { key: 2 }, Wd = { key: 3 }, Gd = /* @__PURE__ */ Qn({
+}, Xd = { key: 0 }, Zd = { key: 1 }, Qd = { key: 2 }, $d = { key: 3 }, ef = /* @__PURE__ */ Qn({
 	__name: "App",
 	setup(e) {
 		let { view: t, host: n, opened: r, hasToolbar: i, page: a, error: o, notice: s, run: c, select: l, openWorkbench: u } = Zs(), d = [
@@ -5113,31 +5178,31 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 				id: "workbench",
 				label: "剧幕工作台",
 				icon: "fa-clapperboard",
-				component: al
+				component: ll
 			},
 			{
 				id: "growth",
 				label: "角色成长",
 				icon: "fa-seedling",
-				component: wl
+				component: kl
 			},
 			{
 				id: "diaries",
 				label: "日记档案",
 				icon: "fa-book-open",
-				component: Hl
+				component: Yl
 			},
 			{
 				id: "memory",
 				label: "长期记忆",
 				icon: "fa-bookmark",
-				component: Ul
+				component: Xl
 			}
 		], f = {
 			...Object.fromEntries(d.map((e) => [e.id, e.component])),
-			settings: fd,
-			diagnostics: yd
-		}, p = X(() => f[a.value] || al), m = X(() => t.value.blocker.startsWith("检测到 SP") && t.value.persisted), h = X(() => m.value?.diaries || m.value?.acts?.filter((e) => e.diary).map((e) => ({
+			settings: xd,
+			diagnostics: Od
+		}, p = X(() => f[a.value] || ll), m = X(() => t.value.blocker.startsWith("检测到 SP") && t.value.persisted), h = X(() => m.value?.diaries || m.value?.acts?.filter((e) => e.diary).map((e) => ({
 			id: e.id,
 			title: e.title,
 			body: e.diary
@@ -5181,25 +5246,25 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 			}),
 			"data-tt-mobile-surface": "backdrop",
 			onClick: f[5] ||= Ro((e) => r.value = !1, ["self"])
-		}, [G("section", bd, [
-			G("header", xd, [G("div", Sd, [f[7] ||= G("i", {
+		}, [G("section", kd, [
+			G("header", Ad, [G("div", jd, [f[7] ||= G("i", {
 				class: "fa-solid fa-clapperboard",
 				"aria-hidden": "true"
-			}, null, -1), G("h2", Cd, N(g.value), 1)]), G("div", wd, [
+			}, null, -1), G("h2", Md, N(g.value), 1)]), G("div", Nd, [
 				G("button", {
 					class: "sd-icon",
 					title: "设置",
 					"aria-label": "设置",
 					"aria-pressed": B(a) === "settings",
 					onClick: f[1] ||= (e) => B(l)("settings")
-				}, [...f[8] ||= [G("i", { class: "fa-solid fa-gear" }, null, -1)]], 8, Td),
+				}, [...f[8] ||= [G("i", { class: "fa-solid fa-gear" }, null, -1)]], 8, Pd),
 				G("button", {
 					class: "sd-icon",
 					title: "诊断",
 					"aria-label": "诊断",
 					"aria-pressed": B(a) === "diagnostics",
 					onClick: f[2] ||= (e) => B(l)("diagnostics")
-				}, [...f[9] ||= [G("i", { class: "fa-solid fa-list-check" }, null, -1)]], 8, Ed),
+				}, [...f[9] ||= [G("i", { class: "fa-solid fa-list-check" }, null, -1)]], 8, Fd),
 				G("button", {
 					class: "sd-icon",
 					title: "关闭",
@@ -5207,44 +5272,44 @@ var uu = { class: "sd-card sd-stack" }, du = { class: "sd-section-title" }, fu =
 					onClick: f[3] ||= (e) => r.value = !1
 				}, [...f[10] ||= [G("i", { class: "fa-solid fa-xmark" }, null, -1)]])
 			])]),
-			G("nav", Dd, [(U(), W(H, null, Dr(d, (e) => G("button", {
+			G("nav", Id, [(U(), W(H, null, Dr(d, (e) => G("button", {
 				key: e.id,
 				"aria-current": B(a) === e.id ? "page" : void 0,
 				onClick: (t) => B(l)(e.id)
 			}, [G("i", {
 				class: fe("fa-solid " + e.icon),
 				"aria-hidden": "true"
-			}, null, 2), G("span", null, N(e.label), 1)], 8, Od)), 64))]),
-			G("div", kd, [
-				B(t).saveError ? (U(), W("aside", Ad, [G("span", null, "保存失败。" + N(B(t).saveError) + " 当前内容仍可编辑。", 1), G("div", jd, [G("button", { onClick: f[4] ||= (e) => B(c)(B(n).save) }, "重试保存"), B(t).state ? (U(), W("button", {
+			}, null, 2), G("span", null, N(e.label), 1)], 8, Ld)), 64))]),
+			G("div", Rd, [
+				B(t).saveError ? (U(), W("aside", zd, [G("span", null, "保存失败。" + N(B(t).saveError) + " 当前内容仍可编辑。", 1), G("div", Bd, [G("button", { onClick: f[4] ||= (e) => B(c)(B(n).save) }, "重试保存"), B(t).state ? (U(), W("button", {
 					key: 0,
 					onClick: x
 				}, "导出内容")) : J("", !0)])])) : J("", !0),
-				B(o) ? (U(), W("aside", Md, N(B(o)), 1)) : J("", !0),
-				B(s) ? (U(), W("aside", Nd, N(B(s)), 1)) : J("", !0),
+				B(o) ? (U(), W("aside", Vd, N(B(o)), 1)) : J("", !0),
+				B(s) ? (U(), W("aside", Hd, N(B(s)), 1)) : J("", !0),
 				m.value && [
 					"growth",
 					"diaries",
 					"memory"
-				].includes(B(a)) ? (U(), W(H, { key: 3 }, [G("p", Pd, N(B(t).blocker) + " 已有内容可查阅。", 1), B(a) === "growth" ? (U(), W("section", Fd, [f[11] ||= G("h3", null, "当前角色画像", -1), G("p", Id, N(m.value.characterGrowth?.content || "尚未建立画像。"), 1)])) : B(a) === "diaries" ? (U(!0), W(H, { key: 1 }, Dr(h.value, (e) => (U(), W("article", {
+				].includes(B(a)) ? (U(), W(H, { key: 3 }, [G("p", Ud, N(B(t).blocker) + " 已有内容可查阅。", 1), B(a) === "growth" ? (U(), W("section", Wd, [f[11] ||= G("h3", null, "当前角色画像", -1), G("p", Gd, N(m.value.characterGrowth?.content || "尚未建立画像。"), 1)])) : B(a) === "diaries" ? (U(!0), W(H, { key: 1 }, Dr(h.value, (e) => (U(), W("article", {
 					key: e.id,
 					class: "sd-card sd-stack"
-				}, [G("h3", null, N(e.title), 1), G("p", Ld, N(e.body), 1)]))), 128)) : (U(!0), W(H, { key: 2 }, Dr(m.value.memories || [], (e) => (U(), W("article", {
+				}, [G("h3", null, N(e.title), 1), G("p", Kd, N(e.body), 1)]))), 128)) : (U(!0), W(H, { key: 2 }, Dr(m.value.memories || [], (e) => (U(), W("article", {
 					key: e.id,
 					class: "sd-card sd-stack"
-				}, [G("h3", null, N(e.title), 1), G("p", Rd, N(e.content), 1)]))), 128))], 64)) : m.value && B(a) === "settings" ? (U(), W("p", zd, N(B(t).blocker), 1)) : (U(), ea(wr(p.value), { key: B(t).chatId + "-" + B(a) }))
+				}, [G("h3", null, N(e.title), 1), G("p", qd, N(e.content), 1)]))), 128))], 64)) : m.value && B(a) === "settings" ? (U(), W("p", Jd, N(B(t).blocker), 1)) : (U(), ea(wr(p.value), { key: B(t).chatId + "-" + B(a) }))
 			]),
-			G("footer", Bd, [B(t).pendingSaves ? (U(), W("span", Vd, "正在保存…")) : B(t).saveError ? (U(), W("span", Hd, "保存失败")) : B(t).saved ? (U(), W("span", Ud, "已提交宿主保存")) : (U(), W("span", Wd, "scene&diary"))])
+			G("footer", Yd, [B(t).pendingSaves ? (U(), W("span", Xd, "正在保存…")) : B(t).saveError ? (U(), W("span", Zd, "保存失败")) : B(t).saved ? (U(), W("span", Qd, "已提交宿主保存")) : (U(), W("span", $d, "scene&diary"))])
 		])], 4)) : J("", !0)], 64));
 	}
 });
 // recall-v8.js
-function Kd(e, t) {
+function tf(e, t) {
 	let n = e.filter((e) => _s(e) && typeof e.mes == "string" && e.mes.trim()), r = n.length;
 	for (; r && !n[r - 1].is_user;) r--;
 	return Ts(n.slice(Math.max(0, r - t.queryDepth - 1), r), t.extraction);
 }
-function qd(e, t, n, r, { localOnly: i = !1 } = {}) {
+function nf(e, t, n, r, { localOnly: i = !1 } = {}) {
 	let a = e.settings.semantic, o = (e, t, r = [], i = "success") => n({
 		stage: e,
 		title: t,
@@ -5262,7 +5327,7 @@ function qd(e, t, n, r, { localOnly: i = !1 } = {}) {
 			space: e.memorySpaceId + ":事实"
 		}, d = Ls(l, e.memoryRevision, { poolSize: e.settings.retrievalCount }), f, p;
 		if (!i && a.enabled) try {
-			[f, [p]] = await Promise.all([Yd(l, u, a, t, r), Ks([c], a, t.embeddingKey, { signal: r })]);
+			[f, [p]] = await Promise.all([af(l, u, a, t, r), Ks([c], a, t.embeddingKey, { signal: r })]);
 		} catch (e) {
 			s("向量检索", e);
 		}
@@ -5286,14 +5351,14 @@ function qd(e, t, n, r, { localOnly: i = !1 } = {}) {
 		return o("精排", g, _.map((e) => e.score.toFixed(3) + " " + e.memory.title)), _;
 	};
 }
-var Jd = /* @__PURE__ */ new Map();
-async function Yd(e, t, n, r, i) {
+var rf = /* @__PURE__ */ new Map();
+async function af(e, t, n, r, i) {
 	let a = "scene-diary", o = "vectors-" + ms(JSON.stringify([
 		t.space,
 		n.endpoint,
 		n.model,
 		n.dimensions
-	])), s = JSON.stringify([t, o]), c = Jd.get(s), l = Promise.resolve(c).catch(() => {}).then(async () => {
+	])), s = JSON.stringify([t, o]), c = rf.get(s), l = Promise.resolve(c).catch(() => {}).then(async () => {
 		i?.throwIfAborted();
 		let s = r.store, c = s ? await s.getJson({
 			namespace: a,
@@ -5316,15 +5381,15 @@ async function Yd(e, t, n, r, i) {
 		}
 		return l;
 	});
-	Jd.set(s, l);
+	rf.set(s, l);
 	try {
 		return await l;
 	} finally {
-		Jd.get(s) === l && Jd.delete(s);
+		rf.get(s) === l && rf.delete(s);
 	}
 }
-var Xd = (e, t) => t.length ? "[scene&diary " + e + "]\n" + t.join("\n\n") + "\n[/scene&diary " + e + "]" : "";
-async function Zd(e, t, n, r) {
+var of = (e, t) => t.length ? "[scene&diary " + e + "]\n" + t.join("\n\n") + "\n[/scene&diary " + e + "]" : "";
+async function sf(e, t, n, r) {
 	let i = e.settings, a = e.diaries.filter((e) => !e.needsReview && e.body.trim()).sort((e, t) => t.createdAt - e.createdAt).slice(0, i.recentDiaryCount).reverse(), o = e.memories.filter(cc), s = o.filter((e) => e.permanent), c = i.retrievalCount && i.candidateCount && t.trim() ? await n(o.filter((e) => !e.permanent), t) : [], l = c.slice(0, i.candidateCount), u = l.filter((e) => e.score > i.recallScoreThreshold);
 	return r({
 		stage: "注入",
@@ -5332,18 +5397,18 @@ async function Zd(e, t, n, r) {
 		title: "常驻 " + s.length + " · 初检 " + c.length + " · 精排候选 " + l.length + " · 阈值淘汰 " + (l.length - u.length) + " · 普通记忆注入 " + u.length,
 		details: [...s.map((e) => "常驻 · " + e.title), ...u.map((e) => "召回 · " + e.memory.title)]
 	}), [
-		Xd("当前角色画像", i.growthEnabled && e.characterGrowth.content ? [e.characterGrowth.content] : []),
-		Xd("近期日记", a.map((e) => e.title + "\n" + e.body)),
-		Xd("常驻记忆", s.map(ks)),
-		Xd("长期记忆", u.map((e) => ks(e.memory)))
+		of("当前角色画像", i.growthEnabled && e.characterGrowth.content ? [e.characterGrowth.content] : []),
+		of("近期日记", a.map((e) => e.title + "\n" + e.body)),
+		of("常驻记忆", s.map(ks)),
+		of("长期记忆", u.map((e) => ks(e.memory)))
 	].filter(Boolean).join("\n\n");
 }
-function Qd(e, t) {
-	return Zd(e, t, qd(e, {}, () => {}, null, { localOnly: !0 }), () => {});
+function cf(e, t) {
+	return sf(e, t, nf(e, {}, () => {}, null, { localOnly: !0 }), () => {});
 }
 // host-v8.js
-var $d = "0.5.0", ef = (e) => ["confirmed", "skipped"].includes(e?.status);
-async function tf(e, t, n = 0, r = !1, i = !1, a = null) {
+var lf = "0.5.1", uf = (e) => ["confirmed", "skipped"].includes(e?.status);
+async function df(e, t, n = 0, r = !1, i = !1, a = null) {
 	if (!t || !r && Number.isInteger(n) && e.length > n && e.slice(n).every(Boolean)) return e;
 	let o = await t.tail({ limit: 100 }), s = o.startIndex + o.messages.length, c = Math.max(0, s - e.length), l = [], u = /* @__PURE__ */ new Map();
 	for (e.forEach((e, t) => {
@@ -5369,16 +5434,16 @@ async function tf(e, t, n = 0, r = !1, i = !1, a = null) {
 		o = await t.before(o, { limit: 100 });
 	}
 }
-function nf(e, t, n = globalThis) {
+function ff(e, t, n = globalThis) {
 	let r = () => e(), i = () => r().chatMetadata, a = () => String(r().chatId ?? ""), o = () => r().chat || [], s = /* @__PURE__ */ new Set(), c = /* @__PURE__ */ new Map(), l = () => n.SillyTavern?.libs?.localforage, u = $o("account"), d = () => {
 		let e = r().accountStorage, t = e?.getItem("scene_diary_account_id") || u;
 		return e?.getItem("scene_diary_account_id") || e?.setItem("scene_diary_account_id", t), t;
-	}, f = null, p = Promise.resolve(), m = "", h = !1, g = 0, _ = "", v = [], y = "", b, x = 0, S = "", C = null, w = async () => {
+	}, f = null, p = Promise.resolve(), m = "", h = !1, g = 0, _ = "", v = [], y = "", b, x = 0, S = "", C = null, w = null, T = {}, ee = 0, te = async () => {
 		let e = n.__TAURITAVERN__;
 		return e ? (await e.ready, e.api?.chat?.current?.handle?.()) : null;
-	}, T = (e) => !!e && f === e && e.id === a() && e.metadata === i(), E = () => f && T(f) && !_ ? i()?.[Go] : null, ee = () => E() || i()?.scene_diary, te = () => ({
-		state: E(),
-		persisted: ee(),
+	}, E = (e) => !!e && f === e && e.id === a() && e.metadata === i(), D = () => f && E(f) && !_ ? i()?.[Go] : null, ne = () => D() || i()?.scene_diary, O = () => ({
+		state: D(),
+		persisted: ne(),
 		chatId: a(),
 		blocker: _,
 		saveError: m,
@@ -5387,38 +5452,41 @@ function nf(e, t, n = globalThis) {
 		trace: v,
 		growthProgress: S,
 		growthPreview: C,
+		growthFailure: w,
+		closeRawResponses: T,
+		dialogueRevision: ee,
 		busy: [...c.keys()],
-		channels: nu(r()),
+		channels: du(r()),
 		messages: o().length
-	}), D = () => s.forEach((e) => e(te()));
-	function O(e) {
-		if (!e || !T(e)) throw new DOMException("聊天已切换", "AbortError");
+	}), k = () => s.forEach((e) => e(O()));
+	function A(e) {
+		if (!e || !E(e)) throw new DOMException("聊天已切换", "AbortError");
 	}
-	function k(e = !1) {
+	function j(e = !1) {
 		let t = f;
-		e && t.messageRevision++, g++, D();
+		e && t.messageRevision++, g++, k();
 		let n = p.then(async () => {
-			if (!T(t)) return !1;
+			if (!E(t)) return !1;
 			let e = r(), n = t.messageRevision, i = n === t.savedMessageRevision ? e.saveMetadata || e.saveChat : e.saveChat || e.saveMetadata;
 			if (!i) throw Error("宿主保存接口不可用。");
-			return await i(), T(t) && (t.savedMessageRevision = n, m = "", h = !0), T(t);
+			return await i(), E(t) && (t.savedMessageRevision = n, m = "", h = !0), E(t);
 		});
 		return p = n.catch((e) => {
-			T(t) && (m = e.message, h = !1);
+			E(t) && (m = e.message, h = !1);
 		}).finally(() => {
-			T(t) && (g--, D());
+			E(t) && (g--, k());
 		}), n;
 	}
-	function A(e, t = !1) {
-		let n = E();
+	function M(e, t = !1) {
+		let n = D();
 		if (!n) throw Error("请先打开受支持的聊天。");
 		let r = structuredClone(n), a = e(r);
-		return r.lastUpdatedAt = Date.now(), i()[Go] = r, D(), k(t).then(() => a);
+		return r.lastUpdatedAt = Date.now(), i()[Go] = r, k(), j(t).then(() => a);
 	}
-	function ne(e) {
+	function re(e) {
 		return "scene_diary_migration_backup_" + d() + "_" + a() + "_schema" + e + "_to8";
 	}
-	async function j() {
+	async function ie() {
 		let e = a(), s = i(), u = ++x;
 		if (f?.id !== e || f?.metadata !== s) {
 			for (let e of c.values()) e.abort();
@@ -5427,69 +5495,69 @@ function nf(e, t, n = globalThis) {
 				metadata: s,
 				messageRevision: 0,
 				savedMessageRevision: 0
-			}, m = "", h = !1, g = 0, v = [], y = "", S = "", C = null, t("");
+			}, m = "", h = !1, g = 0, v = [], y = "", S = "", C = null, w = null, T = {}, ee++, t("");
 		}
 		let p = f;
 		if (!e || r().groupId || !s) {
-			_ = "请选择一个单角色聊天。", D();
+			_ = "请选择一个单角色聊天。", k();
 			return;
 		}
 		if (n.AutoCardUpdaterAPI) {
-			_ = "检测到 SP·数据库，请停用 SP 并刷新后使用本扩展。", t(""), D();
+			_ = "检测到 SP·数据库，请停用 SP 并刷新后使用本扩展。", t(""), k();
 			return;
 		}
-		let E = s[Go];
-		if (E?.version > 8) _ = "聊天数据版本高于当前插件支持范围，请使用对应的插件版本。", D();
-		else if (E && E.version !== 8) {
-			_ = "正在备份旧聊天…", D();
+		let D = s[Go];
+		if (D?.version > 8) _ = "聊天数据版本高于当前插件支持范围，请使用对应的插件版本。", k();
+		else if (D && D.version !== 8) {
+			_ = "正在备份旧聊天…", k();
 			try {
-				let t = ne(E.version), n = await w(), r = await tf(o(), n?.history, 0, !0, !0);
-				if (!T(p) || u !== x || (await l().getItem(t) || await l().setItem(t, {
-					schema: E.version,
+				let t = re(D.version), n = await te(), r = await df(o(), n?.history, 0, !0, !0);
+				if (!E(p) || u !== x || (await l().getItem(t) || await l().setItem(t, {
+					schema: D.version,
 					savedAt: Date.now(),
 					metadata: structuredClone(s),
 					messages: structuredClone(r),
-					pendingRecovery: E.memorySpaceId ? await l().getItem("scene_diary_recovery_" + d() + "_" + e + "_" + E.memorySpaceId) : null
-				}), !T(p) || u !== x || s.scene_diary !== E)) return;
-				s[Go] = _c(E), _ = "", await k();
+					pendingRecovery: D.memorySpaceId ? await l().getItem("scene_diary_recovery_" + d() + "_" + e + "_" + D.memorySpaceId) : null
+				}), !E(p) || u !== x || s.scene_diary !== D)) return;
+				s[Go] = _c(D), _ = "", await j();
 			} catch (e) {
-				T(p) && s.scene_diary === E && (_ = "迁移备份失败，旧聊天仍保留。" + e.message, D());
+				E(p) && s.scene_diary === D && (_ = "迁移备份失败，旧聊天仍保留。" + e.message, k());
 			}
-		} else if (!E && o().filter(_s).length > 1) _ = "已有聊天，请选择开始接管的楼层。", D();
+		} else if (!D && o().filter(_s).length > 1) _ = "已有聊天，请选择开始接管的楼层。", k();
 		else {
-			if (_ = "", !E) await M(0);
+			if (_ = "", !D) await ae(0);
 			else {
-				let e = E.pendingTransaction;
-				e && sc.some((t) => e.results[t]?.status === "running" && !c.has("close:" + t)) && await A((e) => {
+				let e = D.pendingTransaction;
+				e && sc.some((t) => e.results[t]?.status === "running" && !c.has("close:" + t)) && await M((e) => {
 					for (let t of sc) {
 						let n = e.pendingTransaction.results[t];
 						n?.status === "running" && !c.has("close:" + t) && (n.status = "error", n.error = "请求已中断，可单独重试本项。");
 					}
-				}), E.status === "active" && o().some((e) => _s(e) && !e.extra?.scene_diary?.actId) && await A((e) => o().forEach((t, n) => {
+				}), D.status === "active" && o().some((e) => _s(e) && !e.extra?.scene_diary?.actId) && await M((e) => o().forEach((t, n) => {
 					_s(t) && !t.extra?.scene_diary?.actId && vs(e, t, e.currentActId, n);
 				}), !0);
 			}
-			D();
+			k();
 		}
 	}
-	async function M(e) {
+	async function ae(e) {
 		if (n.AutoCardUpdaterAPI || r().groupId || !a() || i()?.scene_diary) return;
 		_ = "";
 		let t = vc();
 		o().forEach((n, r) => {
 			r >= e && _s(n) && vs(t, n, 1, r);
-		}), fs(t).startMessageIndex = e, i()[Go] = t, await k(!0);
+		}), fs(t).startMessageIndex = e, i()[Go] = t, await j(!0);
 	}
-	async function re(e, t) {
+	async function oe(e, t) {
 		if (!e.messageIds.length) return [];
 		let n = o(), r = new Set(e.messageIds), i = (t) => t.filter((t) => _s(t) && Number(t.extra?.scene_diary?.actId) === e.id && r.has(t.extra?.scene_diary?.messageId)), a = i(n);
 		if (a.length === r.size) return a;
-		let s = await w();
-		if (O(t), !s?.history) return a;
-		let c = await tf(n, s.history, 0, !0);
-		return O(t), n.every(Boolean) && c.length <= n.length ? a : i(c);
+		let s = await te();
+		if (A(t), !s?.history) return a;
+		let c = await df(n, s.history, 0, !0);
+		return A(t), n.every(Boolean) && c.length <= n.length ? a : i(c);
 	}
-	function ie() {
+	function se() {
 		let e = r(), t = e.getCharacterCardFields?.() || {};
 		return {
 			char: e.name2 || t.name || "角色",
@@ -5497,75 +5565,76 @@ function nf(e, t, n = globalThis) {
 			context: Ds(t)
 		};
 	}
-	async function ae() {
-		let e = f, t = E(), n = fs(t);
+	async function ce() {
+		let e = f, t = D(), n = fs(t);
 		if (!n || t.status !== "active") return;
-		let r = await re(n, e);
+		let r = await oe(n, e);
 		if (!r.length) throw Error("本幕没有可整理的对话。");
-		if (O(e), E() !== t) throw Error("当前幕已变化，请重新结束本幕。");
-		await A((e) => {
+		if (A(e), D() !== t) throw Error("当前幕已变化，请重新结束本幕。");
+		await M((e) => {
 			e.status = "preview", fs(e).status = "closing", e.pendingTransaction = {
 				id: $o("close"),
 				actId: n.id,
 				sourceFingerprint: hs(r),
-				character: ie(),
+				character: se(),
 				results: Object.fromEntries(sc.map((e) => [e, { status: "idle" }]))
 			};
-		}), await Promise.allSettled([de("diary"), de("memory")]);
+		}), await Promise.allSettled([me("diary"), me("memory")]);
 	}
-	function oe(e) {
+	function le(e) {
 		if (c.has(e)) return null;
 		let t = new AbortController();
-		return c.set(e, t), D(), t;
+		return c.set(e, t), k(), t;
 	}
-	function se(e, t) {
-		c.get(e) === t && (c.delete(e), D());
+	function ue(e, t) {
+		c.get(e) === t && (c.delete(e), k());
 	}
-	let ce = (e, t) => {
-		T(e) && (v.push(t), v.length > 100 && v.shift(), D());
+	let de = (e, t) => {
+		E(e) && (v.push(t), v.length > 100 && v.shift(), k());
 	};
-	function le(e, t, n) {
-		let i = new Map(nu(r()).map((e) => [e.id, structuredClone(e)]));
+	function fe(e, t, n) {
+		let i = new Map(du(r()).map((e) => [e.id, structuredClone(e)]));
 		return (a, o) => {
-			O(n), t.throwIfAborted();
+			A(n), t.throwIfAborted();
 			let s = i.get(e.settings.bindings[a]);
 			if (!s) throw Error("请在设置中为「" + oc[a] + "」绑定自建渠道。");
-			return cu(r(), s, a, o, t);
+			return _u(r(), s, a, o, t);
 		};
 	}
-	async function ue(e, t, n, i) {
-		let a = await w();
-		O(t);
+	async function pe(e, t, n, i) {
+		let a = await te();
+		A(t);
 		let o = r().accountStorage;
-		return qd(e, {
+		return nf(e, {
 			chat: t.id,
 			account: d(),
 			store: a?.store,
 			embeddingKey: o?.getItem("scene_diary_embedding_key") || "",
 			rerankKey: o?.getItem("scene_diary_rerank_key") || ""
-		}, (e) => ce(t, e), n, i);
+		}, (e) => de(t, e), n, i);
 	}
-	async function de(e) {
-		let t = f, n = E(), r = n?.pendingTransaction;
+	async function me(e) {
+		let t = f, n = D(), r = n?.pendingTransaction;
 		if (!r || !sc.includes(e)) return;
-		let i = "close:" + e, a = oe(i);
+		let i = "close:" + e, a = le(i);
 		if (!a) return;
-		let o = a.signal, s = le(n, o, t), l = r.results[e], u = () => T(t) && E()?.pendingTransaction?.id === r.id && c.get(i) === a;
+		delete T[e];
+		let o = a.signal, s = fe(n, o, t), l = r.results[e], u = () => E(t) && D()?.pendingTransaction?.id === r.id && c.get(i) === a;
 		try {
-			let i = structuredClone(await re(fs(n), t));
+			let i = structuredClone(await oe(fs(n), t));
 			if (o.throwIfAborted(), !u() || hs(i) !== r.sourceFingerprint) throw Error("本幕对话已经修改，请取消关幕后重开审核。");
-			await A((t) => {
+			await M((t) => {
 				t.pendingTransaction.results[e] = {
 					...l,
 					status: "running",
 					error: ""
 				};
 			}), o.throwIfAborted();
-			let a = await Xl(e, n, r, i, s);
+			let a = await au(e, n, r, i, s);
 			if (!u()) return;
-			if (o.throwIfAborted(), hs(await re(fs(E()), t)) !== r.sourceFingerprint) throw Error("本幕对话已经修改，请取消关幕后重开审核。");
+			if (o.throwIfAborted(), hs(await oe(fs(D()), t)) !== r.sourceFingerprint) throw Error("本幕对话已经修改，请取消关幕后重开审核。");
 			if (!u()) return;
-			o.throwIfAborted(), await A((t) => {
+			o.throwIfAborted(), await M((t) => {
 				t.pendingTransaction.results[e] = {
 					status: "draft",
 					value: a
@@ -5573,9 +5642,9 @@ function nf(e, t, n = globalThis) {
 			}).catch(() => {});
 		} catch (t) {
 			if (!u()) return;
-			let n = E().pendingTransaction.results[e];
+			let n = D().pendingTransaction.results[e];
 			if (n.status === "outdated" || n.status === "skipped") return;
-			await A((n) => {
+			t instanceof eu && typeof t.rawResponse == "string" && (T[e] = t.rawResponse), await M((n) => {
 				n.pendingTransaction.results[e] = {
 					...l,
 					status: "error",
@@ -5583,31 +5652,31 @@ function nf(e, t, n = globalThis) {
 				};
 			}).catch(() => {});
 		} finally {
-			se(i, a);
+			ue(i, a);
 		}
 	}
-	async function fe(e, t, n = !1, r = !0) {
-		if (sc.includes(e) && !c.has("close:" + e) && E()?.pendingTransaction) {
+	async function he(e, t, n = !1, r = !0) {
+		if (sc.includes(e) && !c.has("close:" + e) && D()?.pendingTransaction) {
 			if (r && !n && e === "diary" && !$(t?.body)) throw Error("请填写日记正文。");
 			if (!n && e === "memory" && !Array.isArray(t)) throw Error("请先提取记忆。");
 			if (r && !n && e === "memory" && t.some((e) => e.accepted && !hc(e.value))) throw Error("请检查勾选记忆点的标题、内容和重要度。");
-			await A((i) => {
-				i.pendingTransaction.results[e] = n ? { status: "skipped" } : {
+			await M((i) => {
+				delete T[e], i.pendingTransaction.results[e] = n ? { status: "skipped" } : {
 					status: r ? "confirmed" : "draft",
 					value: t
 				};
 			});
 		}
 	}
-	async function pe() {
-		let e = f, t = E(), n = t?.pendingTransaction;
-		if (!n || !sc.every((e) => ef(n.results[e]))) throw Error("请先处理两项审核。");
-		let r = await re(fs(t), e);
-		if (O(e), E() !== t) throw Error("审核内容已变化，请重试提交。");
+	async function ge() {
+		let e = f, t = D(), n = t?.pendingTransaction;
+		if (!n || !sc.every((e) => uf(n.results[e]))) throw Error("请先处理两项审核。");
+		let r = await oe(fs(t), e);
+		if (A(e), D() !== t) throw Error("审核内容已变化，请重试提交。");
 		if (hs(r) !== n.sourceFingerprint) throw Error("本幕来源已变化，请取消后重新整理。");
-		await A((e) => {
+		await M((e) => {
 			let t = fs(e), { diary: i, memory: a } = n.results;
-			a.status === "confirmed" && Zl(e, a.value), i.status === "confirmed" && e.diaries.push(gc({
+			a.status === "confirmed" && ou(e, a.value), i.status === "confirmed" && e.diaries.push(gc({
 				...i.value,
 				createdAt: Date.now()
 			})), Object.assign(t, {
@@ -5616,79 +5685,91 @@ function nf(e, t, n = globalThis) {
 				sourceFingerprint: n.sourceFingerprint,
 				startMessageIndex: r[0]?.extra?.scene_diary?.messageIndex ?? t.startMessageIndex,
 				endMessageIndex: r.at(-1)?.extra?.scene_diary?.messageIndex ?? t.endMessageIndex
-			}), e.status = "pending_next_act", e.pendingTransaction = null;
+			}), e.status = "pending_next_act", e.pendingTransaction = null, T = {};
 		});
 	}
-	function me() {
+	function _e() {
 		for (let e of sc) {
 			let t = "close:" + e;
 			c.get(t)?.abort(), c.delete(t);
 		}
-		return A((e) => {
+		return T = {}, M((e) => {
 			fs(e).status = "active", e.status = "active", e.pendingTransaction = null;
 		});
 	}
-	async function he(e, t, n = "recent") {
-		let r = E(), i = f, a = e === "growth" ? [] : await re(fs(r), i);
-		return O(i), Yl(e, {
-			...r,
-			settings: t
-		}, e !== "growth" && r.pendingTransaction?.character || ie(), a, n);
+	function ve(e) {
+		return e !== "growth" && D()?.pendingTransaction?.character || se();
 	}
-	async function ge(e = "recent") {
-		let t = f, n = E(), r = Jl(n, e);
+	async function ye() {
+		let e = f;
+		await p, A(e);
+		let t = fs(D());
+		return t ? oe(t, e) : [];
+	}
+	async function be(e = "recent") {
+		let t = f, n = D(), r = nu(n, e);
 		if (!r.length) throw Error("所选范围没有有效日记。");
-		let i = oe("growth");
-		if (i) try {
-			S = "正在读取 " + r.length + " 篇日记…", D();
-			let a = Yl("growth", n, ie(), [], e), o = await le(n, i.signal, t)("growth", Kl(a));
-			i.signal.throwIfAborted(), O(t), C = {
-				...o,
-				mode: e,
-				count: r.length,
-				revision: n.characterGrowth.revision,
-				diaries: JSON.stringify(r)
-			};
-		} catch (t) {
-			throw e === "global" && /context|too many tokens|input.*long|上下文|上下文长度/i.test(t.message) ? Error(t.message + "。请更换长上下文模型后重试。") : t;
-		} finally {
-			T(t) && (S = ""), se("growth", i);
+		let i = le("growth");
+		if (i) {
+			w = null;
+			try {
+				S = "正在读取 " + r.length + " 篇日记…", k();
+				let a = iu("growth", n, se(), [], e), o = await fe(n, i.signal, t)("growth", $l(a));
+				i.signal.throwIfAborted(), A(t), C = {
+					...o,
+					mode: e,
+					count: r.length,
+					revision: n.characterGrowth.revision,
+					diaries: JSON.stringify(r)
+				};
+			} catch (n) {
+				if (i.signal.throwIfAborted(), A(t), n instanceof eu && typeof n.rawResponse == "string") {
+					w = {
+						message: n.message,
+						rawResponse: n.rawResponse
+					};
+					return;
+				}
+				throw e === "global" && /context|too many tokens|input.*long|上下文|上下文长度/i.test(n.message) ? Error(n.message + "。请更换长上下文模型后重试。") : n;
+			} finally {
+				E(t) && (S = ""), ue("growth", i);
+			}
 		}
 	}
-	async function _e(e) {
+	async function xe(e) {
 		let t = C;
-		t?.changed && (t.appliedRevision === E().characterGrowth.revision && e === E().characterGrowth.content ? await k() : await A((n) => {
-			if (n.characterGrowth.revision !== t.revision || JSON.stringify(Jl(n, t.mode)) !== t.diaries) throw Error("画像或本次日记已变化，请重新生成。");
+		t?.changed && (t.appliedRevision === D().characterGrowth.revision && e === D().characterGrowth.content ? await j() : await M((n) => {
+			if (n.characterGrowth.revision !== t.revision || JSON.stringify(nu(n, t.mode)) !== t.diaries) throw Error("画像或本次日记已变化，请重新生成。");
 			if (!$(e)) throw Error("请填写候选画像。");
 			ac(n, e), t.appliedRevision = n.characterGrowth.revision;
-		}), C === t && (C = null), D());
+		}), C === t && (C = null), k());
 	}
-	async function ve(e, t) {
-		let r = o(), i = Kd(r, e.settings);
+	async function Se(e, t) {
+		let r = o(), i = tf(r, e.settings);
 		if (i.rows.length > e.settings.queryDepth || !n.__TAURITAVERN__) return i;
-		let a = await w();
-		if (O(t), !a?.history) return i;
-		let s = await tf(r, a.history, 0, !0, !1, (t, n) => Kd(t.slice(n), e.settings).rows.length > e.settings.queryDepth);
-		return O(t), Kd(s, e.settings);
+		let a = await te();
+		if (A(t), !a?.history) return i;
+		let s = await df(r, a.history, 0, !0, !1, (t, n) => tf(t.slice(n), e.settings).rows.length > e.settings.queryDepth);
+		return A(t), tf(s, e.settings);
 	}
-	async function ye(e, i, a) {
+	async function N(e, i, a) {
 		t(""), y = "";
-		let o = E(), s = f;
+		let o = D(), s = f;
 		if (!o || n.AutoCardUpdaterAPI || !["active", "preview"].includes(o.status) || !Array.isArray(e)) return;
 		b?.abort();
 		let c = (b = new AbortController()).signal;
 		v = [];
 		try {
-			let i = await ve(o, s);
+			let i = await Se(o, s);
 			if (i.errors.length) throw Error("最近对话正文标签未匹配，请检查正文提取设置。");
-			let a = await ue(o, s, c), l = await Zd(o, i.text, a, (e) => ce(s, e));
-			if (O(s), c.throwIfAborted(), !["active", "preview"].includes(E()?.status) || E()?.currentActId !== o.currentActId) throw new DOMException("当前剧幕已变化", "AbortError");
-			if (E() !== o) throw Error("聊天内容已更新，请重新生成。");
+			let a = await pe(o, s, c), l = await sf(o, i.text, a, (e) => de(s, e));
+			if (A(s), c.throwIfAborted(), !["active", "preview"].includes(D()?.status) || D()?.currentActId !== o.currentActId) throw new DOMException("当前剧幕已变化", "AbortError");
+			if (D() !== o) throw Error("聊天内容已更新，请重新生成。");
 			e.splice(0, e.length, ...bs(e, o.currentActId)), String(r().mainApi).toLowerCase() === "openai" ? y = l : t(l, Math.min(e.length, 100)), v.some((e) => e.status === "warning") && n.toastr?.warning?.("语义召回部分失败，详情见 scene&diary 诊断。");
 		} catch (e) {
-			if (!c.aborted && T(s)) {
+			if (!c.aborted && E(s)) {
 				let t = Us(e);
-				ce(s, {
+				de(s, {
 					stage: "召回",
 					status: "error",
 					title: t
@@ -5697,32 +5778,35 @@ function nf(e, t, n = globalThis) {
 			a?.(!0);
 		}
 	}
-	async function be(e) {
-		let t = E(), r = f;
+	async function Ce(e) {
+		let t = D(), r = f;
 		if (!t || n.AutoCardUpdaterAPI || !["active", "preview"].includes(t.status) || !Array.isArray(e.chat)) return;
 		let i = y;
 		if (y = "", !e.dryRun) {
 			As(e.chat, i);
 			return;
 		}
-		let a = await ve(t, r);
+		let a = await Se(t, r);
 		if (a.errors.length) return;
-		let o = await Qd(t, a.text);
-		E() === t && As(e.chat, o);
+		let o = await cf(t, a.text);
+		D() === t && As(e.chat, o);
 	}
-	function xe(e, t) {
-		let n = E(), r = o()[Number(e)];
-		if (n && _s(r) && !!r.is_user === t && (["active", "preview"].includes(n.status) || t && n.status === "pending_next_act")) return A((t) => {
+	function we(e, t) {
+		let n = D(), r = o()[Number(e)];
+		if (n && _s(r) && !!r.is_user === t && (["active", "preview"].includes(n.status) || t && n.status === "pending_next_act")) return M((t) => {
 			t.status === "pending_next_act" ? ys(t, r, Number(e)) : vs(t, r, t.currentActId, Number(e));
 		}, !0);
 	}
-	function Se(e) {
-		let t = E(), n = o()[Number(e)]?.extra?.scene_diary?.actId;
-		if (!(!t || !t.diaries.length || n && t.acts.find((e) => e.id === n)?.status !== "closed" || t.characterGrowth.reviewRecommended)) return A((e) => {
+	function P(e) {
+		let t = D();
+		if (!t) return;
+		let n = o()[Number(e)]?.extra?.scene_diary?.actId, r = !n || n === t.currentActId;
+		if (r && ee++, !t.diaries.length || n && t.acts.find((e) => e.id === n)?.status !== "closed" || t.characterGrowth.reviewRecommended) r && k();
+		else return M((e) => {
 			e.characterGrowth.reviewRecommended = !0;
 		});
 	}
-	function N() {
+	function Te() {
 		let e = r(), i = e.eventTypes || {}, a = (t, r, a) => e.eventSource?.on(i[t] || r, (...e) => {
 			try {
 				return Promise.resolve(a(...e)).catch((e) => {
@@ -5732,43 +5816,44 @@ function nf(e, t, n = globalThis) {
 				n.toastr?.error?.(e.message);
 			}
 		});
-		return a("CHAT_CHANGED", "chat_id_changed", j), a("CHAT_LOADED", "chatLoaded", j), a("MESSAGE_SENT", "message_sent", (e) => xe(e, !0)), a("MESSAGE_RECEIVED", "message_received", (e) => xe(e, !1)), a("MESSAGE_EDITED", "message_edited", Se), a("MESSAGE_UPDATED", "message_updated", Se), a("MESSAGE_SWIPED", "message_swiped", Se), a("MESSAGE_DELETED", "message_deleted", () => Se()), a("CHAT_COMPLETION_PROMPT_READY", "chat_completion_prompt_ready", be), a("GENERATION_STOPPED", "generation_stopped", () => {
+		return a("CHAT_CHANGED", "chat_id_changed", ie), a("CHAT_LOADED", "chatLoaded", ie), a("MESSAGE_SENT", "message_sent", (e) => we(e, !0)), a("MESSAGE_RECEIVED", "message_received", (e) => we(e, !1)), a("MESSAGE_EDITED", "message_edited", P), a("MESSAGE_UPDATED", "message_updated", P), a("MESSAGE_SWIPED", "message_swiped", P), a("MESSAGE_DELETED", "message_deleted", () => P()), a("CHAT_COMPLETION_PROMPT_READY", "chat_completion_prompt_ready", Ce), a("GENERATION_STOPPED", "generation_stopped", () => {
 			b?.abort(), y = "", t("");
-		}), j();
+		}), ie();
 	}
 	return {
-		snapshot: te,
+		snapshot: O,
 		subscribe(e) {
-			return s.add(e), e(te()), () => s.delete(e);
+			return s.add(e), e(O()), () => s.delete(e);
 		},
-		connect: N,
-		initialize: j,
-		takeOver: M,
-		mutate: A,
-		save: k,
+		connect: Te,
+		initialize: ie,
+		takeOver: ae,
+		mutate: M,
+		save: j,
 		getContext: e,
-		rearrange: ye,
-		promptReady: be,
-		openClose: ae,
-		runClose: de,
-		reviewPart: fe,
-		confirmClose: pe,
-		cancelClose: me,
-		previewModules: he,
-		generateGrowth: ge,
-		acceptGrowth: _e,
+		rearrange: N,
+		promptReady: Ce,
+		openClose: ce,
+		runClose: me,
+		reviewPart: he,
+		confirmClose: ge,
+		cancelClose: _e,
+		previewCharacter: ve,
+		readPreviewDialogue: ye,
+		generateGrowth: be,
+		acceptGrowth: xe,
 		discardGrowth() {
-			C = null, D();
+			C = null, k();
 		},
 		cancel(e) {
 			c.get(e)?.abort();
 		},
-		refresh: D,
-		backup: () => bc(E(), a()),
-		import: (e) => A((t) => Object.assign(t, xc(t, e, a()))),
+		refresh: k,
+		backup: () => bc(D(), a()),
+		import: (e) => M((t) => Object.assign(t, xc(t, e, a()))),
 		migrationBackup: async () => {
 			for (let e = 7; e > 0; e--) {
-				let t = await l()?.getItem(ne(e));
+				let t = await l()?.getItem(re(e));
 				if (t) return t;
 			}
 			throw Error("这个聊天没有迁移备份。");
@@ -5779,12 +5864,12 @@ function nf(e, t, n = globalThis) {
 	};
 }
 // src/index.ts
-function rf(e, t) {
-	let n = nf(e, t);
+function pf(e, t) {
+	let n = ff(e, t);
 	Object.assign(globalThis, {
 		sceneDiaryRearrangeChat: n.rearrange,
 		sceneDiary: {
-			version: $d,
+			version: lf,
 			...n
 		}
 	});
@@ -5793,7 +5878,7 @@ function rf(e, t) {
 		let e = document.createElement("div");
 		e.id = "scene-diary-root", document.body.append(e);
 		let t = Ys(n);
-		Ho(Gd).provide(Xs, t).mount(e);
+		Ho(ef).provide(Xs, t).mount(e);
 		let r = document.getElementById("send_but");
 		if (r) {
 			let e = document.createElement("button");
@@ -5803,4 +5888,4 @@ function rf(e, t) {
 	};
 	document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r, { once: !0 }) : r();
 }
-export { rf as install };
+export { pf as install };

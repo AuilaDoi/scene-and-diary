@@ -23,18 +23,25 @@ export function taskMessages(modules) {
     ].join('\n\n') }];
 }
 
+export class TaskResponseError extends Error {
+    constructor(message, rawResponse) {
+        super(message);
+        this.rawResponse = rawResponse;
+    }
+}
+
 export function parseResult(task, text) {
     const blocks = [...text.matchAll(new RegExp('<sd_' + task + '>([\\s\\S]*?)</sd_' + task + '>', 'g'))];
-    if (blocks.length !== 1) throw new Error('需要一个完整的任务结果标签块，可重试本项。');
+    if (blocks.length !== 1) throw new TaskResponseError('需要一个完整的任务结果标签块，可重试本项。', text);
     let data;
-    try { data = JSON.parse(blocks[0][1]); } catch { throw new Error('标签内 JSON 无法解析，可重试本项。'); }
+    try { data = JSON.parse(blocks[0][1]); } catch { throw new TaskResponseError('标签内 JSON 无法解析，可重试本项。', text); }
     const valid = {
         diary: () => clean(data?.title) && clean(data?.body),
         memory: () => Array.isArray(data?.memories) && data.memories.every(m => validFact(m) && (m.storyTime === null || typeof m.storyTime === 'string')),
         growth: () => typeof data?.changed === 'boolean' && (data.changed ? !!clean(data.content) : data.content === ''),
         test: () => data?.ok === true,
     };
-    if (!valid[task]()) throw new Error('结果字段与格式规定不符，可重试本项。');
+    if (!valid[task]()) throw new TaskResponseError('结果字段与格式规定不符，可重试本项。', text);
     return data;
 }
 
@@ -42,14 +49,15 @@ export function growthSources(state, mode) {
     const diaries = state.diaries.filter(item => !item.needsReview && clean(item.body)).sort((a, b) => b.createdAt - a.createdAt);
     return (mode === 'global' ? diaries : diaries.slice(0, state.settings.growthDiaryCount)).reverse();
 }
+export function dialogueMaterial(messages, extraction, character) {
+    const dialogue = buildDialogue(messages, extraction, character.char, character.user);
+    if (dialogue.errors.length) throw new Error('正文或故事时间标签未匹配：' + dialogue.errors.map(item => '楼层 ' + (item.index + 1)).join('、'));
+    return dialogue.text;
+}
 export function modulesFor(task, state, character, messages = [], mode = 'recent') {
-    let material;
-    if (task === 'growth') material = growthSources(state, mode).map(item => item.title + '\n' + item.body).join('\n\n');
-    else {
-        const dialogue = buildDialogue(messages, state.settings.extraction, character.char, character.user);
-        if (dialogue.errors.length) throw new Error('正文或故事时间标签未匹配：' + dialogue.errors.map(item => '楼层 ' + (item.index + 1)).join('、'));
-        material = dialogue.text;
-    }
+    const material = task === 'growth'
+        ? growthSources(state, mode).map(item => item.title + '\n' + item.body).join('\n\n')
+        : dialogueMaterial(messages, state.settings.extraction, character);
     return taskModules(task, state.settings, character, state.characterGrowth.content, material);
 }
 export async function closeOutput(task, state, transaction, messages, request) {
